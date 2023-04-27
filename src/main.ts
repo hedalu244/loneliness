@@ -32,6 +32,7 @@ class Level {
     initial_board: Board;
     height: number;
     width: number;
+    cell_size: number;
 
     board: Board; // 門番付き
 
@@ -43,6 +44,7 @@ class Level {
         this.width = initial_board.length;
         this.height = initial_board[0].length;
         this.initial_board = initial_board;
+        this.cell_size = 50;
 
         this.board = initial_board;
 
@@ -135,6 +137,7 @@ class Level {
         }
         this.anim_queue.push({ board: this.board, move: move_direction })
     }
+
     undo() {
         console.log("undo")
         let history = this.history.pop()
@@ -158,12 +161,11 @@ class Level {
         console.log(this.anim_queue.map(x => JSON.stringify(x)).join("\n"))
     }
 
-    draw(p: p5) {
+    draw(renderer: Renderer) {
         if (1 < this.anim_queue.length && this.anim_starttime + 200 < performance.now()) {
             this.anim_queue.shift()
             this.anim_starttime = performance.now()
         }
-        
         const anim_elapsetime = performance.now() - this.anim_starttime;
 
         // t = アニメーション開始からの経過時間
@@ -186,26 +188,39 @@ class Level {
             }
         }
 
-        p.background(220);
-        p.fill(0)
-        p.rect(0, 0, (this.width + 1) * 30, (this.height + 1) * 30);
+        renderer.p.noStroke()
+        renderer.p.fill(30)
+        renderer.p.rect(0, 0, (this.width + 1) * this.cell_size, (this.height + 1) * this.cell_size);
+
+        const metaballs:number[] = []
+
         for (let i = 1; i <= this.width; i++)
             for (let j = 1; j <= this.height; j++) {
                 const [offsetx, offsety] = move_offset(anim_elapsetime, this.anim_queue[0].move[i][j])
                 switch (this.anim_queue[0].board[i][j]) {
-                    case Cell.Free: {
-                        p.fill("white");
-                        p.ellipse((i + offsetx) * 30, (j + offsety) * 30, 30);
+                    case Cell.Free:
+                    case Cell.Fixed: {
+                        metaballs.push(
+                            (i + offsetx) * this.cell_size,
+                            (j + offsety) * this.cell_size, 
+                            0, this.cell_size * 0.42);
                     } break;
+                }
+            }
+        while (metaballs.length < 40)
+            metaballs.push(0);
+        renderer.renderMetaball(metaballs, this.cell_size * 0.46);
+
+        for (let i = 1; i <= this.width; i++)
+            for (let j = 1; j <= this.height; j++) {
+                switch (this.anim_queue[0].board[i][j]) {
                     case Cell.Wall: {
-                        p.fill("White");
-                        p.ellipse((i + offsetx) * 30, (j + offsety) * 30, 10);
+                        renderer.p.fill(220);
+                        renderer.p.ellipse(i * this.cell_size, j * this.cell_size, this.cell_size * 0.25);
                     } break;
                     case Cell.Fixed: {
-                        p.fill("white");
-                        p.ellipse((i + offsetx) * 30, (j + offsety) * 30, 30);
-                        p.fill("Black");
-                        p.ellipse((i + offsetx) * 30, (j + offsety) * 30, 10);
+                        renderer.p.fill(30);
+                        renderer.p.ellipse(i * this.cell_size, j * this.cell_size, this.cell_size * 0.25);
                     } break;
                 }
             }
@@ -228,6 +243,206 @@ function test() {
 }
 
 test()
+
+class Renderer {
+    p: p5
+    metaballShader: p5.Shader;
+    fxaaShader: p5.Shader;
+    metaballScr: p5.Graphics;
+    fxaaScr: p5.Graphics;
+    static readonly VS = `
+    precision highp float;
+
+    attribute vec3 aPosition;
+    attribute vec2 aTexCoord;
+    varying vec2 uv;
+
+    void main() {
+        vec4 position = vec4(aPosition, 1.0);
+
+        gl_Position = position;
+        uv = aTexCoord;
+    }`;
+    static readonly raymarchFS = `
+    precision highp float;
+
+    varying vec2 uv;
+    uniform vec2 res;
+    uniform float smooth_param;
+
+    const vec3 light_dir = normalize(vec3(2.0, -4.0, -3.0));
+    const vec3 c_light_pos = vec3(2.0, -4.0, -0.0);
+
+    const int 	NUM_BALLS			= 10;
+    const int 	TRACE_STEPS 		= 100;
+    const float TRACE_EPSILON 		= 0.001;
+    const float TRACE_DISTANCE		= 500.0;
+    const float NORMAL_EPSILON		= 0.1;
+
+    uniform vec4 balls[NUM_BALLS];
+
+    float smin( float a, float b, float k)
+    {
+        float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0 );
+        return mix(b, a, h) - k * h * (1.0 - h);
+    } 
+
+    float metaballs_field(in vec3 at) {
+        float sum = TRACE_DISTANCE;
+        for (int i = 0; i < NUM_BALLS; ++i) {
+            if (balls[i].w == 0.) continue;
+            float r = length(balls[i].xyz - at) - balls[i].w;
+            sum = smin(sum, r, smooth_param);
+        }
+        return sum;
+    }
+
+    vec3 normal(vec3 at) {
+        vec2 e = vec2(0.0, NORMAL_EPSILON);
+        return normalize(vec3(metaballs_field(at+e.yxx)-metaballs_field(at), 
+                            metaballs_field(at+e.xyx)-metaballs_field(at),
+                            metaballs_field(at+e.xxy)-metaballs_field(at)));
+    }
+
+    vec4 raymarch(vec3 pos, vec3 dir) {
+        float l = 0.;
+        for (int i = 0; i < TRACE_STEPS; i++) {
+            float d = metaballs_field(pos + dir * l);
+            if (d < TRACE_EPSILON)
+                break;
+            l += d;
+            if (l > TRACE_DISTANCE) break;
+        }
+        return vec4(pos + dir * l, l);
+    }`
+
+    static readonly metaballFS = `
+    void main() {
+        vec3 eye = vec3(uv * res, -100);
+        vec3 dir = vec3(0, 0, 1);
+        
+        vec4 pos = raymarch(eye, dir);
+
+        if (pos.w >= TRACE_DISTANCE) {
+            gl_FragColor = vec4(0, 0, 0, 0);
+        }
+        else {
+            vec3 n = normal(pos.xyz);
+            float lambert = max(0., dot(n, light_dir)) * 0.5;
+            float ambient = 0.5;
+            float f = min(1., 1. + n.z);
+            float f2 = f * f;
+            float fresnel = f * f2 * f2 * ambient;
+            
+            gl_FragColor = vec4(vec3(lambert + ambient + fresnel), 1.);
+        }
+    }`;
+    static readonly floorFS = `
+    uniform sampler2D tex;
+
+    void main() {
+        vec3 pos = vec3(uv * res, 20);
+        vec4 color = texture2D(tex, uv);
+        vec4 pos = raymarch(pos, light_dir);
+
+        if (pos.w >= TRACE_DISTANCE) {
+            gl_FragColor = vec4(0, 0, 0, 1);
+        }
+        else {
+            vec3 n = normal(hit.xyz);
+            float lambert = max(0., dot(n, light_dir)) * 0.5;
+            float ambient = 0.4;
+            float f = max(0., 1. + n.z);
+            float f2 = f * f;
+            float fresnel = f * f2 * f2 * ambient;
+            
+            gl_FragColor = vec4(vec3(lambert + ambient + fresnel), 1.);
+        }
+    }`;
+    static readonly fxaaFS = `
+    precision highp float;
+    
+    varying vec2 uv;
+    uniform vec2 res;
+    
+    uniform sampler2D tex;
+
+    float lum(vec4 color) {
+        return dot(color, vec4(0.299, 0.587, 0.114, 1.));
+    }
+    
+    void main() {
+        //FXAA
+        vec4 center = texture2D(tex, uv);
+    
+        vec2 px = 1.0 / res.xy;    
+        float lumC = lum(center);
+        float lumL = lum(texture2D(tex, uv + vec2(-0.5, 0) * px));
+        float lumR = lum(texture2D(tex, uv + vec2( 0.5, 0) * px));
+        float lumT = lum(texture2D(tex, uv + vec2( 0, -0.5) * px));
+        float lumB = lum(texture2D(tex, uv + vec2( 0,  0.5) * px));
+        
+        float maxlum = max(max(max(lumL, lumR), max(lumT, lumB)), lumC);
+        float minlum = min(min(min(lumL, lumR), min(lumT, lumB)), lumC);
+    
+        vec2 dir = normalize(vec2(lumB - lumT, lumL - lumR));
+        
+        vec2 alignedDir = abs(dir.x) < 0.5 ? vec2(0, dir.y / (dir.x + 0.001))
+                        : abs(dir.y) < 0.5 ? vec2(dir.x / (dir.y + 0.001), 0) : dir;
+        //vec2 alignedDir = dir * dir * dir / (dir.yx + 0.01);
+        
+        vec2 offset1 = clamp(alignedDir, -0.5, 0.5) * px;
+        vec2 offset2 = clamp(alignedDir, -1.5, 1.5) * px;
+        
+        vec4 rgbN1 = texture2D(tex, uv - offset1);
+        vec4 rgbP1 = texture2D(tex, uv + offset1);
+        vec4 rgbN2 = texture2D(tex, uv - offset2);
+        vec4 rgbP2 = texture2D(tex, uv + offset2);
+        
+        vec4 AA1 = (rgbN1 + rgbP1) * 0.5;
+        vec4 AA2 = (rgbN1 + rgbP1 + rgbN2 + rgbP2) * 0.25;
+        
+        float lumAA2 = lum(AA2);
+        gl_FragColor = (minlum < lumAA2 && lumAA2 < maxlum) ? AA2 : AA1;
+
+        gl_FragColor.rgb = 0. < gl_FragColor.a ? gl_FragColor.rgb / gl_FragColor.a : gl_FragColor.rgb;
+    }`;
+
+    renderMetaball(balls: number[], smooth_scale: number) {
+        this.metaballScr.clear(0, 0, 0, 0);
+        this.metaballScr.shader(this.metaballShader);
+
+        // x, y, z, radius
+        this.metaballShader.setUniform('balls', balls);
+        this.metaballShader.setUniform('res', [this.p.width, this.p.height]);
+        this.metaballShader.setUniform('smooth_param', smooth_scale)
+        this.metaballScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+
+        /*
+        fxaaScr.clear(0, 0, 0, 0);
+        fxaaScr.shader(fxaaShader);
+        fxaaShader.setUniform('res', [p.width, p.height]);
+        fxaaShader.setUniform('tex', metaballScr);
+        fxaaScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+        */
+
+        this.p.image(this.metaballScr, 0, 0)
+    }
+
+    constructor(p: p5) {
+        this.p = p
+
+        if (this.metaballScr) this.metaballScr.remove()
+        this.metaballScr = p.createGraphics(p.width, p.height, p.WEBGL);
+        this.metaballScr.setAttributes('alpha', true);
+        this.metaballShader = this.metaballScr.createShader(Renderer.VS, Renderer.raymarchFS + Renderer.metaballFS);
+
+        if (this.fxaaScr) this.fxaaScr.remove()
+        this.fxaaScr = p.createGraphics(p.width, p.height, p.WEBGL);
+        this.fxaaScr.setAttributes('alpha', true);
+        this.fxaaShader = this.fxaaScr.createShader(Renderer.VS, Renderer.fxaaFS);
+    }
+}
 
 const sketch = (p: p5) => {
     function keyDown(event: KeyboardEvent) {
@@ -252,20 +467,24 @@ const sketch = (p: p5) => {
         }
     }
 
-    p.setup = () => {
-        p.createCanvas(400, 400);
-        document.addEventListener("keydown", keyDown, false);
-    };
-
+    let renderer: Renderer;
     const level = new Level([
         [0, 3, 0, 3],
-        [0, 2, 0, 0],
+        [0, 2, 0, 1],
         [0, 0, 2, 3],
     ])
 
+    p.setup = () => {
+        p.createCanvas(400, 400);
+        renderer = new Renderer(p);
+        document.addEventListener("keydown", keyDown, false);
+    };
+
+
     p.draw = () => {
         p.background(220);
-        level.draw(p)
+
+        level.draw(renderer)
     }
 };
 
