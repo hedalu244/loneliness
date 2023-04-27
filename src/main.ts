@@ -1,5 +1,41 @@
 import p5 from "p5";
 
+function n_array<T>(length: number, map: (v: unknown, k: number) => T): T[] {
+    return Array.from({ length: length }, map)
+}
+
+class UnionFind {
+    parent: number[];
+    rank: number[];
+
+    constructor(N: number) {
+        this.rank = n_array(N, () => 0);
+        this.parent = n_array(N, (v, k) => k);
+    }
+    root(i: number): number {
+        if (this.parent[i] == i)
+            return i;
+        
+        const root = this.root(this.parent[i]);
+        this.parent[i] = root;
+        return root;
+    }
+    unite(a: number, b: number): void{
+        a = this.root(a);
+        b = this.root(b);
+        if (a == b)
+            return;
+
+        if (this.rank[a] < this.rank[b])
+            this.parent[a] = b;
+        else {
+            this.parent[b] = a;
+            if (this.rank[b] == this.rank[a])
+                this.rank[a] += 1;
+        }
+    }
+}
+
 const Cell = {
     Empty: 0,
     Wall: 1,
@@ -24,8 +60,8 @@ type BoardAnimation = {
     move: Direction[][],
 }
 
-function n_array<T>(length: number, map: (v: unknown, k: number) => T): T[] {
-    return Array.from({ length: length }, map)
+function isBlob(x: Cell): boolean {
+    return x == Cell.Free || x == Cell.Fixed;
 }
 
 class Level {
@@ -155,6 +191,39 @@ class Level {
         this.show()
     }
 
+    check() {
+        // uf構築
+        const uf = new UnionFind(this.width * this.height);
+        let lastBlob = 0;
+        for(let i = 0; i < this.width; i++)
+            for(let j = 0; j < this.height; j++) {
+                const x = this.board[i + 1][j + 1];
+                const u = this.board[i + 2][j + 1];
+                const l = this.board[i + 1][j + 2];
+
+                const xid = i * this.height + j;
+                const uid = (i + 1) * this.height + j;
+                const lid = i * this.height + j + 1;
+
+                if (isBlob(x)) lastBlob = xid;
+                if (isBlob(x) && isBlob(u))
+                    uf.unite(xid, uid);
+                if (isBlob(x) && isBlob(l))
+                    uf.unite(xid, lid);
+        }
+
+        // 1つでも lastBlobと連結していない blob があれば false
+        for(let i = 0; i < this.width; i++)
+            for(let j = 0; j < this.height; j++) {
+                const x = this.board[i + 1][j + 1];
+                const xid = i * this.height + j;
+                if (isBlob(x) && uf.root(xid) != uf.root(lastBlob))
+                    return false;
+            }
+        return true;
+    }
+
+
     show() {
         console.log(this.history.map(x => JSON.stringify(x)).join("\n"))
         console.log(this.board.map(x => JSON.stringify(x)).join("\n"))
@@ -188,6 +257,7 @@ class Level {
             }
         }
 
+        renderer.p.background(this.check() ? 150 : 220);
         renderer.p.noStroke()
         renderer.p.fill(30)
         renderer.p.rect(0, 0, (this.width + 1) * this.cell_size, (this.height + 1) * this.cell_size);
@@ -469,9 +539,9 @@ const sketch = (p: p5) => {
 
     let renderer: Renderer;
     const level = new Level([
-        [0, 3, 0, 3],
-        [0, 2, 0, 1],
-        [0, 0, 2, 3],
+        n_array(4, () => Math.floor(Math.random() * 4)),
+        n_array(4, () => Math.floor(Math.random() * 4)),
+        n_array(4, () => Math.floor(Math.random() * 4)),
     ])
 
     p.setup = () => {
