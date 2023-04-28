@@ -230,6 +230,9 @@ export class Renderer {
     setBlobArea(width: number, height: number, smooth_scale: number) {
         this.smooth_scale = smooth_scale;
 
+        if (this.blobScr && this.blobScr.width == width && this.blobScr.height == height)
+            return;
+
         if (this.blobScr) this.blobScr.remove()
         this.blobScr = this.p.createGraphics(width, height, this.p.WEBGL);
         this.blobScr.setAttributes('alpha', true);

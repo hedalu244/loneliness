@@ -1,9 +1,9 @@
 import p5 from "p5";
 
-import { n_array, UnionFind } from "./algorithm";
-import { Level, Direction } from "./level";
+import { n_array, UnionFind, Direction} from "./algorithm";
 import { Title } from "./title"
 import { Renderer } from "./renderer";
+import { Level } from "./level";
 
 type State = Title | Level;
 
@@ -28,6 +28,16 @@ export class TransitionManager {
         else this.state.draw(renderer);
     }
 
+    key(code: string) {
+        this.state.key(code);
+    }
+    flick(direction: Direction) {
+        this.state.flick(direction);
+    }
+    click(x: number, y:number) {
+        this.state.click(x, y);
+    }
+
     update() {
         this.state.transition(this);
     }
@@ -46,26 +56,7 @@ const sketch = (p: p5) => {
     function keyDown(event: KeyboardEvent) {
         if (event.repeat) return;
         console.log(event.code);
-        switch (event.code) {
-            case "ArrowLeft": {
-                level.move(Direction.Left);
-            } break;
-            case "ArrowRight": {
-                level.move(Direction.Right);
-            } break;
-            case "ArrowUp": {
-                level.move(Direction.Up);
-            } break;
-            case "ArrowDown": {
-                level.move(Direction.Down);
-            } break;
-            case "KeyZ": {
-                level.undo();
-            } break;
-            case "KeyR": {
-                level.init();
-            } break;
-        }
+        transition_manager.key(event.code);
     }
 
     let renderer: Renderer;
@@ -85,7 +76,6 @@ const sketch = (p: p5) => {
     p.setup = () => {
         p.createCanvas(800, 800, p.WEBGL);
         renderer = new Renderer(p);
-        //renderer.setBlobArea(level.width * level.cell_size, level.height * level.cell_size, level.cell_size * 0.46)
         document.addEventListener("keydown", keyDown, false);
 
         document.addEventListener("click", () => {

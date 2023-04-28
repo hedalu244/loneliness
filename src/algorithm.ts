@@ -1,3 +1,12 @@
+export const Direction = {
+    None: 0,
+    Left: 1,
+    Right: 2,
+    Up: 3,
+    Down: 4,
+} as const;
+export type Direction = typeof Direction[keyof typeof Direction];
+
 export function n_array<T>(length: number, map: (v: unknown, k: number) => T): T[] {
     return Array.from({ length: length }, map)
 }
