@@ -255,8 +255,8 @@ class Level {
                     return [0, amount];
             }
         }
-        renderer.clear()
 
+        renderer.clear()
         renderer.p.background(this.check() ? 150 : 220);
         renderer.p.noStroke()
         renderer.p.fill(30)
@@ -266,41 +266,32 @@ class Level {
             for (let j = 1; j <= this.height; j++) {
                 const [offsetx, offsety] = move_offset(anim_elapsetime, this.anim_queue[0].move[i][j])
                 switch (this.anim_queue[0].board[i][j]) {
-                    case Cell.Free:
-                    case Cell.Fixed: {
+                    case Cell.Wall: {
+                        renderer.addDot(
+                            (i - this.width  / 2 - 0.5) * this.cell_size,
+                            (j - this.height / 2 - 0.5) * this.cell_size,
+                            0, this.cell_size * 0.12, "white");
+                    } break;
+                    case Cell.Free: {
                         renderer.addBlob(
                             (i + offsetx - this.width / 2 - 0.5) * this.cell_size,
                             (j + offsety - this.height / 2 - 0.5) * this.cell_size, 
                             0, this.cell_size * 0.42);
                     } break;
-                }
-            }
-
-        renderer.renderBlob();
-
-        for (let i = 1; i <= this.width; i++)
-            for (let j = 1; j <= this.height; j++) {
-                switch (this.anim_queue[0].board[i][j]) {
-                    case Cell.Wall: {
-                        renderer.p.fill(220);
-                        renderer.p.push();
-                        renderer.p.translate(
-                            (i - this.width  / 2 - 0.5) * this.cell_size,
-                            (j - this.height / 2 - 0.5) * this.cell_size, 0);
-                        renderer.p.sphere(this.cell_size * 0.12);
-                        renderer.p.pop();
-                    } break;
                     case Cell.Fixed: {
-                        renderer.p.fill(30);
-                        renderer.p.push();
-                        renderer.p.translate(
+                        renderer.addBlob(
+                            (i + offsetx - this.width / 2 - 0.5) * this.cell_size,
+                            (j + offsety - this.height / 2 - 0.5) * this.cell_size, 
+                            0, this.cell_size * 0.42);
+                        renderer.addDot(
                             (i - this.width  / 2 - 0.5) * this.cell_size,
-                            (j - this.height / 2 - 0.5) * this.cell_size, 0);
-                        renderer.p.sphere(this.cell_size * 0.12);
-                        renderer.p.pop();
+                            (j - this.height / 2 - 0.5) * this.cell_size,
+                            0, this.cell_size * 0.12, "black");
                     } break;
                 }
             }
+
+        renderer.render()
     }
 }
 
@@ -326,6 +317,13 @@ interface Blob {
     y: number,
     z: number,
     r: number,
+}
+interface Dot {
+    x: number,
+    y: number,
+    z: number,
+    r: number,
+    color: "black" | "white";
 }
 
 class Renderer {
@@ -494,6 +492,7 @@ class Renderer {
     }`;
 
     blobs: Blob[];
+    dots: Dot[];
     smooth_scale: number;
 
     constructor(p: p5) {
@@ -508,10 +507,30 @@ class Renderer {
 
     clear() {
         this.blobs = [];
+        this.dots = [];
     }
 
     addBlob(x: number, y: number, z: number, r: number) {
         this.blobs.push({x, y, z, r});
+    }
+    
+    addDot(x: number, y: number, z: number, r: number, color: "black" | "white") {
+        this.dots.push({x, y, z, r, color});
+    }
+
+    render() {
+        this.renderBlob()
+        this.renderDot()
+    }
+
+    renderDot() {
+        this.dots.forEach(a => {
+            this.p.fill(a.color);
+            this.p.push();
+            this.p.translate(a.x, a.y, a.z);
+            this.p.sphere(a.r);
+            this.p.pop();
+        })
     }
 
     renderBlob() {
