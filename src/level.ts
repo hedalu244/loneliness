@@ -1,5 +1,6 @@
 import { n_array, UnionFind } from "./algorithm";
 import { Renderer } from "./renderer";
+import { TransitionManager } from "./main";
 
 const Cell = {
     Empty: 0,
@@ -191,6 +192,9 @@ export class Level {
         return true;
     }
 
+    transition(manager: TransitionManager) {
+        
+    }
 
     show() {
         console.log(this.history.map(x => JSON.stringify(x)).join("\n"))
