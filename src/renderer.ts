@@ -21,10 +21,59 @@ export class Renderer {
     fxaaShader: p5.Shader;
     fxaaScr: p5.Graphics;
     dotScr: p5.Graphics;
+    dotShader: p5.Shader;
 
     bgScr: p5.Graphics;
 
-    static readonly VS = `
+    static readonly lightingFS = `
+    precision highp float;
+
+    const vec3 light_dir = normalize(vec3(2.0, -4.0, -3.0));
+    const vec3 directional = vec3(0.5);
+    const vec3 ambient = vec3(0.5);
+
+    vec3 lighting(vec3 color, vec3 normal, float shadow) {
+        vec3 lambert = max(0., dot(normal, light_dir)) * shadow * directional;
+
+        float f = min(1., 1. + normal.z);
+        float f2 = f * f;
+        vec3 fresnel = f * f2 * f2 * ambient;
+
+        return (lambert + ambient) * color + fresnel;
+    }`;
+
+    static readonly dotVS = `
+    attribute vec3 aPosition;
+    attribute vec3 aNormal;
+    attribute vec2 aTexCoord;
+    attribute vec4 aVertexColor;
+    
+    uniform mat4 uModelViewMatrix;
+    uniform mat4 uProjectionMatrix;
+    uniform mat3 uNormalMatrix;
+    
+    uniform vec4 uMaterialColor;
+    uniform bool uUseVertexColor;
+    
+    varying vec3 vVertexNormal;
+    varying vec4 vColor;
+    
+    void main(void) {
+        vec4 positionVec4 = vec4(aPosition, 1.0);
+        gl_Position = uProjectionMatrix * uModelViewMatrix * positionVec4;
+        vVertexNormal = normalize(vec3( uNormalMatrix * aNormal ));
+        vColor = (uUseVertexColor ? aVertexColor : uMaterialColor);
+    }`;
+    static readonly dotFS = `
+    varying vec3 vVertexNormal;
+    varying vec4 vColor;
+
+    void main(void) {
+        vec3 n = vVertexNormal * vec3(1, 1, -1);
+        gl_FragColor = vec4(lighting(vColor.rgb, n, 1.0), 1.0);
+    }`;
+
+    static readonly ScreenVS = `
     precision highp float;
 
     attribute vec3 aPosition;
@@ -38,13 +87,9 @@ export class Renderer {
         uv = aTexCoord;
     }`;
     static readonly blobFS = `
-    precision highp float;
-
     varying vec2 uv;
     uniform vec2 res;
     uniform float smooth_param;
-
-    const vec3 light_dir = normalize(vec3(2.0, -4.0, -3.0));
 
     const int 	NUM_BLOBS			= 20;
     const int 	TRACE_STEPS 		= 100;
@@ -53,6 +98,8 @@ export class Renderer {
     const float NORMAL_EPSILON		= 0.01;
 
     uniform vec4 blobs[NUM_BLOBS];
+
+    const vec3 blobColor = vec3(1.0);
 
     float smin(float a, float b, float k) {
         float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
@@ -99,15 +146,8 @@ export class Renderer {
             return;
         }
         else {
-            gl_FragColor = vec4(1, 1, 1, 1);
             vec3 n = normal(pos.xyz);
-            float lambert = max(0., dot(n, light_dir)) * 0.5;
-            float ambient = 0.5;
-            float f = min(1., 1. + n.z);
-            float f2 = f * f;
-            float fresnel = f * f2 * f2 * ambient;
-            
-            gl_FragColor = vec4(vec3(lambert + ambient + fresnel), 1.);
+            gl_FragColor = vec4(lighting(blobColor, n, 1.0), 1.0);
         }
     }`;
     static readonly fxaaFS = `
@@ -207,7 +247,7 @@ export class Renderer {
 
     renderDot() {
         this.dots.forEach(a => {
-            this.dotScr.fill(a.color);
+            this.dotScr.fill(a.color == "black" ? 60 : 255);
             this.dotScr.noStroke();
             this.dotScr.push();
             this.dotScr.translate(a.x, a.y, a.z);
@@ -251,20 +291,20 @@ export class Renderer {
         if (this.blobScr) this.blobScr.remove()
         this.blobScr = this.p.createGraphics(width, height, this.p.WEBGL);
         this.blobScr.setAttributes('alpha', true);
-        this.blobShader = this.blobScr.createShader(Renderer.VS, Renderer.blobFS);
+        this.blobShader = this.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS);
         this.blobScr.shader(this.blobShader);
 
         if (this.fxaaScr) this.fxaaScr.remove()
         this.fxaaScr = this.p.createGraphics(width, height, this.p.WEBGL);
         this.fxaaScr.setAttributes('alpha', true);
-        this.fxaaShader = this.fxaaScr.createShader(Renderer.VS, Renderer.fxaaFS);
+        this.fxaaShader = this.fxaaScr.createShader(Renderer.ScreenVS, Renderer.fxaaFS);
         this.fxaaScr.shader(this.fxaaShader);
 
         if (this.dotScr) this.dotScr.remove()
         this.dotScr = this.p.createGraphics(width, height, this.p.WEBGL);
         this.dotScr.setAttributes('alpha', true);
         this.dotScr.ortho();
-        //this.dotShader = this.dotScr.createShader(Renderer.VS, Renderer.dotFS);
-        //this.dotScr.shader(this.dotShader);
+        this.dotShader = this.dotScr.createShader(Renderer.dotVS, Renderer.lightingFS + Renderer.dotFS);
+        this.dotScr.shader(this.dotShader);
     }
 }
