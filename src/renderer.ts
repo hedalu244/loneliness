@@ -225,6 +225,7 @@ export class Renderer {
             blob_params.push(0);
 
         this.blobScr.clear(0, 0, 0, 0);
+        this.blobScr.noStroke();
         this.blobScr.shader(this.blobShader);
         this.blobShader.setUniform('blobs', blob_params);
         this.blobShader.setUniform('res', [this.blobScr.width, this.blobScr.height]);
@@ -232,6 +233,7 @@ export class Renderer {
         this.blobScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
         
         this.fxaaScr.clear(0, 0, 0, 0);
+        this.fxaaScr.noStroke();
         this.fxaaScr.shader(this.fxaaShader);
         this.fxaaShader.setUniform('res', [this.blobScr.width, this.blobScr.height]);
         this.fxaaShader.setUniform('tex', this.blobScr);

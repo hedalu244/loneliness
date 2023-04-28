@@ -219,13 +219,15 @@ export class Game {
 
         renderer.setBlobArea(this.width * this.cell_size, this.height * this.cell_size, this.cell_size * 0.46);
         renderer.bgScr.noStroke()
+        /*
         renderer.bgScr.fill(30);
         renderer.bgScr.rect(
             renderer.p.width / 2,
             renderer.p.height / 2,
             (this.width + 0.40) * this.cell_size,
             (this.height + 0.40) * this.cell_size);
-        
+        */        
+
         renderer.clear()
         for (let i = 1; i <= this.width; i++)
             for (let j = 1; j <= this.height; j++) {
