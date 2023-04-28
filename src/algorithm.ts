@@ -42,3 +42,14 @@ export class UnionFind {
         }
     }
 }
+
+export function hermite(s: number, e: number, t: number, a: number, b: number)
+{
+    if (t <= 0) return s;
+    if (1 <= t) return e;
+    
+    //0～1でエルミート補間
+    const weight = (a + b - 2) * t * t * t + (-2 * a - b + 3) * t * t + a * t;
+    //始点と終点で補間
+    return s + (e - s) * weight;
+}

@@ -1,4 +1,4 @@
-import { n_array, UnionFind, Direction } from "./algorithm";
+import { n_array, UnionFind, Direction, hermite } from "./algorithm";
 import { Renderer } from "./renderer";
 import { TransitionManager } from "./main";
 
@@ -15,6 +15,7 @@ export type Board = readonly (readonly Cell[])[]
 type BoardAnimation = {
     board: Board,
     move: Direction[][],
+    type: Direction;
 }
 
 function isBlob(x: Cell): boolean {
@@ -31,7 +32,7 @@ export class Game {
 
     history: Board[];
     anim_queue: BoardAnimation[]
-    anim_starttime: number
+    anim_starttime: number;
 
     constructor(initial_board: Board) {
         this.width = initial_board.length;
@@ -61,6 +62,7 @@ export class Game {
         this.anim_queue.push({
             board: this.board,
             move: n_array(this.width + 2, () => n_array(this.height + 2, () => Direction.None)),
+            type: Direction.None,
         })
         this.show()
     }
@@ -128,7 +130,11 @@ export class Game {
         else {
             console.log("can't move")
         }
-        this.anim_queue.push({ board: this.board, move: move_direction })
+        this.anim_queue.push({
+            board: this.board, 
+            move: move_direction,
+            type: direction,
+        })
     }
 
     undo() {
@@ -144,6 +150,7 @@ export class Game {
         this.anim_queue.push({
             board: this.board,
             move: n_array(this.width + 2, () => n_array(this.height + 2, () => Direction.None)),
+            type: Direction.None
         })
         this.show()
     }
@@ -191,7 +198,17 @@ export class Game {
     }
 
     draw(renderer: Renderer) {
-        if (1 < this.anim_queue.length && this.anim_starttime + 200 < performance.now()) {
+        const each_delay = 60;
+        
+        let total_delay;
+        if (this.anim_queue[0].type == Direction.Left || this.anim_queue[0].type == Direction.Right)
+            total_delay = each_delay * this.width;
+        else if (this.anim_queue[0].type == Direction.Up || this.anim_queue[0].type == Direction.Down)
+            total_delay = each_delay * this.height;
+        else
+            total_delay = 0;
+        
+        if (1 < this.anim_queue.length && this.anim_starttime + 200 + total_delay < performance.now()) {
             this.anim_queue.shift()
             this.anim_starttime = performance.now()
         }
@@ -201,9 +218,7 @@ export class Game {
         // t=0で-1, 60 < tで0, 間はsmoothstep
         function move_offset(t: number, dir: Direction) {
             if (dir == Direction.None) return [0, 0]
-            if (200 < t) return [0, 0];
-            const x = t / 200;
-            const amount = x * x * (3 - 2 * x) - 1;
+            const amount = hermite(-1, 0, t / 200, 5.0, 1.0);
 
             switch (dir) {
                 case Direction.Left:
@@ -219,19 +234,22 @@ export class Game {
 
         renderer.setBlobArea(this.width * this.cell_size, this.height * this.cell_size, this.cell_size * 0.46);
         renderer.bgScr.noStroke()
+        
         /*
-        renderer.bgScr.fill(30);
+        renderer.bgScr.fill(60);
         renderer.bgScr.rect(
             renderer.p.width / 2,
             renderer.p.height / 2,
             (this.width + 0.40) * this.cell_size,
             (this.height + 0.40) * this.cell_size);
-        */        
-
+        */
+        
         renderer.clear()
         for (let i = 1; i <= this.width; i++)
             for (let j = 1; j <= this.height; j++) {
-                const [offsetx, offsety] = move_offset(anim_elapsetime, this.anim_queue[0].move[i][j])
+                const delay = [0, i, this.width - i - 1, j, this.height - j - 1][this.anim_queue[0].type] * 20;
+                const [offsetx, offsety] = move_offset(anim_elapsetime - delay, this.anim_queue[0].move[i][j]);
+
                 switch (this.anim_queue[0].board[i][j]) {
                     case Cell.Wall: {
                         renderer.addDot(
