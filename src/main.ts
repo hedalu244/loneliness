@@ -261,7 +261,7 @@ class Level {
         renderer.p.fill(30)
         renderer.p.rect(this.width / 2 - 0.5, this.height / 2 - 0.5, (this.width + 1) * this.cell_size, (this.height + 1) * this.cell_size);
 
-        const metaballs:number[] = []
+        const blobs:number[] = []
 
         for (let i = 1; i <= this.width; i++)
             for (let j = 1; j <= this.height; j++) {
@@ -269,16 +269,16 @@ class Level {
                 switch (this.anim_queue[0].board[i][j]) {
                     case Cell.Free:
                     case Cell.Fixed: {
-                        metaballs.push(
+                        blobs.push(
                             (i + offsetx - this.width / 2 - 0.5) * this.cell_size,
                             (j + offsety - this.height / 2 - 0.5) * this.cell_size, 
                             0, this.cell_size * 0.42);
                     } break;
                 }
             }
-        while (metaballs.length < 80)
-            metaballs.push(0);
-        renderer.renderMetaball(metaballs, this.cell_size * 0.46);
+        while (blobs.length < 80)
+            blobs.push(0);
+        renderer.renderBlob(blobs, this.cell_size * 0.46);
 
         for (let i = 1; i <= this.width; i++)
             for (let j = 1; j <= this.height; j++) {
@@ -325,9 +325,9 @@ test()
 
 class Renderer {
     p: p5
-    metaballShader: p5.Shader;
+    blobShader: p5.Shader;
     fxaaShader: p5.Shader;
-    metaballScr: p5.Graphics;
+    blobScr: p5.Graphics;
     fxaaScr: p5.Graphics;
     static readonly VS = `
     precision highp float;
@@ -352,13 +352,13 @@ class Renderer {
     const vec3 light_dir = normalize(vec3(2.0, -4.0, -3.0));
     const vec3 c_light_pos = vec3(2.0, -4.0, -0.0);
 
-    const int 	NUM_BALLS			= 20;
+    const int 	NUM_BLOBS			= 20;
     const int 	TRACE_STEPS 		= 100;
     const float TRACE_EPSILON 		= 0.001;
     const float TRACE_DISTANCE		= 500.0;
     const float NORMAL_EPSILON		= 0.1;
 
-    uniform vec4 balls[NUM_BALLS];
+    uniform vec4 blobs[NUM_BLOBS];
 
     float smin( float a, float b, float k)
     {
@@ -366,11 +366,11 @@ class Renderer {
         return mix(b, a, h) - k * h * (1.0 - h);
     } 
 
-    float metaballs_field(in vec3 at) {
+    float blobs_field(in vec3 at) {
         float sum = TRACE_DISTANCE;
-        for (int i = 0; i < NUM_BALLS; ++i) {
-            if (balls[i].w == 0.) continue;
-            float r = length(balls[i].xyz - at) - balls[i].w;
+        for (int i = 0; i < NUM_BLOBS; ++i) {
+            if (blobs[i].w == 0.) continue;
+            float r = length(blobs[i].xyz - at) - blobs[i].w;
             sum = smin(sum, r, smooth_param);
         }
         return sum;
@@ -378,15 +378,15 @@ class Renderer {
 
     vec3 normal(vec3 at) {
         vec2 e = vec2(0.0, NORMAL_EPSILON);
-        return normalize(vec3(metaballs_field(at+e.yxx)-metaballs_field(at), 
-                            metaballs_field(at+e.xyx)-metaballs_field(at),
-                            metaballs_field(at+e.xxy)-metaballs_field(at)));
+        return normalize(vec3(blobs_field(at+e.yxx)-blobs_field(at), 
+                            blobs_field(at+e.xyx)-blobs_field(at),
+                            blobs_field(at+e.xxy)-blobs_field(at)));
     }
 
     vec4 raymarch(vec3 pos, vec3 dir) {
         float l = 0.;
         for (int i = 0; i < TRACE_STEPS; i++) {
-            float d = metaballs_field(pos + dir * l);
+            float d = blobs_field(pos + dir * l);
             if (d < TRACE_EPSILON)
                 break;
             l += d;
@@ -395,7 +395,7 @@ class Renderer {
         return vec4(pos + dir * l, l);
     }`
 
-    static readonly metaballFS = `
+    static readonly blobFS = `
     void main() {
         vec3 eye = vec3((uv - 0.5) * res, -100);
         vec3 dir = vec3(0, 0, 1);
@@ -487,20 +487,22 @@ class Renderer {
         // gl_FragColor.rgb = 0. < gl_FragColor.a ? gl_FragColor.rgb / gl_FragColor.a : gl_FragColor.rgb;
     }`;
 
-    renderMetaball(balls: number[], smooth_scale: number) {
-        this.metaballScr.clear(0, 0, 0, 0);
-        this.metaballScr.shader(this.metaballShader);
+
+
+    renderBlob(blobs: number[], smooth_scale: number) {
+        this.blobScr.clear(0, 0, 0, 0);
+        this.blobScr.shader(this.blobShader);
 
         // x, y, z, radius
-        this.metaballShader.setUniform('balls', balls);
-        this.metaballShader.setUniform('res', [this.metaballScr.width, this.metaballScr.height]);
-        this.metaballShader.setUniform('smooth_param', smooth_scale)
-        this.metaballScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+        this.blobShader.setUniform('blobs', blobs);
+        this.blobShader.setUniform('res', [this.blobScr.width, this.blobScr.height]);
+        this.blobShader.setUniform('smooth_param', smooth_scale)
+        this.blobScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
 
         this.fxaaScr.clear(0, 0, 0, 0);
         this.fxaaScr.shader(this.fxaaShader);
-        this.fxaaShader.setUniform('res', [this.metaballScr.width, this.metaballScr.height]);
-        this.fxaaShader.setUniform('tex', this.metaballScr);
+        this.fxaaShader.setUniform('res', [this.blobScr.width, this.blobScr.height]);
+        this.fxaaShader.setUniform('tex', this.blobScr);
         this.fxaaScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
 
         this.p.image(this.fxaaScr, 0, 0)
@@ -512,14 +514,14 @@ class Renderer {
         p.rectMode(p.CENTER);
         p.imageMode(p.CENTER);
 
-        this.setMetaballArea(p.width, p.height)
+        this.setBlobArea(p.width, p.height)
     }
 
-    setMetaballArea(width: number, height: number) {
-        if (this.metaballScr) this.metaballScr.remove()
-        this.metaballScr = this.p.createGraphics(width, height, this.p.WEBGL);
-        this.metaballScr.setAttributes('alpha', true);
-        this.metaballShader = this.metaballScr.createShader(Renderer.VS, Renderer.raymarchFS + Renderer.metaballFS);
+    setBlobArea(width: number, height: number) {
+        if (this.blobScr) this.blobScr.remove()
+        this.blobScr = this.p.createGraphics(width, height, this.p.WEBGL);
+        this.blobScr.setAttributes('alpha', true);
+        this.blobShader = this.blobScr.createShader(Renderer.VS, Renderer.raymarchFS + Renderer.blobFS);
 
         if (this.fxaaScr) this.fxaaScr.remove()
         this.fxaaScr = this.p.createGraphics(width, height, this.p.WEBGL);
@@ -567,7 +569,7 @@ const sketch = (p: p5) => {
     p.setup = () => {
         p.createCanvas(800, 800, p.WEBGL);
         renderer = new Renderer(p);
-        renderer.setMetaballArea(level.width * level.cell_size, level.height * level.cell_size, )
+        renderer.setBlobArea(level.width * level.cell_size, level.height * level.cell_size, )
         document.addEventListener("keydown", keyDown, false);
     };
 
