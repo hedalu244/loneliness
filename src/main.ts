@@ -80,7 +80,7 @@ class Level {
         this.width = initial_board.length;
         this.height = initial_board[0].length;
         this.initial_board = initial_board;
-        this.cell_size = 50;
+        this.cell_size = 80;
 
         this.history = []
         this.anim_queue = []
@@ -276,7 +276,7 @@ class Level {
                     } break;
                 }
             }
-        while (metaballs.length < 40)
+        while (metaballs.length < 80)
             metaballs.push(0);
         renderer.renderMetaball(metaballs, this.cell_size * 0.46);
 
@@ -352,7 +352,7 @@ class Renderer {
     const vec3 light_dir = normalize(vec3(2.0, -4.0, -3.0));
     const vec3 c_light_pos = vec3(2.0, -4.0, -0.0);
 
-    const int 	NUM_BALLS			= 10;
+    const int 	NUM_BALLS			= 20;
     const int 	TRACE_STEPS 		= 100;
     const float TRACE_EPSILON 		= 0.001;
     const float TRACE_DISTANCE		= 500.0;
@@ -493,13 +493,13 @@ class Renderer {
 
         // x, y, z, radius
         this.metaballShader.setUniform('balls', balls);
-        this.metaballShader.setUniform('res', [this.p.width, this.p.height]);
+        this.metaballShader.setUniform('res', [this.metaballScr.width, this.metaballScr.height]);
         this.metaballShader.setUniform('smooth_param', smooth_scale)
         this.metaballScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
 
         this.fxaaScr.clear(0, 0, 0, 0);
         this.fxaaScr.shader(this.fxaaShader);
-        this.fxaaShader.setUniform('res', [this.p.width, this.p.height]);
+        this.fxaaShader.setUniform('res', [this.metaballScr.width, this.metaballScr.height]);
         this.fxaaShader.setUniform('tex', this.metaballScr);
         this.fxaaScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
 
@@ -512,13 +512,17 @@ class Renderer {
         p.rectMode(p.CENTER);
         p.imageMode(p.CENTER);
 
+        this.setMetaballArea(p.width, p.height)
+    }
+
+    setMetaballArea(width: number, height: number) {
         if (this.metaballScr) this.metaballScr.remove()
-        this.metaballScr = p.createGraphics(p.width, p.height, p.WEBGL);
+        this.metaballScr = this.p.createGraphics(width, height, this.p.WEBGL);
         this.metaballScr.setAttributes('alpha', true);
         this.metaballShader = this.metaballScr.createShader(Renderer.VS, Renderer.raymarchFS + Renderer.metaballFS);
 
         if (this.fxaaScr) this.fxaaScr.remove()
-        this.fxaaScr = p.createGraphics(p.width, p.height, p.WEBGL);
+        this.fxaaScr = this.p.createGraphics(width, height, this.p.WEBGL);
         this.fxaaScr.setAttributes('alpha', true);
         this.fxaaShader = this.fxaaScr.createShader(Renderer.VS, Renderer.fxaaFS);
     }
@@ -552,15 +556,18 @@ const sketch = (p: p5) => {
 
     let renderer: Renderer;
     const level = new Level([
-        n_array(4, () => Math.floor(Math.random() * 4)),
-        n_array(4, () => Math.floor(Math.random() * 4)),
-        n_array(4, () => Math.floor(Math.random() * 4)),
-        n_array(4, () => Math.floor(Math.random() * 4)),
+        n_array(6, () => Math.floor(Math.random() * 4)),
+        n_array(6, () => Math.floor(Math.random() * 4)),
+        n_array(6, () => Math.floor(Math.random() * 4)),
+        n_array(6, () => Math.floor(Math.random() * 4)),
+        n_array(6, () => Math.floor(Math.random() * 4)),
+        n_array(6, () => Math.floor(Math.random() * 4)),
     ])
 
     p.setup = () => {
-        p.createCanvas(400, 400, p.WEBGL);
+        p.createCanvas(800, 800, p.WEBGL);
         renderer = new Renderer(p);
+        renderer.setMetaballArea(level.width * level.cell_size, level.height * level.cell_size, )
         document.addEventListener("keydown", keyDown, false);
     };
 
