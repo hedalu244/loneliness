@@ -82,8 +82,6 @@ class Level {
         this.initial_board = initial_board;
         this.cell_size = 50;
 
-        this.board = initial_board;
-
         this.history = []
         this.anim_queue = []
         this.anim_starttime = performance.now()
@@ -99,8 +97,9 @@ class Level {
             for (let j = 0; j < this.height; j++)
                 new_board[i + 1][j + 1] = this.initial_board[i][j];
 
+        if (this.board)
+            this.history.push(this.board);
         this.board = new_board;
-        this.history.push(this.board);
 
         this.anim_queue.push({
             board: this.board,
@@ -192,7 +191,7 @@ class Level {
     }
 
     check() {
-        // uf構築
+        // DSU構築
         const uf = new UnionFind(this.width * this.height);
         let lastBlob = 0;
         for(let i = 0; i < this.width; i++)
@@ -534,11 +533,15 @@ const sketch = (p: p5) => {
             case "KeyZ": {
                 level.undo();
             } break;
+            case "KeyR": {
+                level.init();
+            } break;
         }
     }
 
     let renderer: Renderer;
     const level = new Level([
+        n_array(4, () => Math.floor(Math.random() * 4)),
         n_array(4, () => Math.floor(Math.random() * 4)),
         n_array(4, () => Math.floor(Math.random() * 4)),
         n_array(4, () => Math.floor(Math.random() * 4)),
