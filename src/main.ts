@@ -5,8 +5,9 @@ import { Title } from "./title"
 import { Renderer } from "./renderer";
 import { Level } from "./level";
 import { initInputEvent } from "./input";
+import { Menu } from "./menu";
 
-type State = Title | Level;
+type State = Title | Menu | Level;
 
 export class TransitionManager {
     state: State;

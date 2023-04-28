@@ -1,6 +1,5 @@
 import { n_array, UnionFind, Direction, hermite } from "./algorithm";
 import { Renderer } from "./renderer";
-import { TransitionManager } from "./main";
 
 export const Cell = {
     Empty: 0,
@@ -10,7 +9,6 @@ export const Cell = {
 } as const;
 export type Cell = typeof Cell[keyof typeof Cell];
 export type Board = readonly (readonly Cell[])[]
-
 
 type BoardAnimation = {
     board: Board,
@@ -185,10 +183,6 @@ export class Game {
                     return false;
             }
         return true;
-    }
-
-    transition(manager: TransitionManager) {
-        
     }
 
     show() {

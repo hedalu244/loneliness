@@ -40,6 +40,7 @@ export class Level {
             } break;
         }
     }
+    
     flick(direction: Direction) {
         switch (direction) {
             case Direction.Left: {
@@ -56,6 +57,7 @@ export class Level {
             } break;
         }
     }
+
     click(x: number, y:number) {
         
     }

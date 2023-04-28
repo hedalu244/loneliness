@@ -3,6 +3,7 @@ import { Renderer } from "./renderer";
 import { Level } from "./level";
 import { TransitionManager } from "./main";
 import { Cell, Game } from "./game";
+import { Menu } from "./menu";
 
 export class Title {
     game: Game;
@@ -12,15 +13,7 @@ export class Title {
 
     transition(manager: TransitionManager) {
         if (this.game.check()) {
-            manager.startTransiton(new Level(
-                "01.\nTUTRIAL", [
-                n_array(6, () => Math.floor(Math.random() * 4)),
-                n_array(6, () => Math.floor(Math.random() * 4)),
-                n_array(6, () => Math.floor(Math.random() * 4)),
-                n_array(6, () => Math.floor(Math.random() * 4)),
-                n_array(6, () => Math.floor(Math.random() * 4)),
-                n_array(6, () => Math.floor(Math.random() * 4)),
-            ]));
+            manager.startTransiton(new Menu());
         }
     }
 
