@@ -474,7 +474,7 @@ class Renderer {
         float lumAA2 = lum(AA2);
         gl_FragColor = (minlum < lumAA2 && lumAA2 < maxlum) ? AA2 : AA1;
 
-        gl_FragColor.rgb = 0. < gl_FragColor.a ? gl_FragColor.rgb / gl_FragColor.a : gl_FragColor.rgb;
+        // gl_FragColor.rgb = 0. < gl_FragColor.a ? gl_FragColor.rgb / gl_FragColor.a : gl_FragColor.rgb;
     }`;
 
     renderMetaball(balls: number[], smooth_scale: number) {
@@ -487,15 +487,13 @@ class Renderer {
         this.metaballShader.setUniform('smooth_param', smooth_scale)
         this.metaballScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
 
-        /*
-        fxaaScr.clear(0, 0, 0, 0);
-        fxaaScr.shader(fxaaShader);
-        fxaaShader.setUniform('res', [p.width, p.height]);
-        fxaaShader.setUniform('tex', metaballScr);
-        fxaaScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
-        */
+        this.fxaaScr.clear(0, 0, 0, 0);
+        this.fxaaScr.shader(this.fxaaShader);
+        this.fxaaShader.setUniform('res', [this.p.width, this.p.height]);
+        this.fxaaShader.setUniform('tex', this.metaballScr);
+        this.fxaaScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
 
-        this.p.image(this.metaballScr, 0, 0)
+        this.p.image(this.fxaaScr, 0, 0)
     }
 
     constructor(p: p5) {
