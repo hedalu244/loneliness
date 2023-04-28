@@ -255,13 +255,12 @@ class Level {
                     return [0, amount];
             }
         }
+        renderer.clear()
 
         renderer.p.background(this.check() ? 150 : 220);
         renderer.p.noStroke()
         renderer.p.fill(30)
         renderer.p.rect(this.width / 2 - 0.5, this.height / 2 - 0.5, (this.width + 1) * this.cell_size, (this.height + 1) * this.cell_size);
-
-        const blobs:number[] = []
 
         for (let i = 1; i <= this.width; i++)
             for (let j = 1; j <= this.height; j++) {
@@ -269,16 +268,15 @@ class Level {
                 switch (this.anim_queue[0].board[i][j]) {
                     case Cell.Free:
                     case Cell.Fixed: {
-                        blobs.push(
+                        renderer.addBlob(
                             (i + offsetx - this.width / 2 - 0.5) * this.cell_size,
                             (j + offsety - this.height / 2 - 0.5) * this.cell_size, 
                             0, this.cell_size * 0.42);
                     } break;
                 }
             }
-        while (blobs.length < 80)
-            blobs.push(0);
-        renderer.renderBlob(blobs, this.cell_size * 0.46);
+
+        renderer.renderBlob();
 
         for (let i = 1; i <= this.width; i++)
             for (let j = 1; j <= this.height; j++) {
@@ -323,12 +321,20 @@ function test() {
 
 test()
 
+interface Blob {
+    x: number,
+    y: number,
+    z: number,
+    r: number,
+}
+
 class Renderer {
-    p: p5
+    p: p5;
     blobShader: p5.Shader;
     fxaaShader: p5.Shader;
     blobScr: p5.Graphics;
     fxaaScr: p5.Graphics;
+
     static readonly VS = `
     precision highp float;
 
@@ -487,16 +493,40 @@ class Renderer {
         // gl_FragColor.rgb = 0. < gl_FragColor.a ? gl_FragColor.rgb / gl_FragColor.a : gl_FragColor.rgb;
     }`;
 
+    blobs: Blob[];
+    smooth_scale: number;
 
+    constructor(p: p5) {
+        this.p = p
+        p.rectMode(p.CENTER);
+        p.imageMode(p.CENTER);
 
-    renderBlob(blobs: number[], smooth_scale: number) {
+        this.setBlobArea(p.width, p.height, 0);
+
+        this.blobs = []
+    }
+
+    clear() {
+        this.blobs = [];
+    }
+
+    addBlob(x: number, y: number, z: number, r: number) {
+        this.blobs.push({x, y, z, r});
+    }
+
+    renderBlob() {
+        const blob_params: number[] = [];
+        this.blobs.forEach(a => blob_params.push(a.x, a.y, a.z, a.r))
+        while (blob_params.length < 80)
+            blob_params.push(0);
+        
         this.blobScr.clear(0, 0, 0, 0);
         this.blobScr.shader(this.blobShader);
 
         // x, y, z, radius
-        this.blobShader.setUniform('blobs', blobs);
+        this.blobShader.setUniform('blobs', blob_params);
         this.blobShader.setUniform('res', [this.blobScr.width, this.blobScr.height]);
-        this.blobShader.setUniform('smooth_param', smooth_scale)
+        this.blobShader.setUniform('smooth_param', this.smooth_scale)
         this.blobScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
 
         this.fxaaScr.clear(0, 0, 0, 0);
@@ -508,16 +538,9 @@ class Renderer {
         this.p.image(this.fxaaScr, 0, 0)
     }
 
-    constructor(p: p5) {
-        this.p = p
+    setBlobArea(width: number, height: number, smooth_scale: number) {
+        this.smooth_scale = smooth_scale
 
-        p.rectMode(p.CENTER);
-        p.imageMode(p.CENTER);
-
-        this.setBlobArea(p.width, p.height)
-    }
-
-    setBlobArea(width: number, height: number) {
         if (this.blobScr) this.blobScr.remove()
         this.blobScr = this.p.createGraphics(width, height, this.p.WEBGL);
         this.blobScr.setAttributes('alpha', true);
@@ -569,7 +592,7 @@ const sketch = (p: p5) => {
     p.setup = () => {
         p.createCanvas(800, 800, p.WEBGL);
         renderer = new Renderer(p);
-        renderer.setBlobArea(level.width * level.cell_size, level.height * level.cell_size, )
+        renderer.setBlobArea(level.width * level.cell_size, level.height * level.cell_size, level.cell_size * 0.46)
         document.addEventListener("keydown", keyDown, false);
     };
 
@@ -577,7 +600,7 @@ const sketch = (p: p5) => {
     p.draw = () => {
         p.background(220);
 
-        level.draw(renderer)
+        level.draw(renderer);
     }
 };
 
