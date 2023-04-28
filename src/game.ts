@@ -227,7 +227,6 @@ export class Game {
             (this.height + 0.40) * this.cell_size);
         
         renderer.clear()
-
         for (let i = 1; i <= this.width; i++)
             for (let j = 1; j <= this.height; j++) {
                 const [offsetx, offsety] = move_offset(anim_elapsetime, this.anim_queue[0].move[i][j])
@@ -256,7 +255,5 @@ export class Game {
                     } break;
                 }
             }
-
-        renderer.render();
     }
 }

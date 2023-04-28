@@ -66,18 +66,17 @@ export class Title {
         
     }
 
-    draw(renderer: Renderer) {
+    draw(renderer: Renderer, posX: number, posY: number, fadeRate: number) {
         renderer.clear();
         
         renderer.bgScr.background(220);
-        
+
         renderer.bgScr.fill(30);
         renderer.bgScr.textSize(40);
         renderer.bgScr.text("Title", 300, 300);
 
         this.game.draw(renderer);
 
-        renderer.render();
         renderer.render(posX, posY, fadeRate);
     }
 }

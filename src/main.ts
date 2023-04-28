@@ -22,11 +22,13 @@ export class TransitionManager {
 
     draw(renderer: Renderer) {
         const elapsed_time = performance.now() - this.start_time;
+        const fadeRate = Math.max(0, 1 - Math.abs(elapsed_time - 500) / 500 * Math.abs(elapsed_time - 500) / 500);
+    
         if (elapsed_time < 500) {
             if (this.oldState)
-                this.oldState.draw(renderer);
+                this.oldState.draw(renderer, 0, 0, fadeRate);
         }
-        else this.state.draw(renderer);
+        else this.state.draw(renderer, 0, 0, fadeRate);
     }
 
     key(code: string) {
@@ -67,7 +69,7 @@ const sketch = (p: p5) => {
     */
 
     p.setup = () => {
-        const canvas = p.createCanvas(800, 800, p.WEBGL).elt as HTMLCanvasElement;
+        const canvas = p.createCanvas(800, 800).elt as HTMLCanvasElement;
         renderer = new Renderer(p);
         initInputEvent(canvas,
             (code) => transition_manager.key(code),
@@ -76,8 +78,6 @@ const sketch = (p: p5) => {
     };
 
     p.draw = () => {
-        p.background(220);
-
         transition_manager.update();
         transition_manager.draw(renderer);
 

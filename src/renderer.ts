@@ -20,6 +20,7 @@ export class Renderer {
     blobScr: p5.Graphics;
     fxaaShader: p5.Shader;
     fxaaScr: p5.Graphics;
+    dotScr: p5.Graphics;
 
     bgScr: p5.Graphics;
 
@@ -187,22 +188,34 @@ export class Renderer {
     addDot(x: number, y: number, z: number, r: number, color: "black" | "white") {
         this.dots.push({ x, y, z, r, color });
     }
-
-    render() {
-        this.p.image(this.bgScr, 0, 0);
+    
+    /// fadeRate: 0～1の薄めぐあい
+    render(posX: number, posY: number, fadeRate:number) {
+        this.p.background(220);
+        this.p.image(this.bgScr, this.p.width / 2, this.p.height / 2);
         this.renderBlob();
         this.renderDot();
+
+        if(0 < fadeRate) {
+            this.p.fill(220, Math.floor(fadeRate * 255));
+            this.p.noStroke();
+            this.p.rect(this.p.width / 2, this.p.height / 2, this.p.width, this.p.height);
+            //this.p.filter(this.p.BLUR, fadeRate * 3);
+        }
+        //this.p.background();
     }
 
     renderDot() {
         this.dots.forEach(a => {
-            this.p.fill(a.color);
-            this.p.noStroke();
-            this.p.push();
-            this.p.translate(a.x, a.y, a.z);
-            this.p.sphere(a.r);
-            this.p.pop();
-        })
+            this.dotScr.fill(a.color);
+            this.dotScr.noStroke();
+            this.dotScr.push();
+            this.dotScr.translate(a.x, a.y, a.z);
+            this.dotScr.sphere(a.r);
+            this.dotScr.pop();
+        });
+
+        this.p.image(this.dotScr, this.p.width / 2, this.p.height / 2)
     }
 
     renderBlob() {
@@ -224,7 +237,7 @@ export class Renderer {
         this.fxaaShader.setUniform('tex', this.blobScr);
         this.fxaaScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
         
-        this.p.image(this.fxaaScr, 0, 0)
+        this.p.image(this.fxaaScr, this.p.width / 2, this.p.height / 2)
     }
 
     setBlobArea(width: number, height: number, smooth_scale: number) {
@@ -244,5 +257,12 @@ export class Renderer {
         this.fxaaScr.setAttributes('alpha', true);
         this.fxaaShader = this.fxaaScr.createShader(Renderer.VS, Renderer.fxaaFS);
         this.fxaaScr.shader(this.fxaaShader);
+
+        if (this.dotScr) this.dotScr.remove()
+        this.dotScr = this.p.createGraphics(width, height, this.p.WEBGL);
+        this.dotScr.setAttributes('alpha', true);
+        this.dotScr.ortho();
+        //this.dotShader = this.dotScr.createShader(Renderer.VS, Renderer.dotFS);
+        //this.dotScr.shader(this.dotShader);
     }
 }

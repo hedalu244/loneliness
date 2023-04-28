@@ -60,7 +60,7 @@ export class Level {
         
     }
 
-    draw(renderer: Renderer) {
+    draw(renderer: Renderer, posX: number, posY: number, fadeRate: number) {
         renderer.clear();
         
         renderer.bgScr.background(220);
@@ -71,7 +71,7 @@ export class Level {
         renderer.bgScr.text(this.title, 20, 50);
 
         this.game.draw(renderer);
-
-        renderer.render();
+        
+        renderer.render(posX, posY, fadeRate);
     }
 }
