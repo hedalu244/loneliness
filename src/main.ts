@@ -260,7 +260,7 @@ class Level {
         renderer.p.background(this.check() ? 150 : 220);
         renderer.p.noStroke()
         renderer.p.fill(30)
-        renderer.p.rect(this.width / 2 - 0.5, this.height / 2 - 0.5, (this.width + 1) * this.cell_size, (this.height + 1) * this.cell_size);
+        renderer.p.rect(0, 0, (this.width + 0.40) * this.cell_size, (this.height + 0.40) * this.cell_size);
 
         for (let i = 1; i <= this.width; i++)
             for (let j = 1; j <= this.height; j++) {
