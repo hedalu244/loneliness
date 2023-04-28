@@ -4,6 +4,7 @@ import { n_array, UnionFind, Direction} from "./algorithm";
 import { Title } from "./title"
 import { Renderer } from "./renderer";
 import { Level } from "./level";
+import { initInputEvent } from "./input";
 
 type State = Title | Level;
 
@@ -50,15 +51,7 @@ export class TransitionManager {
     }
 }
 
-export let clicked = false;
-
 const sketch = (p: p5) => {
-    function keyDown(event: KeyboardEvent) {
-        if (event.repeat) return;
-        console.log(event.code);
-        transition_manager.key(event.code);
-    }
-
     let renderer: Renderer;
     let transition_manager = new TransitionManager(new Title());
     /*
@@ -74,13 +67,12 @@ const sketch = (p: p5) => {
     */
 
     p.setup = () => {
-        p.createCanvas(800, 800, p.WEBGL);
+        const canvas = p.createCanvas(800, 800, p.WEBGL).elt as HTMLCanvasElement;
         renderer = new Renderer(p);
-        document.addEventListener("keydown", keyDown, false);
-
-        document.addEventListener("click", () => {
-            clicked = true;
-        });
+        initInputEvent(canvas,
+            (code) => transition_manager.key(code),
+            (x, y) => transition_manager.click(x, y),
+            (dir) => transition_manager.flick(dir));
     };
 
     p.draw = () => {

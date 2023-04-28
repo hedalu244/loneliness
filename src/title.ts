@@ -47,7 +47,20 @@ export class Title {
         }
     }
     flick(direction: Direction) {
-
+        switch (direction) {
+            case Direction.Left: {
+                this.game.move(Direction.Left);
+            } break;
+            case Direction.Right: {
+                this.game.move(Direction.Right);
+            } break;
+            case Direction.Up: {
+                this.game.move(Direction.Up);
+            } break;
+            case Direction.Down: {
+                this.game.move(Direction.Down);
+            } break;
+        }
     }
     click(x: number, y:number) {
         
@@ -65,5 +78,6 @@ export class Title {
         this.game.draw(renderer);
 
         renderer.render();
+        renderer.render(posX, posY, fadeRate);
     }
 }
