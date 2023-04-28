@@ -15,12 +15,12 @@ class UnionFind {
     root(i: number): number {
         if (this.parent[i] == i)
             return i;
-        
+
         const root = this.root(this.parent[i]);
         this.parent[i] = root;
         return root;
     }
-    unite(a: number, b: number): void{
+    unite(a: number, b: number): void {
         a = this.root(a);
         b = this.root(b);
         if (a == b)
@@ -76,7 +76,11 @@ class Level {
     anim_queue: BoardAnimation[]
     anim_starttime: number
 
-    constructor(initial_board: Board) {
+    title: string
+
+    constructor(title: string, initial_board: Board) {
+        this.title = title
+
         this.width = initial_board.length;
         this.height = initial_board[0].length;
         this.initial_board = initial_board;
@@ -194,8 +198,8 @@ class Level {
         // DSU構築
         const uf = new UnionFind(this.width * this.height);
         let lastBlob = 0;
-        for(let i = 0; i < this.width; i++)
-            for(let j = 0; j < this.height; j++) {
+        for (let i = 0; i < this.width; i++)
+            for (let j = 0; j < this.height; j++) {
                 const x = this.board[i + 1][j + 1];
                 const u = this.board[i + 2][j + 1];
                 const l = this.board[i + 1][j + 2];
@@ -209,11 +213,11 @@ class Level {
                     uf.unite(xid, uid);
                 if (isBlob(x) && isBlob(l))
                     uf.unite(xid, lid);
-        }
+            }
 
         // 1つでも lastBlobと連結していない blob があれば false
-        for(let i = 0; i < this.width; i++)
-            for(let j = 0; j < this.height; j++) {
+        for (let i = 0; i < this.width; i++)
+            for (let j = 0; j < this.height; j++) {
                 const x = this.board[i + 1][j + 1];
                 const xid = i * this.height + j;
                 if (isBlob(x) && uf.root(xid) != uf.root(lastBlob))
@@ -256,11 +260,20 @@ class Level {
             }
         }
 
+        renderer.bgScr.noStroke()
+        renderer.bgScr.background(this.check() ? 150 : 220);
+        renderer.bgScr.fill(180);
+        renderer.bgScr.rect(
+            renderer.p.width / 2,
+            renderer.p.height / 2,
+            (this.width + 0.40) * this.cell_size,
+            (this.height + 0.40) * this.cell_size);
+            
+        renderer.bgScr.fill(30);
+        renderer.bgScr.textSize(32);
+        renderer.bgScr.text(this.title, 20, 50);
+
         renderer.clear()
-        renderer.p.background(this.check() ? 150 : 220);
-        renderer.p.noStroke()
-        renderer.p.fill(30)
-        renderer.p.rect(0, 0, (this.width + 0.40) * this.cell_size, (this.height + 0.40) * this.cell_size);
 
         for (let i = 1; i <= this.width; i++)
             for (let j = 1; j <= this.height; j++) {
@@ -268,35 +281,36 @@ class Level {
                 switch (this.anim_queue[0].board[i][j]) {
                     case Cell.Wall: {
                         renderer.addDot(
-                            (i - this.width  / 2 - 0.5) * this.cell_size,
+                            (i - this.width / 2 - 0.5) * this.cell_size,
                             (j - this.height / 2 - 0.5) * this.cell_size,
                             0, this.cell_size * 0.12, "white");
                     } break;
                     case Cell.Free: {
                         renderer.addBlob(
                             (i + offsetx - this.width / 2 - 0.5) * this.cell_size,
-                            (j + offsety - this.height / 2 - 0.5) * this.cell_size, 
+                            (j + offsety - this.height / 2 - 0.5) * this.cell_size,
                             0, this.cell_size * 0.42);
                     } break;
                     case Cell.Fixed: {
                         renderer.addBlob(
                             (i + offsetx - this.width / 2 - 0.5) * this.cell_size,
-                            (j + offsety - this.height / 2 - 0.5) * this.cell_size, 
+                            (j + offsety - this.height / 2 - 0.5) * this.cell_size,
                             0, this.cell_size * 0.42);
                         renderer.addDot(
-                            (i - this.width  / 2 - 0.5) * this.cell_size,
+                            (i - this.width / 2 - 0.5) * this.cell_size,
                             (j - this.height / 2 - 0.5) * this.cell_size,
                             0, this.cell_size * 0.12, "black");
                     } break;
                 }
             }
 
-        renderer.render()
+        renderer.render();
     }
 }
 
 function test() {
-    const level = new Level([
+    const level = new Level(
+        "01.\nTUTRIAL", [
         [0, 3, 0, 3],
         [0, 2, 0, 0],
         [0, 0, 2, 3],
@@ -329,9 +343,11 @@ interface Dot {
 class Renderer {
     p: p5;
     blobShader: p5.Shader;
-    fxaaShader: p5.Shader;
     blobScr: p5.Graphics;
+    fxaaShader: p5.Shader;
     fxaaScr: p5.Graphics;
+
+    bgScr: p5.Graphics;
 
     static readonly VS = `
     precision highp float;
@@ -499,6 +515,9 @@ class Renderer {
         this.p = p
         p.rectMode(p.CENTER);
         p.imageMode(p.CENTER);
+        this.bgScr = p.createGraphics(p.width, p.height);
+        this.bgScr.rectMode(p.CENTER);
+        this.bgScr.imageMode(p.CENTER);
 
         this.setBlobArea(p.width, p.height, 0);
 
@@ -511,21 +530,23 @@ class Renderer {
     }
 
     addBlob(x: number, y: number, z: number, r: number) {
-        this.blobs.push({x, y, z, r});
+        this.blobs.push({ x, y, z, r });
     }
-    
+
     addDot(x: number, y: number, z: number, r: number, color: "black" | "white") {
-        this.dots.push({x, y, z, r, color});
+        this.dots.push({ x, y, z, r, color });
     }
 
     render() {
-        this.renderBlob()
-        this.renderDot()
+        this.p.image(this.bgScr, 0, 0);
+        this.renderBlob();
+        this.renderDot();
     }
 
     renderDot() {
         this.dots.forEach(a => {
             this.p.fill(a.color);
+            this.p.noStroke();
             this.p.push();
             this.p.translate(a.x, a.y, a.z);
             this.p.sphere(a.r);
@@ -538,7 +559,7 @@ class Renderer {
         this.blobs.forEach(a => blob_params.push(a.x, a.y, a.z, a.r))
         while (blob_params.length < 80)
             blob_params.push(0);
-        
+
         this.blobScr.clear(0, 0, 0, 0);
         this.blobScr.shader(this.blobShader);
 
@@ -558,7 +579,7 @@ class Renderer {
     }
 
     setBlobArea(width: number, height: number, smooth_scale: number) {
-        this.smooth_scale = smooth_scale
+        this.smooth_scale = smooth_scale;
 
         if (this.blobScr) this.blobScr.remove()
         this.blobScr = this.p.createGraphics(width, height, this.p.WEBGL);
@@ -599,7 +620,8 @@ const sketch = (p: p5) => {
     }
 
     let renderer: Renderer;
-    const level = new Level([
+    const level = new Level(
+        "01.\nTUTRIAL", [
         n_array(6, () => Math.floor(Math.random() * 4)),
         n_array(6, () => Math.floor(Math.random() * 4)),
         n_array(6, () => Math.floor(Math.random() * 4)),
@@ -618,7 +640,6 @@ const sketch = (p: p5) => {
 
     p.draw = () => {
         p.background(220);
-
         level.draw(renderer);
     }
 };
