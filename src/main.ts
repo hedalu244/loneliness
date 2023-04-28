@@ -86,9 +86,9 @@ class Level {
         this.initial_board = initial_board;
         this.cell_size = 80;
 
-        this.history = []
-        this.anim_queue = []
-        this.anim_starttime = performance.now()
+        this.history = [];
+        this.anim_queue = [];
+        this.anim_starttime = performance.now();
 
         this.init()
     }
@@ -272,7 +272,7 @@ class Level {
         renderer.bgScr.fill(30);
         renderer.bgScr.textSize(32);
         renderer.bgScr.text(this.title, 20, 50);
-
+        
         renderer.clear()
 
         for (let i = 1; i <= this.width; i++)
@@ -362,7 +362,7 @@ class Renderer {
         gl_Position = position;
         uv = aTexCoord;
     }`;
-    static readonly raymarchFS = `
+    static readonly blobFS = `
     precision highp float;
 
     varying vec2 uv;
@@ -370,23 +370,21 @@ class Renderer {
     uniform float smooth_param;
 
     const vec3 light_dir = normalize(vec3(2.0, -4.0, -3.0));
-    const vec3 c_light_pos = vec3(2.0, -4.0, -0.0);
 
     const int 	NUM_BLOBS			= 20;
     const int 	TRACE_STEPS 		= 100;
     const float TRACE_EPSILON 		= 0.001;
-    const float TRACE_DISTANCE		= 500.0;
-    const float NORMAL_EPSILON		= 0.1;
+    const float TRACE_DISTANCE		= 200.0;
+    const float NORMAL_EPSILON		= 0.01;
 
     uniform vec4 blobs[NUM_BLOBS];
 
-    float smin( float a, float b, float k)
-    {
-        float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0 );
+    float smin(float a, float b, float k) {
+        float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
         return mix(b, a, h) - k * h * (1.0 - h);
     } 
 
-    float blobs_field(in vec3 at) {
+    float blobs_field(vec3 at) {
         float sum = TRACE_DISTANCE;
         for (int i = 0; i < NUM_BLOBS; ++i) {
             if (blobs[i].w == 0.) continue;
@@ -398,9 +396,9 @@ class Renderer {
 
     vec3 normal(vec3 at) {
         vec2 e = vec2(0.0, NORMAL_EPSILON);
-        return normalize(vec3(blobs_field(at+e.yxx)-blobs_field(at), 
-                            blobs_field(at+e.xyx)-blobs_field(at),
-                            blobs_field(at+e.xxy)-blobs_field(at)));
+        return normalize(vec3(blobs_field(at + e.yxx) - blobs_field(at), 
+                              blobs_field(at + e.xyx) - blobs_field(at),
+                              blobs_field(at + e.xxy) - blobs_field(at)));
     }
 
     vec4 raymarch(vec3 pos, vec3 dir) {
@@ -413,9 +411,8 @@ class Renderer {
             if (l > TRACE_DISTANCE) break;
         }
         return vec4(pos + dir * l, l);
-    }`
+    }
 
-    static readonly blobFS = `
     void main() {
         vec3 eye = vec3((uv - 0.5) * res, -100);
         vec3 dir = vec3(0, 0, 1);
@@ -424,34 +421,14 @@ class Renderer {
 
         if (pos.w >= TRACE_DISTANCE) {
             gl_FragColor = vec4(0, 0, 0, 0);
+            return;
         }
         else {
+            gl_FragColor = vec4(1, 1, 1, 1);
             vec3 n = normal(pos.xyz);
             float lambert = max(0., dot(n, light_dir)) * 0.5;
             float ambient = 0.5;
             float f = min(1., 1. + n.z);
-            float f2 = f * f;
-            float fresnel = f * f2 * f2 * ambient;
-            
-            gl_FragColor = vec4(vec3(lambert + ambient + fresnel), 1.);
-        }
-    }`;
-    static readonly floorFS = `
-    uniform sampler2D tex;
-
-    void main() {
-        vec3 pos = vec3(uv * res, 20);
-        vec4 color = texture2D(tex, uv);
-        vec4 pos = raymarch(pos, light_dir);
-
-        if (pos.w >= TRACE_DISTANCE) {
-            gl_FragColor = vec4(0, 0, 0, 1);
-        }
-        else {
-            vec3 n = normal(hit.xyz);
-            float lambert = max(0., dot(n, light_dir)) * 0.5;
-            float ambient = 0.4;
-            float f = max(0., 1. + n.z);
             float f2 = f * f;
             float fresnel = f * f2 * f2 * ambient;
             
@@ -562,19 +539,17 @@ class Renderer {
 
         this.blobScr.clear(0, 0, 0, 0);
         this.blobScr.shader(this.blobShader);
-
-        // x, y, z, radius
         this.blobShader.setUniform('blobs', blob_params);
         this.blobShader.setUniform('res', [this.blobScr.width, this.blobScr.height]);
-        this.blobShader.setUniform('smooth_param', this.smooth_scale)
+        this.blobShader.setUniform('smooth_param', this.smooth_scale);
         this.blobScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
-
+        
         this.fxaaScr.clear(0, 0, 0, 0);
         this.fxaaScr.shader(this.fxaaShader);
         this.fxaaShader.setUniform('res', [this.blobScr.width, this.blobScr.height]);
         this.fxaaShader.setUniform('tex', this.blobScr);
         this.fxaaScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
-
+        
         this.p.image(this.fxaaScr, 0, 0)
     }
 
@@ -584,12 +559,14 @@ class Renderer {
         if (this.blobScr) this.blobScr.remove()
         this.blobScr = this.p.createGraphics(width, height, this.p.WEBGL);
         this.blobScr.setAttributes('alpha', true);
-        this.blobShader = this.blobScr.createShader(Renderer.VS, Renderer.raymarchFS + Renderer.blobFS);
+        this.blobShader = this.blobScr.createShader(Renderer.VS, Renderer.blobFS);
+        this.blobScr.shader(this.blobShader);
 
         if (this.fxaaScr) this.fxaaScr.remove()
         this.fxaaScr = this.p.createGraphics(width, height, this.p.WEBGL);
         this.fxaaScr.setAttributes('alpha', true);
         this.fxaaShader = this.fxaaScr.createShader(Renderer.VS, Renderer.fxaaFS);
+        this.fxaaScr.shader(this.fxaaShader);
     }
 }
 
@@ -641,6 +618,7 @@ const sketch = (p: p5) => {
     p.draw = () => {
         p.background(220);
         level.draw(renderer);
+        //p.noLoop();
     }
 };
 
