@@ -259,7 +259,7 @@ class Level {
         renderer.p.background(this.check() ? 150 : 220);
         renderer.p.noStroke()
         renderer.p.fill(30)
-        renderer.p.rect(0, 0, (this.width + 1) * this.cell_size, (this.height + 1) * this.cell_size);
+        renderer.p.rect(this.width / 2 - 0.5, this.height / 2 - 0.5, (this.width + 1) * this.cell_size, (this.height + 1) * this.cell_size);
 
         const metaballs:number[] = []
 
@@ -270,8 +270,8 @@ class Level {
                     case Cell.Free:
                     case Cell.Fixed: {
                         metaballs.push(
-                            (i + offsetx) * this.cell_size,
-                            (j + offsety) * this.cell_size, 
+                            (i + offsetx - this.width / 2 - 0.5) * this.cell_size,
+                            (j + offsety - this.height / 2 - 0.5) * this.cell_size, 
                             0, this.cell_size * 0.42);
                     } break;
                 }
@@ -285,11 +285,21 @@ class Level {
                 switch (this.anim_queue[0].board[i][j]) {
                     case Cell.Wall: {
                         renderer.p.fill(220);
-                        renderer.p.ellipse(i * this.cell_size, j * this.cell_size, this.cell_size * 0.25);
+                        renderer.p.push();
+                        renderer.p.translate(
+                            (i - this.width  / 2 - 0.5) * this.cell_size,
+                            (j - this.height / 2 - 0.5) * this.cell_size, 0);
+                        renderer.p.sphere(this.cell_size * 0.12);
+                        renderer.p.pop();
                     } break;
                     case Cell.Fixed: {
                         renderer.p.fill(30);
-                        renderer.p.ellipse(i * this.cell_size, j * this.cell_size, this.cell_size * 0.25);
+                        renderer.p.push();
+                        renderer.p.translate(
+                            (i - this.width  / 2 - 0.5) * this.cell_size,
+                            (j - this.height / 2 - 0.5) * this.cell_size, 0);
+                        renderer.p.sphere(this.cell_size * 0.12);
+                        renderer.p.pop();
                     } break;
                 }
             }
@@ -387,7 +397,7 @@ class Renderer {
 
     static readonly metaballFS = `
     void main() {
-        vec3 eye = vec3(uv * res, -100);
+        vec3 eye = vec3((uv - 0.5) * res, -100);
         vec3 dir = vec3(0, 0, 1);
         
         vec4 pos = raymarch(eye, dir);
@@ -499,6 +509,9 @@ class Renderer {
     constructor(p: p5) {
         this.p = p
 
+        p.rectMode(p.CENTER);
+        p.imageMode(p.CENTER);
+
         if (this.metaballScr) this.metaballScr.remove()
         this.metaballScr = p.createGraphics(p.width, p.height, p.WEBGL);
         this.metaballScr.setAttributes('alpha', true);
@@ -546,7 +559,7 @@ const sketch = (p: p5) => {
     ])
 
     p.setup = () => {
-        p.createCanvas(400, 400);
+        p.createCanvas(400, 400, p.WEBGL);
         renderer = new Renderer(p);
         document.addEventListener("keydown", keyDown, false);
     };
