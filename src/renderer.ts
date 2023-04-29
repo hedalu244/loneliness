@@ -18,19 +18,19 @@ interface Dot {
 export class Renderer {
     p: p5;
     blobShader: p5.Shader;
+    dotShader: p5.Shader;
     blobScr: p5.Graphics;
+
     fxaaShader: p5.Shader;
     fxaaScr: p5.Graphics;
-    dotScr: p5.Graphics;
-    dotShader: p5.Shader;
     
     floorShader: p5.Shader; // mainScr
 
     bgScr: p5.Graphics;
     shadowScr: p5.Graphics;
-    floorScr: p5.Graphics;
-
     mainScr: p5.Graphics;
+
+    //floorScr: p5.Graphics;
     filterScr: p5.Graphics;
     
     lensFilterShader: p5.Shader;
@@ -265,23 +265,20 @@ export class Renderer {
         p.rectMode(p.CENTER);
         p.imageMode(p.CENTER);
 
-        
-        this.mainScr = p.createGraphics(p.width, p.height);
-        this.mainScr.rectMode(p.CENTER);
-        this.mainScr.imageMode(p.CENTER);
-
         this.bgScr = p.createGraphics(p.width, p.height);
         this.bgScr.rectMode(p.CENTER);
         this.bgScr.imageMode(p.CENTER);
 
         this.shadowScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
+        this.shadowScr.setAttributes("depth", false);
         this.shadowScr.rectMode(p.CENTER);
         this.shadowScr.imageMode(p.CENTER);
 
-        this.floorScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
-        this.floorScr.rectMode(p.CENTER);
-        this.floorScr.imageMode(p.CENTER);
-        this.floorShader = this.floorScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.floorFS);
+        this.mainScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
+        this.mainScr.setAttributes("depth", false);
+        this.mainScr.rectMode(p.CENTER);
+        this.mainScr.imageMode(p.CENTER);
+        this.floorShader = this.mainScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.floorFS);
 
         this.filterScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
         this.filterScr.rectMode(p.CENTER);
@@ -312,6 +309,7 @@ export class Renderer {
         this.renderFloor();
         this.renderBlob();
         this.renderDot();
+        this.renderFxaa();
 
         this.filterScr.clear(0, 0, 0, 0);
         this.filterScr.noStroke();
@@ -331,37 +329,23 @@ export class Renderer {
         //this.p.background();
     }
 
+    // (shadowScr, bgScr) => mainScr
     renderFloor() {
         this.shadowScr.clear(1, 1, 1, 1);
         this.shadowScr.noStroke();
         this.shadowScr.fill(0);
         this.blobs.forEach(a => this.shadowScr.image(Asset.shadow80, a.x - 50, a.y + 50))
 
-        this.floorScr.clear(0, 0, 0, 0);
-        this.floorScr.noStroke();
-        this.floorScr.shader(this.floorShader);
+        this.mainScr.clear(0, 0, 0, 0);
+        this.mainScr.noStroke();
+        this.mainScr.shader(this.floorShader);
         this.floorShader.setUniform('res', [this.mainScr.width, this.mainScr.height]);
         this.floorShader.setUniform('color_tex', this.bgScr);
         this.floorShader.setUniform('shadow_tex', this.shadowScr);
-        this.floorScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
-
-        this.mainScr.image(this.floorScr, this.p.width / 2, this.p.height / 2);
+        this.mainScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
     }
 
-    renderDot() {
-        this.dotScr.clear(0, 0, 0, 0);
-        this.dots.forEach(a => {
-            this.dotScr.fill(a.color == "black" ? 60 : 255);
-            this.dotScr.noStroke();
-            this.dotScr.push();
-            this.dotScr.translate(a.x, a.y, a.z);
-            this.dotScr.sphere(a.r);
-            this.dotScr.pop();
-        });
-
-        this.mainScr.image(this.dotScr, this.p.width / 2, this.p.height / 2);
-    }
-
+    // blob => blobScr
     renderBlob() {
         const blob_params: number[] = [];
         this.blobs.forEach(a => blob_params.push(a.x, a.y, a.z, a.r))
@@ -375,7 +359,23 @@ export class Renderer {
         this.blobShader.setUniform('res', [this.blobScr.width, this.blobScr.height]);
         this.blobShader.setUniform('smooth_param', this.smooth_scale);
         this.blobScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
-        
+    }
+
+    // dot => blobScr
+    renderDot() {
+        this.blobScr.shader(this.dotShader);
+        this.dots.forEach(a => {
+            this.blobScr.fill(a.color == "black" ? 60 : 255);
+            this.blobScr.noStroke();
+            this.blobScr.push();
+            this.blobScr.translate(a.x, a.y, a.z);
+            this.blobScr.sphere(a.r);
+            this.blobScr.pop();
+        });
+    }
+
+    // blobScr => fxaaScr => mainScr
+    renderFxaa() {
         this.fxaaScr.clear(0, 0, 0, 0);
         this.fxaaScr.noStroke();
         this.fxaaScr.shader(this.fxaaShader);
@@ -383,7 +383,8 @@ export class Renderer {
         this.fxaaShader.setUniform('tex', this.blobScr);
         this.fxaaScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
         
-        this.mainScr.image(this.fxaaScr, this.p.width / 2, this.p.height / 2);
+        this.mainScr.resetShader();
+        this.mainScr.image(this.fxaaScr, 0, 0);
     }
 
     setBlobArea(width: number, height: number, smooth_scale: number) {
@@ -396,19 +397,12 @@ export class Renderer {
         this.blobScr = this.p.createGraphics(width, height, this.p.WEBGL);
         this.blobScr.setAttributes('alpha', true);
         this.blobShader = this.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS);
-        this.blobScr.shader(this.blobShader);
+        this.dotShader = this.blobScr.createShader(Renderer.dotVS, Renderer.lightingFS + Renderer.dotFS);
+        this.blobScr.ortho();
 
         if (this.fxaaScr) this.fxaaScr.remove()
         this.fxaaScr = this.p.createGraphics(width, height, this.p.WEBGL);
         this.fxaaScr.setAttributes('alpha', true);
         this.fxaaShader = this.fxaaScr.createShader(Renderer.ScreenVS, Renderer.fxaaFS);
-        this.fxaaScr.shader(this.fxaaShader);
-
-        if (this.dotScr) this.dotScr.remove()
-        this.dotScr = this.p.createGraphics(width, height, this.p.WEBGL);
-        this.dotScr.setAttributes('alpha', true);
-        this.dotScr.ortho();
-        this.dotShader = this.dotScr.createShader(Renderer.dotVS, Renderer.lightingFS + Renderer.dotFS);
-        this.dotScr.shader(this.dotShader);
     }
 }
