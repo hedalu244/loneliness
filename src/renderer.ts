@@ -30,10 +30,9 @@ export class Renderer {
     shadowScr: p5.Graphics;
     mainScr: p5.Graphics;
 
-    //floorScr: p5.Graphics;
     filterScr: p5.Graphics;
-    
-    lensFilterShader: p5.Shader;
+    BlurShader: p5.Shader;
+    lensShader: p5.Shader;
 
     static shadow80: p5.Image;
 
@@ -224,7 +223,7 @@ export class Renderer {
         // gl_FragColor.rgb = 0. < gl_FragColor.a ? gl_FragColor.rgb / gl_FragColor.a : gl_FragColor.rgb;
     }`;
 
-    static readonly lensFilterFS = `
+    static readonly lensFS = `
     precision highp float;
     
     varying vec2 uv;
@@ -232,28 +231,50 @@ export class Renderer {
     
     uniform sampler2D tex;
 
-    float lum(vec4 color) {
-        return dot(color, vec4(0.299, 0.587, 0.114, 1.));
-    }
-
     float distort(float x, float a, float fix) {
         return (pow(a, x) - 1.) / (pow(a, fix) - 1.);
+    }
+
+    float random(vec2 uv) {
+        return fract(sin(dot(uv.xy ,vec2(12.9898,78.233))) * 43758.5453);
     }
     
     void main() {
         vec2 duv = uv - 0.5;
 
         float l = length(duv);
-        duv = duv * distort(l, 1.1, 1.) / l;
+        duv = duv * distort(l, 1.2, 1.) / l;
 
-        float r = texture2D(tex, duv * 1.02 + 0.5).r;
-        float g = texture2D(tex, duv * 1.01 + 0.5).g;
-        float b = texture2D(tex, duv * 1.00 + 0.5).b;
+        float r = texture2D(tex, duv * 1.012 + 0.5).r;
+        float g = texture2D(tex, duv * 1.006 + 0.5).g;
+        float b = texture2D(tex, duv * 1.000 + 0.5).b;
         vec3 color = vec3(r, g, b);
 
         float vignette = 1. - l * 0.2;
+        float noise = random(uv) * 0.008 - 0.004;
 
-        gl_FragColor = vec4(color * vignette, 1);
+        gl_FragColor = vec4(color * vignette + noise, 1);
+    }`;
+
+    static readonly blurFS = `
+    precision highp float;
+    
+    varying vec2 uv;
+    uniform vec2 res;
+    
+    uniform sampler2D tex;
+    
+    void main() {
+        vec4 x = texture2D(tex, uv);
+
+        vec2 duv = (uv - 0.5) * 0.004;
+        vec2 cuv = duv.yx * vec2(1, -1);
+        vec4 a = texture2D(tex, uv + duv);
+        vec4 b = texture2D(tex, uv - duv);
+        vec4 c = texture2D(tex, uv + cuv);
+        vec4 d = texture2D(tex, uv - cuv);
+
+        gl_FragColor = vec4((a + a + b + c + d).rgb * .2, 1);
     }`;
 
     blobs: Blob[];
@@ -283,7 +304,8 @@ export class Renderer {
         this.filterScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
         this.filterScr.rectMode(p.CENTER);
         this.filterScr.imageMode(p.CENTER);
-        this.lensFilterShader = this.filterScr.createShader(Renderer.ScreenVS, Renderer.lensFilterFS);
+        this.lensShader = this.filterScr.createShader(Renderer.ScreenVS, Renderer.lensFS);
+        this.BlurShader = this.filterScr.createShader(Renderer.ScreenVS, Renderer.blurFS);
 
         this.setBlobArea(p.width, p.height, 0);
 
@@ -311,11 +333,22 @@ export class Renderer {
         this.renderDot();
         this.renderFxaa();
 
+        
         this.filterScr.clear(0, 0, 0, 0);
         this.filterScr.noStroke();
-        this.filterScr.shader(this.lensFilterShader);
-        this.lensFilterShader.setUniform('res', [this.mainScr.width, this.mainScr.height]);
-        this.lensFilterShader.setUniform('tex', this.mainScr);
+        this.filterScr.shader(this.BlurShader);
+        this.BlurShader.setUniform('res', [this.mainScr.width, this.mainScr.height]);
+        this.BlurShader.setUniform('tex', this.mainScr);
+        this.filterScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+
+        this.mainScr.clear(0, 0, 0, 0)
+        this.mainScr.image(this.filterScr, 0, 0, 0, 0);
+
+        this.filterScr.clear(0, 0, 0, 0);
+        this.filterScr.noStroke();
+        this.filterScr.shader(this.lensShader);
+        this.lensShader.setUniform('res', [this.mainScr.width, this.mainScr.height]);
+        this.lensShader.setUniform('tex', this.mainScr);
         this.filterScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
 
         this.p.image(this.filterScr, this.p.width / 2, this.p.height / 2);
