@@ -7,6 +7,7 @@ import { Level } from "./level";
 import { initInputEvent } from "./input";
 import { Menu } from "./menu";
 import { leveldata } from "./LevelData";
+import { Asset } from "./asset";
 
 type State = Title | Menu | Level;
 
@@ -78,6 +79,10 @@ const sketch = (p: p5) => {
         n_array(6, () => Math.floor(Math.random() * 4)),
     ])
     */
+
+    p.preload = () => {
+        Asset.preload(p);
+    }
 
     p.setup = () => {
         const canvas = p.createCanvas(800, 800).elt as HTMLCanvasElement;

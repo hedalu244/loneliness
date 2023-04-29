@@ -137,7 +137,7 @@ export class Menu {
     draw(renderer: Renderer, posX: number, posY: number, fadeRate: number) {
         renderer.clear();
 
-        renderer.bgScr.background(220);
+        renderer.bgScr.background(255);
 
         if (1 < this.anim_queue.length && this.anim_starttime + 200 < performance.now()) {
             this.anim_queue.shift()

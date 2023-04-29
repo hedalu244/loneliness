@@ -67,7 +67,7 @@ export class Level {
     draw(renderer: Renderer, posX: number, posY: number, fadeRate: number) {
         renderer.clear();
         
-        renderer.bgScr.background(220);
+        renderer.bgScr.background(255);
 
         renderer.bgScr.fill(180);
         renderer.bgScr.fill(30);

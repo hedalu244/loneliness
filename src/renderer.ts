@@ -1,4 +1,5 @@
 import p5 from "p5";
+import { Asset } from "./asset";
 
 interface Blob {
     x: number,
@@ -22,15 +23,26 @@ export class Renderer {
     fxaaScr: p5.Graphics;
     dotScr: p5.Graphics;
     dotShader: p5.Shader;
+    
+    floorShader: p5.Shader; // mainScr
 
     bgScr: p5.Graphics;
+    shadowScr: p5.Graphics;
+    floorScr: p5.Graphics;
+
+    mainScr: p5.Graphics;
+    filterScr: p5.Graphics;
+    
+    lensFilterShader: p5.Shader;
+
+    static shadow80: p5.Image;
 
     static readonly lightingFS = `
     precision highp float;
 
-    const vec3 light_dir = normalize(vec3(2.0, -4.0, -3.0));
-    const vec3 directional = vec3(0.5);
-    const vec3 ambient = vec3(0.5);
+    const vec3 light_dir = normalize(vec3(1.0, -1.0, -1.4));
+    const vec3 directional = vec3(0.4);
+    const vec3 ambient = vec3(0.6);
 
     vec3 lighting(vec3 color, vec3 normal, float shadow) {
         vec3 lambert = max(0., dot(normal, light_dir)) * shadow * directional;
@@ -71,6 +83,19 @@ export class Renderer {
     void main(void) {
         vec3 n = vVertexNormal * vec3(1, 1, -1);
         gl_FragColor = vec4(lighting(vColor.rgb, n, 1.0), 1.0);
+    }`;
+
+    static readonly floorFS = `
+    varying vec2 uv;
+    uniform vec2 res;
+
+    uniform sampler2D color_tex;
+    uniform sampler2D shadow_tex;
+
+    void main(void) {
+        vec3 color = texture2D(color_tex, uv).rgb;
+        float shadow = texture2D(shadow_tex, uv).r;
+        gl_FragColor = vec4(lighting(color.rgb, vec3(0, 0, -1), shadow), 1.0);
     }`;
 
     static readonly ScreenVS = `
@@ -199,6 +224,38 @@ export class Renderer {
         // gl_FragColor.rgb = 0. < gl_FragColor.a ? gl_FragColor.rgb / gl_FragColor.a : gl_FragColor.rgb;
     }`;
 
+    static readonly lensFilterFS = `
+    precision highp float;
+    
+    varying vec2 uv;
+    uniform vec2 res;
+    
+    uniform sampler2D tex;
+
+    float lum(vec4 color) {
+        return dot(color, vec4(0.299, 0.587, 0.114, 1.));
+    }
+
+    float distort(float x, float a, float fix) {
+        return (pow(a, x) - 1.) / (pow(a, fix) - 1.);
+    }
+    
+    void main() {
+        vec2 duv = uv - 0.5;
+
+        float l = length(duv);
+        duv = duv * distort(l, 1.1, 1.) / l;
+
+        float r = texture2D(tex, duv * 1.02 + 0.5).r;
+        float g = texture2D(tex, duv * 1.01 + 0.5).g;
+        float b = texture2D(tex, duv * 1.00 + 0.5).b;
+        vec3 color = vec3(r, g, b);
+
+        float vignette = 1. - l * 0.2;
+
+        gl_FragColor = vec4(color * vignette, 1);
+    }`;
+
     blobs: Blob[];
     dots: Dot[];
     smooth_scale: number;
@@ -207,9 +264,29 @@ export class Renderer {
         this.p = p
         p.rectMode(p.CENTER);
         p.imageMode(p.CENTER);
+
+        
+        this.mainScr = p.createGraphics(p.width, p.height);
+        this.mainScr.rectMode(p.CENTER);
+        this.mainScr.imageMode(p.CENTER);
+
         this.bgScr = p.createGraphics(p.width, p.height);
         this.bgScr.rectMode(p.CENTER);
         this.bgScr.imageMode(p.CENTER);
+
+        this.shadowScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
+        this.shadowScr.rectMode(p.CENTER);
+        this.shadowScr.imageMode(p.CENTER);
+
+        this.floorScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
+        this.floorScr.rectMode(p.CENTER);
+        this.floorScr.imageMode(p.CENTER);
+        this.floorShader = this.floorScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.floorFS);
+
+        this.filterScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
+        this.filterScr.rectMode(p.CENTER);
+        this.filterScr.imageMode(p.CENTER);
+        this.lensFilterShader = this.filterScr.createShader(Renderer.ScreenVS, Renderer.lensFilterFS);
 
         this.setBlobArea(p.width, p.height, 0);
 
@@ -231,10 +308,19 @@ export class Renderer {
     
     /// fadeRate: 0～1の薄めぐあい
     render(posX: number, posY: number, fadeRate:number) {
-        this.p.background(220);
-        this.p.image(this.bgScr, this.p.width / 2, this.p.height / 2);
+        this.p.background(255);
+        this.renderFloor();
         this.renderBlob();
         this.renderDot();
+
+        this.filterScr.clear(0, 0, 0, 0);
+        this.filterScr.noStroke();
+        this.filterScr.shader(this.lensFilterShader);
+        this.lensFilterShader.setUniform('res', [this.mainScr.width, this.mainScr.height]);
+        this.lensFilterShader.setUniform('tex', this.mainScr);
+        this.filterScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+
+        this.p.image(this.filterScr, this.p.width / 2, this.p.height / 2);
 
         if(0 < fadeRate) {
             this.p.fill(220, Math.floor(fadeRate * 255));
@@ -245,7 +331,25 @@ export class Renderer {
         //this.p.background();
     }
 
+    renderFloor() {
+        this.shadowScr.clear(1, 1, 1, 1);
+        this.shadowScr.noStroke();
+        this.shadowScr.fill(0);
+        this.blobs.forEach(a => this.shadowScr.image(Asset.shadow80, a.x - 50, a.y + 50))
+
+        this.floorScr.clear(0, 0, 0, 0);
+        this.floorScr.noStroke();
+        this.floorScr.shader(this.floorShader);
+        this.floorShader.setUniform('res', [this.mainScr.width, this.mainScr.height]);
+        this.floorShader.setUniform('color_tex', this.bgScr);
+        this.floorShader.setUniform('shadow_tex', this.shadowScr);
+        this.floorScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+
+        this.mainScr.image(this.floorScr, this.p.width / 2, this.p.height / 2);
+    }
+
     renderDot() {
+        this.dotScr.clear(0, 0, 0, 0);
         this.dots.forEach(a => {
             this.dotScr.fill(a.color == "black" ? 60 : 255);
             this.dotScr.noStroke();
@@ -255,7 +359,7 @@ export class Renderer {
             this.dotScr.pop();
         });
 
-        this.p.image(this.dotScr, this.p.width / 2, this.p.height / 2)
+        this.mainScr.image(this.dotScr, this.p.width / 2, this.p.height / 2);
     }
 
     renderBlob() {
@@ -279,7 +383,7 @@ export class Renderer {
         this.fxaaShader.setUniform('tex', this.blobScr);
         this.fxaaScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
         
-        this.p.image(this.fxaaScr, this.p.width / 2, this.p.height / 2)
+        this.mainScr.image(this.fxaaScr, this.p.width / 2, this.p.height / 2);
     }
 
     setBlobArea(width: number, height: number, smooth_scale: number) {
