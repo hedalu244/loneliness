@@ -6,7 +6,7 @@ import { Renderer } from "./renderer";
 import { Level } from "./level";
 import { initInputEvent } from "./input";
 import { Menu } from "./menu";
-import { leveldata } from "./LevelData";
+import { leveldata } from "./leveldata";
 import { Asset } from "./asset";
 
 type State = Title | Menu | Level;

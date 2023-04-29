@@ -3,7 +3,7 @@ import { Renderer } from "./renderer";
 import { Level } from "./level";
 import { TransitionManager } from "./main";
 import { Cell, Game } from "./game";
-import { leveldata } from "./LevelData";
+import { leveldata } from "./leveldata";
 
 type MenuAnimation = {
     x: number,
