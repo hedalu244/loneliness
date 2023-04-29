@@ -3,7 +3,7 @@ import { Game, Board } from "./game";
 import { Title } from "./title";
 import { TransitionManager } from "./main";
 import { Direction } from "./algorithm";
-import { LevelParam } from "./LevelData";
+import { LevelParam } from "./leveldata";
 import { Menu } from "./menu";
 
 export class Level {
