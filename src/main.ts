@@ -6,6 +6,7 @@ import { Renderer } from "./renderer";
 import { Level } from "./level";
 import { initInputEvent } from "./input";
 import { Menu } from "./menu";
+import { leveldata } from "./LevelData";
 
 type State = Title | Menu | Level;
 
@@ -33,12 +34,21 @@ export class TransitionManager {
     }
 
     key(code: string) {
+        const elapsed_time = performance.now() - this.start_time;
+        if (elapsed_time < 1000)
+            return;
         this.state.key(code);
     }
     flick(direction: Direction) {
+        const elapsed_time = performance.now() - this.start_time;
+        if (elapsed_time < 1000)
+            return;
         this.state.flick(direction);
     }
     click(x: number, y:number) {
+        const elapsed_time = performance.now() - this.start_time;
+        if (elapsed_time < 1000)
+            return;
         this.state.click(x, y);
     }
 
@@ -76,6 +86,7 @@ const sketch = (p: p5) => {
             (code) => transition_manager.key(code),
             (x, y) => transition_manager.click(x, y),
             (dir) => transition_manager.flick(dir));
+        console.log(leveldata)
     };
 
     p.draw = () => {

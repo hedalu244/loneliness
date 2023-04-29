@@ -13,7 +13,7 @@ export class Title {
 
     transition(manager: TransitionManager) {
         if (this.game.check()) {
-            manager.startTransiton(new Menu());
+            manager.startTransiton(new Menu(0));
         }
     }
 

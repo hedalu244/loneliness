@@ -3,6 +3,7 @@ import { Renderer } from "./renderer";
 import { Level } from "./level";
 import { TransitionManager } from "./main";
 import { Cell, Game } from "./game";
+import { leveldata } from "./LevelData";
 
 type MenuAnimation = {
     x: number,
@@ -20,14 +21,17 @@ export class Menu {
 
     anim_queue: MenuAnimation[]
     anim_starttime: number;
+    
+    selected: boolean;
 
-    constructor() {
-        this.x = 0;
-        this.y = 0;
+    constructor(selecting: number) {
         this.width = 5;
         this.height = 3;
+        this.x = selecting % this.width;
+        this.y = Math.floor(selecting / this.width);
 
         this.cell_size = 80;
+        this.selected = false;
 
         this.anim_queue = [];
         this.anim_starttime = performance.now();
@@ -40,9 +44,7 @@ export class Menu {
     }
 
     move(direction: Direction) {
-
         let noMove = true;
-
         switch (direction) {
             case Direction.Left: {
                 if (0 <= this.x - 1) {
@@ -79,9 +81,17 @@ export class Menu {
     }
 
     transition(manager: TransitionManager) {
+        if (this.selected) {
+            const selecting = this.y * this.width + this.x;
+            console.log(selecting, leveldata[selecting]);
+            manager.startTransiton(new Level(leveldata[selecting]))
+        }
     }
 
     key(code: string) {
+        if (this.selected)
+            return;
+
         switch (code) {
             case "ArrowLeft": {
                 this.move(Direction.Left);
@@ -95,9 +105,15 @@ export class Menu {
             case "ArrowDown": {
                 this.move(Direction.Down);
             } break;
+            case "Enter": {
+                this.selected = true;
+            }
         }
     }
     flick(direction: Direction) {
+        if (this.selected)
+            return;
+        
         switch (direction) {
             case Direction.Left: {
                 this.move(Direction.Left);
@@ -114,7 +130,8 @@ export class Menu {
         }
     }
     click(x: number, y: number) {
-
+        if (this.selected)
+            return;
     }
 
     draw(renderer: Renderer, posX: number, posY: number, fadeRate: number) {

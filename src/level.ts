@@ -3,18 +3,20 @@ import { Game, Board } from "./game";
 import { Title } from "./title";
 import { TransitionManager } from "./main";
 import { Direction } from "./algorithm";
+import { LevelParam } from "./LevelData";
+import { Menu } from "./menu";
 
 export class Level {
     title: string;
     game: Game
-    constructor(title: string, initialBoard: Board) {
-        this.title = title
-        this.game = new Game(initialBoard);
+    constructor(levelparam: LevelParam) {
+        this.title = levelparam.title
+        this.game = new Game(levelparam.initialBoard);
     }
 
     transition(manager: TransitionManager) {
         if (this.game.check()) {
-            manager.startTransiton(new Title());
+            manager.startTransiton(new Menu(0));
         }
     }
 
@@ -40,7 +42,7 @@ export class Level {
             } break;
         }
     }
-    
+
     flick(direction: Direction) {
         switch (direction) {
             case Direction.Left: {
