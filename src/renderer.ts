@@ -105,7 +105,7 @@ export class Renderer {
     varying vec2 uv;
 
     void main() {
-        vec4 position = vec4(aPosition, 1.0);
+        vec4 position = vec4(aPosition.xy, 1.0, 1.0);
 
         gl_Position = position;
         uv = aTexCoord;
@@ -397,9 +397,9 @@ export class Renderer {
     // dot => blobScr
     renderDot() {
         this.blobScr.shader(this.dotShader);
+        this.blobScr.noStroke();
         this.dots.forEach(a => {
             this.blobScr.fill(a.color == "black" ? 60 : 255);
-            this.blobScr.noStroke();
             this.blobScr.push();
             this.blobScr.translate(a.x, a.y, a.z);
             this.blobScr.sphere(a.r);
@@ -435,6 +435,7 @@ export class Renderer {
 
         if (this.fxaaScr) this.fxaaScr.remove()
         this.fxaaScr = this.p.createGraphics(width, height, this.p.WEBGL);
+        this.fxaaScr.setAttributes("depth", false);
         this.fxaaScr.setAttributes('alpha', true);
         this.fxaaShader = this.fxaaScr.createShader(Renderer.ScreenVS, Renderer.fxaaFS);
     }
