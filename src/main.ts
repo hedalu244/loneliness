@@ -46,11 +46,11 @@ export class TransitionManager {
             return;
         this.state.flick(direction);
     }
-    click(x: number, y:number) {
+    click(x: number, y:number, p: p5) {
         const elapsed_time = performance.now() - this.start_time;
         if (elapsed_time < 1000)
             return;
-        this.state.click(x, y);
+        this.state.click(p.mouseX, p.mouseY);
     }
 
     update() {
@@ -89,7 +89,7 @@ const sketch = (p: p5) => {
         renderer = new Renderer(p);
         initInputEvent(canvas,
             (code) => transition_manager.key(code),
-            (x, y) => transition_manager.click(x, y),
+            (x, y) => transition_manager.click(x, y, p),
             (dir) => transition_manager.flick(dir));
         console.log(leveldata)
     };

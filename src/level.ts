@@ -5,13 +5,21 @@ import { TransitionManager } from "./main";
 import { Direction } from "./algorithm";
 import { LevelParam } from "./leveldata";
 import { Menu } from "./menu";
+import { Button } from "./button";
 
 export class Level {
     title: string;
     game: Game
+    undoButton: Button;
+    initButton: Button;
+    quitButton: Button;
+
     constructor(levelparam: LevelParam) {
         this.title = levelparam.title
         this.game = new Game(levelparam.initialBoard);
+        this.undoButton = new Button(700, 100, 40, 40);
+        this.initButton = new Button(640, 100, 40, 40);
+        this.quitButton = new Button(520, 100, 40, 40);
     }
 
     transition(manager: TransitionManager) {
@@ -61,7 +69,18 @@ export class Level {
     }
 
     click(x: number, y:number) {
-        
+        if (this.undoButton.hit(x, y)) {
+            this.game.undo();
+            return;
+        }
+        if (this.initButton.hit(x, y)) {
+            this.game.init();
+            return;
+        }
+        if (this.quitButton.hit(x, y)) {
+            console.log("clicked");
+            return;
+        }
     }
 
     draw(renderer: Renderer, posX: number, posY: number, fadeRate: number) {
@@ -73,6 +92,10 @@ export class Level {
         renderer.bgScr.fill(30);
         renderer.bgScr.textSize(32);
         renderer.bgScr.text(this.title, 20, 50);
+        
+        this.undoButton.draw(renderer);
+        this.initButton.draw(renderer);
+        this.quitButton.draw(renderer);
 
         this.game.draw(renderer);
         
