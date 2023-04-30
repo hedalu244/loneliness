@@ -119,10 +119,17 @@ export class Menu {
     }
 
     draw(renderer: Renderer, posX: number, posY: number, fadeRate: number) {
+        const selecting = this.y * this.width + this.x;
+
         renderer.clear();
 
         renderer.bgScr.background(255);
-
+        renderer.bgScr.fill(Asset.black);
+        renderer.bgScr.textAlign(renderer.p.LEFT);
+        renderer.bgScr.textSize(36);
+        renderer.bgScr.textFont(Asset.fontEB);
+        renderer.bgScr.text(leveldata[selecting]?.title, 60, 100);
+        
         if (1 < this.anim_queue.length && this.anim_starttime + 200 < performance.now()) {
             this.anim_queue.shift()
             this.anim_starttime = performance.now()
