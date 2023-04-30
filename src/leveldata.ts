@@ -3,11 +3,15 @@ import { Board } from "./game";
 export interface LevelParam {
     title: string
     initialBoard: Board;
+    description_ja: string;
+    description_en: string;
 }
 
 export const leveldata: LevelParam[] = [
     {
-        title: "01. aaa",
+        title: "01.\nAAA",
+        description_ja: "これはテストです。",
+        description_en: "this is test text.",
         initialBoard: [
             [1, 0, 2, 3],
             [2, 0, 0, 1],
@@ -16,7 +20,9 @@ export const leveldata: LevelParam[] = [
         ]
     },
     {
-        title: "02. bbb",
+        title: "02.\nBBB",
+        description_ja: "これはテストです。",
+        description_en: "this is test text.",
         initialBoard: [
             [1],
             [2],
@@ -25,7 +31,9 @@ export const leveldata: LevelParam[] = [
         ]
     },
     {
-        title: "03. ccc",
+        title: "03.\nCCC",
+        description_ja: "これはテストです。",
+        description_en: "this is test text.",
         initialBoard: [
             [1],
             [2],

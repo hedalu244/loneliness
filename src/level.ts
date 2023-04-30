@@ -8,8 +8,12 @@ import { Menu } from "./menu";
 import { Button } from "./button";
 
 export class Level {
-    title: string;
     index: number;
+    
+    title: string;
+    description_ja: string;
+    description_en: string;
+    
     game: Game
     undoButton: Button;
     initButton: Button;
@@ -22,6 +26,9 @@ export class Level {
         this.index = index;
         
         this.title = leveldata[index].title;
+        this.description_ja = leveldata[index].description_ja;
+        this.description_en = leveldata[index].description_en;
+    
         this.game = new Game(leveldata[index].initialBoard);
         
         this.undoButton = new Button(700, 100, 40, 40);
@@ -119,10 +126,13 @@ export class Level {
         
         renderer.bgScr.background(255);
 
-        renderer.bgScr.fill(180);
         renderer.bgScr.fill(30);
+        renderer.bgScr.textAlign(renderer.p.LEFT);
         renderer.bgScr.textSize(32);
-        renderer.bgScr.text(this.title, 20, 50);
+        renderer.bgScr.text(this.title, 60, 100);
+        renderer.bgScr.textSize(26);
+        renderer.bgScr.text(this.description_ja, 60, 680);
+        renderer.bgScr.text(this.description_en, 60, 720);
         
         this.undoButton.draw(renderer);
         this.initButton.draw(renderer);

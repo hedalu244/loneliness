@@ -67,8 +67,9 @@ export class Title {
         renderer.bgScr.background(255);
 
         renderer.bgScr.fill(30);
-        renderer.bgScr.textSize(40);
-        renderer.bgScr.text("Title", 300, 300);
+        renderer.bgScr.textSize(60);
+        renderer.bgScr.textAlign(renderer.p.CENTER);
+        renderer.bgScr.text("LONELINESS", 400, 300);
 
         this.game.draw(renderer);
 
