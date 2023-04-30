@@ -1,5 +1,6 @@
 import p5 from "p5";
 import { Renderer } from "./renderer";
+import { Asset } from "./asset";
 
 export class Button{
     x: number;
@@ -18,7 +19,7 @@ export class Button{
 
     draw(renderer: Renderer){
         //renderer.bgScr.image(this.texture, this.x, this.y);
-        renderer.bgScr.fill(90);
+        renderer.bgScr.fill(Asset.black);
         renderer.bgScr.rect(this.x, this.y, this.w, this.h);
     }
 

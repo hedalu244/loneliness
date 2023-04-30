@@ -4,6 +4,7 @@ import { Level } from "./level";
 import { TransitionManager } from "./main";
 import { Cell, Game } from "./game";
 import { Menu } from "./menu";
+import { Asset } from "./asset";
 
 export class Title {
     game: Game;
@@ -66,8 +67,9 @@ export class Title {
         
         renderer.bgScr.background(255);
 
-        renderer.bgScr.fill(30);
+        renderer.bgScr.fill(Asset.black);
         renderer.bgScr.textSize(60);
+        renderer.bgScr.textFont(Asset.fontEB);
         renderer.bgScr.textAlign(renderer.p.CENTER);
         renderer.bgScr.text("LONELINESS", 400, 300);
 

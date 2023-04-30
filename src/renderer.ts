@@ -48,7 +48,7 @@ export class Renderer {
 
         float f = min(1., 1. + normal.z);
         float f2 = f * f;
-        vec3 fresnel = f * f2 * f2 * ambient;
+        vec3 fresnel = f * f2 * f2 * ambient * 0.3;
 
         return (lambert + ambient) * color + fresnel;
     }`;
@@ -243,7 +243,7 @@ export class Renderer {
         vec2 duv = uv - 0.5;
 
         float l = length(duv);
-        duv = duv * distort(l, 1.2, 1.) / l;
+        duv = duv * distort(l, 1.1, 1.) / l;
 
         float r = texture2D(tex, duv * 1.012 + 0.5).r;
         float g = texture2D(tex, duv * 1.006 + 0.5).g;
@@ -399,7 +399,7 @@ export class Renderer {
         this.blobScr.shader(this.dotShader);
         this.blobScr.noStroke();
         this.dots.forEach(a => {
-            this.blobScr.fill(a.color == "black" ? 60 : 255);
+            this.blobScr.fill(a.color == "black" ? Asset.black : 255);
             this.blobScr.push();
             this.blobScr.translate(a.x, a.y, a.z);
             this.blobScr.sphere(a.r);

@@ -6,6 +6,7 @@ import { Direction } from "./algorithm";
 import { LevelParam, leveldata } from "./leveldata";
 import { Menu } from "./menu";
 import { Button } from "./button";
+import { Asset } from "./asset";
 
 export class Level {
     index: number;
@@ -126,12 +127,18 @@ export class Level {
         
         renderer.bgScr.background(255);
 
-        renderer.bgScr.fill(30);
+        renderer.bgScr.fill(Asset.black);
         renderer.bgScr.textAlign(renderer.p.LEFT);
-        renderer.bgScr.textSize(32);
+        renderer.bgScr.textSize(36);
+        renderer.bgScr.textFont(Asset.fontEB);
         renderer.bgScr.text(this.title, 60, 100);
+        
         renderer.bgScr.textSize(26);
+        renderer.bgScr.textFont("sans-serif");
         renderer.bgScr.text(this.description_ja, 60, 680);
+        
+        renderer.bgScr.textSize(26);
+        renderer.bgScr.textFont(Asset.fontR);
         renderer.bgScr.text(this.description_en, 60, 720);
         
         this.undoButton.draw(renderer);
