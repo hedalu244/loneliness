@@ -167,7 +167,7 @@ export class Menu {
         renderer.setBlobArea(this.width * this.cell_size, this.height * this.cell_size, this.cell_size * 0.46);
         renderer.bgScr.noStroke()
 
-        renderer.bgScr.fill(60);
+        renderer.bgScr.fill(90);
         renderer.bgScr.rect(
             renderer.p.width / 2,
             renderer.p.height / 2,
