@@ -32,12 +32,12 @@ export class Level {
     
         this.game = new Game(leveldata[index].initialBoard);
         
-        this.undoButton = new Button(700, 100, 40, 40);
-        this.initButton = new Button(640, 100, 40, 40);
-        this.quitButton = new Button(520, 100, 40, 40);
+        this.undoButton = new Button(700, 100, 40, 40, Asset.undoButton);
+        this.initButton = new Button(640, 100, 40, 40, Asset.initButton);
+        this.quitButton = new Button(520, 100, 40, 40, Asset.quitButton);
 
-        this.prevLevelButton = new Button(60, 400, 40, 40);
-        this.nextLevelButton = new Button(740, 400, 40, 40);
+        this.prevLevelButton = new Button(60, 400, 40, 40, Asset.leftButton);
+        this.nextLevelButton = new Button(740, 400, 40, 40, Asset.rightButton);
     }
 
     key(code: string, manager: TransitionManager) {

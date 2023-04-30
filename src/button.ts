@@ -9,18 +9,18 @@ export class Button{
     h: number
     texture: p5.Image;
 
-    constructor(x: number, y: number, w: number, h: number, texture?: p5.Image) {
+    constructor(x: number, y: number, w: number, h: number, texture: p5.Image) {
         this.x = x;
         this.y = y;
         this.w = w;
         this.h = h;
-        //this.texture = texture;
+        this.texture = texture;
     }
 
     draw(renderer: Renderer){
-        //renderer.bgScr.image(this.texture, this.x, this.y);
-        renderer.bgScr.fill(Asset.black);
-        renderer.bgScr.rect(this.x, this.y, this.w, this.h);
+        renderer.bgScr.image(this.texture, this.x, this.y);
+        //renderer.bgScr.fill(Asset.black);
+        //renderer.bgScr.rect(this.x, this.y, this.w, this.h);
     }
 
     hit(mouseX: number, mouseY: number) {

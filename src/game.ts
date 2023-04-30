@@ -1,4 +1,5 @@
 import { n_array, UnionFind, Direction, hermite } from "./algorithm";
+import { Asset } from "./asset";
 import { Renderer } from "./renderer";
 
 export const Cell = {
@@ -230,7 +231,7 @@ export class Game {
         renderer.bgScr.noStroke()
         
         //*
-        renderer.bgScr.fill(90);
+        renderer.bgScr.fill(Asset.black);
         renderer.bgScr.rect(
             renderer.p.width / 2,
             renderer.p.height / 2,
