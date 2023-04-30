@@ -94,7 +94,7 @@ export class Menu {
             case "Enter": {
                 const selecting = this.y * this.width + this.x;
                 console.log(selecting, leveldata[selecting]);
-                manager.startTransiton(new Level(leveldata[selecting]))
+                manager.startTransiton(new Level(selecting))
             }
         }
     }

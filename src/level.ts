@@ -3,23 +3,33 @@ import { Game, Board } from "./game";
 import { Title } from "./title";
 import { TransitionManager } from "./main";
 import { Direction } from "./algorithm";
-import { LevelParam } from "./leveldata";
+import { LevelParam, leveldata } from "./leveldata";
 import { Menu } from "./menu";
 import { Button } from "./button";
 
 export class Level {
     title: string;
+    index: number;
     game: Game
     undoButton: Button;
     initButton: Button;
     quitButton: Button;
+    
+    prevLevelButton: Button;
+    nextLevelButton: Button;    
 
-    constructor(levelparam: LevelParam) {
-        this.title = levelparam.title
-        this.game = new Game(levelparam.initialBoard);
+    constructor(index: number) {
+        this.index = index;
+        
+        this.title = leveldata[index].title;
+        this.game = new Game(leveldata[index].initialBoard);
+        
         this.undoButton = new Button(700, 100, 40, 40);
         this.initButton = new Button(640, 100, 40, 40);
         this.quitButton = new Button(520, 100, 40, 40);
+
+        this.prevLevelButton = new Button(60, 400, 40, 40);
+        this.nextLevelButton = new Button(740, 400, 40, 40);
     }
 
     key(code: string, manager: TransitionManager) {
@@ -89,6 +99,15 @@ export class Level {
             manager.startTransiton(new Menu(0));
             return;
         }
+        
+        if (this.nextLevelButton.hit(x, y) && leveldata[this.index + 1]) {
+            manager.startTransiton(new Level(this.index + 1));
+            return;
+        }
+        if (this.prevLevelButton.hit(x, y) && leveldata[this.index - 1]) {
+            manager.startTransiton(new Level(this.index - 1));
+            return;
+        }
 
         if (this.game.check()) {
             manager.startTransiton(new Menu(0));
@@ -108,6 +127,13 @@ export class Level {
         this.undoButton.draw(renderer);
         this.initButton.draw(renderer);
         this.quitButton.draw(renderer);
+
+        if (leveldata[this.index + 1]) {
+            this.nextLevelButton.draw(renderer);
+        }
+        if (leveldata[this.index - 1]) {
+            this.prevLevelButton.draw(renderer);
+        }
 
         this.game.draw(renderer);
         
