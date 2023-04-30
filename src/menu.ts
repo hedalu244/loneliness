@@ -19,10 +19,8 @@ export class Menu {
 
     cell_size: number;
 
-    anim_queue: MenuAnimation[]
+    anim_queue: MenuAnimation[];
     anim_starttime: number;
-    
-    selected: boolean;
 
     constructor(selecting: number) {
         this.width = 5;
@@ -31,7 +29,6 @@ export class Menu {
         this.y = Math.floor(selecting / this.width);
 
         this.cell_size = 80;
-        this.selected = false;
 
         this.anim_queue = [];
         this.anim_starttime = performance.now();
@@ -80,18 +77,7 @@ export class Menu {
         console.log(this.x, this.y);
     }
 
-    transition(manager: TransitionManager) {
-        if (this.selected) {
-            const selecting = this.y * this.width + this.x;
-            console.log(selecting, leveldata[selecting]);
-            manager.startTransiton(new Level(leveldata[selecting]))
-        }
-    }
-
-    key(code: string) {
-        if (this.selected)
-            return;
-
+    key(code: string, manager: TransitionManager) {
         switch (code) {
             case "ArrowLeft": {
                 this.move(Direction.Left);
@@ -106,14 +92,13 @@ export class Menu {
                 this.move(Direction.Down);
             } break;
             case "Enter": {
-                this.selected = true;
+                const selecting = this.y * this.width + this.x;
+                console.log(selecting, leveldata[selecting]);
+                manager.startTransiton(new Level(leveldata[selecting]))
             }
         }
     }
-    flick(direction: Direction) {
-        if (this.selected)
-            return;
-        
+    flick(direction: Direction, manager: TransitionManager) {
         switch (direction) {
             case Direction.Left: {
                 this.move(Direction.Left);
@@ -129,9 +114,7 @@ export class Menu {
             } break;
         }
     }
-    click(x: number, y: number) {
-        if (this.selected)
-            return;
+    click(x: number, y: number, manager: TransitionManager) {
     }
 
     draw(renderer: Renderer, posX: number, posY: number, fadeRate: number) {

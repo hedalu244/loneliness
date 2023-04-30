@@ -8,16 +8,10 @@ import { Menu } from "./menu";
 export class Title {
     game: Game;
     constructor() {
-        this.game = new Game([[Cell.Free], [Cell.Empty], [Cell.Fixed]])
+        this.game = new Game([[Cell.Free], [Cell.Empty], [Cell.Fixed]]);
     }
 
-    transition(manager: TransitionManager) {
-        if (this.game.check()) {
-            manager.startTransiton(new Menu(0));
-        }
-    }
-
-    key(code: string) {
+    key(code: string, manager: TransitionManager) {
         switch (code) {
             case "ArrowLeft": {
                 this.game.move(Direction.Left);
@@ -38,8 +32,11 @@ export class Title {
                 this.game.init();
             } break;
         }
+        if (this.game.check()) {
+            manager.startTransiton(new Menu(0));
+        }
     }
-    flick(direction: Direction) {
+    flick(direction: Direction, manager: TransitionManager) {
         switch (direction) {
             case Direction.Left: {
                 this.game.move(Direction.Left);
@@ -54,9 +51,14 @@ export class Title {
                 this.game.move(Direction.Down);
             } break;
         }
+        if (this.game.check()) {
+            manager.startTransiton(new Menu(0));
+        }
     }
-    click(x: number, y:number) {
-        
+    click(x: number, y:number, manager: TransitionManager) {
+        if (this.game.check()) {
+            manager.startTransiton(new Menu(0));
+        }
     }
 
     draw(renderer: Renderer, posX: number, posY: number, fadeRate: number) {

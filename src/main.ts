@@ -38,24 +38,25 @@ export class TransitionManager {
         const elapsed_time = performance.now() - this.start_time;
         if (elapsed_time < 1000)
             return;
-        this.state.key(code);
+        this.state.key(code, this);
     }
     flick(direction: Direction) {
         const elapsed_time = performance.now() - this.start_time;
         if (elapsed_time < 1000)
             return;
-        this.state.flick(direction);
+        this.state.flick(direction, this);
     }
     click(x: number, y:number, p: p5) {
         const elapsed_time = performance.now() - this.start_time;
         if (elapsed_time < 1000)
             return;
-        this.state.click(p.mouseX, p.mouseY);
+        this.state.click(p.mouseX, p.mouseY, this);
     }
 
+    /*
     update() {
         this.state.transition(this);
-    }
+    }*/
 
     // 状態遷移アニメーションをはじめる
     startTransiton(nextState: State, transitionType?: undefined) {
@@ -95,7 +96,7 @@ const sketch = (p: p5) => {
     };
 
     p.draw = () => {
-        transition_manager.update();
+        //transition_manager.update();
         transition_manager.draw(renderer);
 
         //level.draw(renderer);

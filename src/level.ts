@@ -22,13 +22,7 @@ export class Level {
         this.quitButton = new Button(520, 100, 40, 40);
     }
 
-    transition(manager: TransitionManager) {
-        if (this.game.check()) {
-            manager.startTransiton(new Menu(0));
-        }
-    }
-
-    key(code: string) {
+    key(code: string, manager: TransitionManager) {
         switch (code) {
             case "ArrowLeft": {
                 this.game.move(Direction.Left);
@@ -48,10 +42,20 @@ export class Level {
             case "KeyR": {
                 this.game.init();
             } break;
+            case "KeyR": {
+                this.game.init();
+            } break;
+            case "Escape": {
+                manager.startTransiton(new Menu(0));
+            }
+        }
+
+        if (this.game.check()) {
+            manager.startTransiton(new Menu(0));
         }
     }
 
-    flick(direction: Direction) {
+    flick(direction: Direction, manager: TransitionManager) {
         switch (direction) {
             case Direction.Left: {
                 this.game.move(Direction.Left);
@@ -66,9 +70,13 @@ export class Level {
                 this.game.move(Direction.Down);
             } break;
         }
+
+        if (this.game.check()) {
+            manager.startTransiton(new Menu(0));
+        }
     }
 
-    click(x: number, y:number) {
+    click(x: number, y:number, manager: TransitionManager) {
         if (this.undoButton.hit(x, y)) {
             this.game.undo();
             return;
@@ -78,8 +86,12 @@ export class Level {
             return;
         }
         if (this.quitButton.hit(x, y)) {
-            console.log("clicked");
+            manager.startTransiton(new Menu(0));
             return;
+        }
+
+        if (this.game.check()) {
+            manager.startTransiton(new Menu(0));
         }
     }
 
