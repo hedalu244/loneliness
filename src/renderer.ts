@@ -295,6 +295,16 @@ export class Renderer {
         this.shadowScr.rectMode(p.CENTER);
         this.shadowScr.imageMode(p.CENTER);
 
+        this.blobScr = this.p.createGraphics(p.width, p.height, this.p.WEBGL);
+        this.blobScr.setAttributes('alpha', true);
+        this.blobShader = this.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS);
+        this.dotShader = this.blobScr.createShader(Renderer.dotVS, Renderer.lightingFS + Renderer.dotFS);
+
+        this.fxaaScr = this.p.createGraphics(p.width, p.height, this.p.WEBGL);
+        this.fxaaScr.setAttributes("depth", false);
+        this.fxaaScr.setAttributes('alpha', true);
+        this.fxaaShader = this.fxaaScr.createShader(Renderer.ScreenVS, Renderer.fxaaFS);
+
         this.mainScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
         this.mainScr.setAttributes("depth", false);
         this.mainScr.rectMode(p.CENTER);
@@ -308,8 +318,7 @@ export class Renderer {
         this.BlurShader = this.filterScr.createShader(Renderer.ScreenVS, Renderer.blurFS);
 
         this.setBlobArea(p.width, p.height, 0);
-
-        this.blobs = []
+        this.clear();
     }
 
     clear() {
@@ -426,17 +435,16 @@ export class Renderer {
         if (this.blobScr && this.blobScr.width == width && this.blobScr.height == height)
             return;
 
-        if (this.blobScr) this.blobScr.remove()
-        this.blobScr = this.p.createGraphics(width, height, this.p.WEBGL);
-        this.blobScr.setAttributes('alpha', true);
-        this.blobShader = this.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS);
-        this.dotShader = this.blobScr.createShader(Renderer.dotVS, Renderer.lightingFS + Renderer.dotFS);
-        this.blobScr.ortho();
-
-        if (this.fxaaScr) this.fxaaScr.remove()
-        this.fxaaScr = this.p.createGraphics(width, height, this.p.WEBGL);
-        this.fxaaScr.setAttributes("depth", false);
-        this.fxaaScr.setAttributes('alpha', true);
-        this.fxaaShader = this.fxaaScr.createShader(Renderer.ScreenVS, Renderer.fxaaFS);
+        //does not work
+        //this.blobScr.size(width, height);
+        //this.fxaaScr.size(width, height);
+        
+        //*
+        this.blobScr.width = width;
+        this.blobScr.height = height;
+        this.blobScr.ortho(-width / 2, width / 2, -height / 2, height / 2);
+        this.fxaaScr.width = width;
+        this.fxaaScr.height = height;
+        //*/
     }
 }
