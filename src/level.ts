@@ -32,9 +32,9 @@ export class Level {
     
         this.game = new Game(leveldata[index].initialBoard);
         
-        this.undoButton = new Button(700, 100, 40, 40, Asset.undoButton);
-        this.initButton = new Button(640, 100, 40, 40, Asset.initButton);
-        this.quitButton = new Button(520, 100, 40, 40, Asset.quitButton);
+        this.undoButton = new Button(700, 100, 50, 50, Asset.undoButton);
+        this.initButton = new Button(620, 100, 50, 50, Asset.initButton);
+        this.quitButton = new Button(480, 100, 50, 50, Asset.quitButton);
 
         this.prevLevelButton = new Button(60, 400, 40, 40, Asset.leftButton);
         this.nextLevelButton = new Button(740, 400, 40, 40, Asset.rightButton);
@@ -129,9 +129,9 @@ export class Level {
 
         renderer.bgScr.fill(Asset.black);
         renderer.bgScr.textAlign(renderer.p.LEFT);
-        renderer.bgScr.textSize(36);
+        renderer.bgScr.textSize(44);
         renderer.bgScr.textFont(Asset.fontEB);
-        renderer.bgScr.text(this.title, 60, 100);
+        renderer.bgScr.text(this.title, 64, 100);
         
         renderer.bgScr.textSize(26);
         renderer.bgScr.textFont("sans-serif");
