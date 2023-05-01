@@ -23,14 +23,14 @@ export class Level {
     prevLevelButton: Button;
     nextLevelButton: Button;    
 
-    constructor(index: number) {
+    constructor(index: number, levelParam: LevelParam) {
         this.index = index;
         
-        this.title = leveldata[index].title;
-        this.description_ja = leveldata[index].description_ja;
-        this.description_en = leveldata[index].description_en;
+        this.title = levelParam.title;
+        this.description_ja = levelParam.description_ja;
+        this.description_en = levelParam.description_en;
     
-        this.game = new Game(leveldata[index].initialBoard);
+        this.game = new Game(levelParam.initial_board);
         
         this.undoButton = new Button(700, 100, 50, 50, Asset.undoButton);
         this.initButton = new Button(620, 100, 50, 50, Asset.initButton);
@@ -109,11 +109,11 @@ export class Level {
         }
         
         if (this.nextLevelButton.hit(x, y) && leveldata[this.index + 1]) {
-            manager.startTransiton(new Level(this.index + 1));
+            manager.startTransiton(new Level(this.index + 1, leveldata[this.index + 1]));
             return;
         }
         if (this.prevLevelButton.hit(x, y) && leveldata[this.index - 1]) {
-            manager.startTransiton(new Level(this.index - 1));
+            manager.startTransiton(new Level(this.index - 1, leveldata[this.index - 1]));
             return;
         }
 
