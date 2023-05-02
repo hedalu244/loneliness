@@ -51,7 +51,7 @@ export class TransitionManager {
             } break;
 
             case TransitionType.Right: {
-                const offset = hermite(0, 2, elapsed_time / 1000, 0, 0);
+                const offset = elastic(0, 2, elapsed_time, 1000, 0.000001);
                 renderer.setFade(0);
 
                 if (offset < 1) {
@@ -65,7 +65,7 @@ export class TransitionManager {
             } break;
 
             case TransitionType.Left: {
-                const offset = hermite(0, -2, elapsed_time / 1000, 0, 0);
+                const offset = elastic(0, -2, elapsed_time, 1000, 0.000001);
                 renderer.setFade(0);
 
                 if (-1 < offset) {

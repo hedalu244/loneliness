@@ -45,8 +45,7 @@ export class UnionFind {
 
 // a:開始速度
 // b: 終了速度
-export function hermite(s: number, e: number, t: number, a: number, b: number)
-{
+export function hermite(s: number, e: number, t: number, a: number, b: number) {
     if (t <= 0) return s;
     if (1 <= t) return e;
     
