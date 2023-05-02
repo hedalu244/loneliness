@@ -237,6 +237,8 @@ export class Renderer {
     uniform float fade;
     uniform vec2 offset;
 
+    const vec3 fade_color = vec3(0.88);
+
     float distort(float x, float a, float fix) {
         return (pow(a, x) - 1.) / (pow(a, fix) - 1.);
     }
@@ -254,7 +256,7 @@ export class Renderer {
         float r = texture2D(tex, duv * 1.012 + 0.5 + offset).r;
         float g = texture2D(tex, duv * 1.006 + 0.5 + offset).g;
         float b = texture2D(tex, duv * 1.000 + 0.5 + offset).b;
-        vec3 color = vec3(r, g, b);
+        vec3 color = mix(vec3(r, g, b), fade_color, fade);
 
         float vignette = 1. - l * 0.2;
         float noise = random(uv) * 0.008 - 0.004;
@@ -368,14 +370,6 @@ export class Renderer {
         this.filterScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
 
         this.p.image(this.filterScr, this.p.width / 2, this.p.height / 2);
-
-        if(0 < this.fade) {
-            this.p.fill(220, Math.floor(this.fade * 255));
-            this.p.noStroke();
-            this.p.rect(this.p.width / 2, this.p.height / 2, this.p.width, this.p.height);
-            //this.p.filter(this.p.BLUR, fadeRate * 3);
-        }
-        //this.p.background();
     }
 
     // (shadowScr, bgScr) => mainScr
