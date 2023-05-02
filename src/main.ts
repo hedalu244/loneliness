@@ -8,8 +8,9 @@ import { initInputEvent } from "./input";
 import { Menu } from "./menu";
 import { Asset } from "./asset";
 import { Cell } from "./game";
+import { EmptyState } from "./StartScreen";
 
-type State = Title | Menu | Level;
+type State = EmptyState | Title | Menu | Level;
 
 export const TransitionType = {
     Fade: "fade",
@@ -20,13 +21,13 @@ export type TransitionType = typeof TransitionType[keyof typeof TransitionType];
 
 export class TransitionManager {
     state: State;
-    oldState: State | undefined;
+    oldState: State;
     start_time: number;
     type: TransitionType;
 
     constructor(state: State) {
         this.state = state
-        this.oldState = undefined;
+        this.oldState = new EmptyState();
 
         this.start_time = performance.now();
         this.type = TransitionType.Fade;
@@ -36,18 +37,17 @@ export class TransitionManager {
         const elapsed_time = performance.now() - this.start_time;
 
         switch (this.type) {
-            case TransitionType.Fade: {        
+            case TransitionType.Fade: {
                 const t = elapsed_time / 500 - 1;
                 const fadeRate = Math.max(0, 1 - t * t);
 
                 renderer.setFade(fadeRate);
                 renderer.setOffset(0, 0);
 
-                if (elapsed_time < 500) {
-                    if (this.oldState)
-                        this.oldState.draw(renderer);
-                }
-                else this.state.draw(renderer);
+                if (elapsed_time < 500)
+                    this.oldState.draw(renderer);
+                else
+                    this.state.draw(renderer);
             } break;
 
             case TransitionType.Right: {
@@ -55,10 +55,8 @@ export class TransitionManager {
                 renderer.setFade(0);
 
                 if (offset < 1) {
-                    if (this.oldState) {
-                        renderer.setOffset(offset, 0);
-                        this.oldState.draw(renderer);
-                    }
+                    renderer.setOffset(offset, 0);
+                    this.oldState.draw(renderer);
                 }
                 else {
                     renderer.setOffset(offset - 2, 0);
@@ -71,10 +69,8 @@ export class TransitionManager {
                 renderer.setFade(0);
 
                 if (-1 < offset) {
-                    if (this.oldState) {
-                        renderer.setOffset(offset, 0);
-                        this.oldState.draw(renderer);
-                    }
+                    renderer.setOffset(offset, 0);
+                    this.oldState.draw(renderer);
                 }
                 else {
                     renderer.setOffset(offset + 2, 0);
