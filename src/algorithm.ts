@@ -59,7 +59,7 @@ export function hermite(s: number, e: number, t: number, a: number, b: number) {
 // x = 経過時間(ms)
 // T = 周期（ms）
 // R = 1周期後の減衰率（無次元）
-export function elastic(s: number, e: number, x: number, T: number = 250, R: number = 0.05) {
+export function elastic(s: number, e: number, x: number, T: number = 250, R: number = 0.03) {
     if (x <= 0) return s;
     const tau = 2 * Math.PI;
     const p = Math.atan(tau / Math.log(R));
