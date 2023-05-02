@@ -34,6 +34,10 @@ export class Renderer {
     BlurShader: p5.Shader;
     lensShader: p5.Shader;
 
+    fade: number;
+    offsetX: number;
+    offsetY: number;
+
     static shadow80: p5.Image;
 
     static readonly lightingFS = `
@@ -230,6 +234,8 @@ export class Renderer {
     uniform vec2 res;
     
     uniform sampler2D tex;
+    uniform float fade;
+    uniform vec2 offset;
 
     float distort(float x, float a, float fix) {
         return (pow(a, x) - 1.) / (pow(a, fix) - 1.);
@@ -245,9 +251,9 @@ export class Renderer {
         float l = length(duv);
         duv = duv * distort(l, 1.1, 1.) / l;
 
-        float r = texture2D(tex, duv * 1.012 + 0.5).r;
-        float g = texture2D(tex, duv * 1.006 + 0.5).g;
-        float b = texture2D(tex, duv * 1.000 + 0.5).b;
+        float r = texture2D(tex, duv * 1.012 + 0.5 + offset).r;
+        float g = texture2D(tex, duv * 1.006 + 0.5 + offset).g;
+        float b = texture2D(tex, duv * 1.000 + 0.5 + offset).b;
         vec3 color = vec3(r, g, b);
 
         float vignette = 1. - l * 0.2;
@@ -335,19 +341,20 @@ export class Renderer {
     }
     
     /// fadeRate: 0～1の薄めぐあい
-    render(posX: number, posY: number, fadeRate:number) {
+    render() {
         this.p.background(255);
         this.renderFloor();
         this.renderBlob();
         this.renderDot();
         this.renderFxaa();
 
-        
         this.filterScr.clear(0, 0, 0, 0);
         this.filterScr.noStroke();
-        this.filterScr.shader(this.BlurShader);
-        this.BlurShader.setUniform('res', [this.mainScr.width, this.mainScr.height]);
-        this.BlurShader.setUniform('tex', this.mainScr);
+        this.filterScr.shader(this.lensShader);
+        this.lensShader.setUniform('res', [this.mainScr.width, this.mainScr.height]);
+        this.lensShader.setUniform('tex', this.mainScr);
+        this.lensShader.setUniform('fade', this.fade);
+        this.lensShader.setUniform('offset', [this.offsetX, this.offsetY]);
         this.filterScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
 
         this.mainScr.clear(0, 0, 0, 0)
@@ -355,15 +362,15 @@ export class Renderer {
 
         this.filterScr.clear(0, 0, 0, 0);
         this.filterScr.noStroke();
-        this.filterScr.shader(this.lensShader);
-        this.lensShader.setUniform('res', [this.mainScr.width, this.mainScr.height]);
-        this.lensShader.setUniform('tex', this.mainScr);
+        this.filterScr.shader(this.BlurShader);
+        this.BlurShader.setUniform('res', [this.mainScr.width, this.mainScr.height]);
+        this.BlurShader.setUniform('tex', this.mainScr);
         this.filterScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
 
         this.p.image(this.filterScr, this.p.width / 2, this.p.height / 2);
 
-        if(0 < fadeRate) {
-            this.p.fill(220, Math.floor(fadeRate * 255));
+        if(0 < this.fade) {
+            this.p.fill(220, Math.floor(this.fade * 255));
             this.p.noStroke();
             this.p.rect(this.p.width / 2, this.p.height / 2, this.p.width, this.p.height);
             //this.p.filter(this.p.BLUR, fadeRate * 3);
@@ -446,5 +453,13 @@ export class Renderer {
         this.fxaaScr.width = width;
         this.fxaaScr.height = height;
         //*/
+    }
+
+    setFade(fade: number) {
+        this.fade = fade;
+    }
+    setOffset(x: number, y: number) {
+        this.offsetX = x;
+        this.offsetY = y;
     }
 }

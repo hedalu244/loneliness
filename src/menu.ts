@@ -1,7 +1,7 @@
 import { Direction, elastic, n_array } from "./algorithm";
 import { Renderer } from "./renderer";
 import { Level } from "./level";
-import { TransitionManager } from "./main";
+import { TransitionManager, TransitionType } from "./main";
 import { Cell, Game } from "./game";
 import { leveldata } from "./leveldata";
 import { Asset } from "./asset";
@@ -94,7 +94,7 @@ export class Menu {
             } break;
             case "Enter": {
                 const selecting = this.y * this.width + this.x;
-                manager.startTransiton(new Level(selecting, leveldata[selecting]))
+                manager.startTransiton(new Level(selecting, leveldata[selecting]), TransitionType.Fade)
             }
         }
     }
@@ -117,7 +117,7 @@ export class Menu {
     click(x: number, y: number, manager: TransitionManager) {
     }
 
-    draw(renderer: Renderer, posX: number, posY: number, fadeRate: number) {
+    draw(renderer: Renderer) {
         const selecting = this.y * this.width + this.x;
 
         renderer.clear();
@@ -174,6 +174,6 @@ export class Menu {
             (this.anim_queue[0].y + offsety - this.height / 2 + 0.5) * this.cell_size,
             0, this.cell_size * 0.42);
 
-        renderer.render(posX, posY, fadeRate);
+        renderer.render();
     }
 }

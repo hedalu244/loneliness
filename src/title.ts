@@ -1,7 +1,7 @@
 import { Direction, n_array } from "./algorithm";
 import { Renderer } from "./renderer";
 import { Level } from "./level";
-import { TransitionManager } from "./main";
+import { TransitionManager, TransitionType } from "./main";
 import { Cell, Game } from "./game";
 import { Menu } from "./menu";
 import { Asset } from "./asset";
@@ -34,7 +34,7 @@ export class Title {
             } break;
         }
         if (this.game.check()) {
-            manager.startTransiton(new Menu(0));
+            manager.startTransiton(new Menu(0), TransitionType.Fade);
         }
     }
     flick(direction: Direction, manager: TransitionManager) {
@@ -53,16 +53,16 @@ export class Title {
             } break;
         }
         if (this.game.check()) {
-            manager.startTransiton(new Menu(0));
+            manager.startTransiton(new Menu(0), TransitionType.Fade);
         }
     }
     click(x: number, y:number, manager: TransitionManager) {
         if (this.game.check()) {
-            manager.startTransiton(new Menu(0));
+            manager.startTransiton(new Menu(0), TransitionType.Fade);
         }
     }
 
-    draw(renderer: Renderer, posX: number, posY: number, fadeRate: number) {
+    draw(renderer: Renderer) {
         renderer.clear();
         
         renderer.bgScr.background(255);
@@ -75,6 +75,6 @@ export class Title {
 
         this.game.draw(renderer);
 
-        renderer.render(posX, posY, fadeRate);
+        renderer.render();
     }
 }

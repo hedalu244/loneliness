@@ -1,6 +1,6 @@
 import p5 from "p5";
 
-import { n_array, UnionFind, Direction} from "./algorithm";
+import { n_array, UnionFind, Direction, elastic, hermite } from "./algorithm";
 import { Title } from "./title"
 import { Renderer } from "./renderer";
 import { Level } from "./level";
@@ -11,27 +11,77 @@ import { Cell } from "./game";
 
 type State = Title | Menu | Level;
 
+export const TransitionType = {
+    Fade: "fade",
+    Left: "left",
+    Right: "right"
+} as const;
+export type TransitionType = typeof TransitionType[keyof typeof TransitionType];
+
 export class TransitionManager {
     state: State;
     oldState: State | undefined;
     start_time: number;
+    type: TransitionType;
 
-    constructor (state: State) {
+    constructor(state: State) {
         this.state = state
         this.oldState = undefined;
 
         this.start_time = performance.now();
+        this.type = TransitionType.Fade;
     }
 
     draw(renderer: Renderer) {
         const elapsed_time = performance.now() - this.start_time;
-        const fadeRate = Math.max(0, 1 - Math.abs(elapsed_time - 500) / 500 * Math.abs(elapsed_time - 500) / 500);
-    
-        if (elapsed_time < 500) {
-            if (this.oldState)
-                this.oldState.draw(renderer, 0, 0, fadeRate);
+
+        switch (this.type) {
+            case TransitionType.Fade: {        
+                const t = elapsed_time / 500 - 1;
+                const fadeRate = Math.max(0, 1 - t * t);
+
+                renderer.setFade(fadeRate);
+                renderer.setOffset(0, 0);
+
+                if (elapsed_time < 500) {
+                    if (this.oldState)
+                        this.oldState.draw(renderer);
+                }
+                else this.state.draw(renderer);
+            } break;
+
+            case TransitionType.Right: {
+                const offset = hermite(0, 2, elapsed_time / 1000, 0, 0);
+                renderer.setFade(0);
+
+                if (offset < 1) {
+                    if (this.oldState) {
+                        renderer.setOffset(offset, 0);
+                        this.oldState.draw(renderer);
+                    }
+                }
+                else {
+                    renderer.setOffset(offset - 2, 0);
+                    this.state.draw(renderer);
+                }
+            } break;
+
+            case TransitionType.Left: {
+                const offset = hermite(0, -2, elapsed_time / 1000, 0, 0);
+                renderer.setFade(0);
+
+                if (-1 < offset) {
+                    if (this.oldState) {
+                        renderer.setOffset(offset, 0);
+                        this.oldState.draw(renderer);
+                    }
+                }
+                else {
+                    renderer.setOffset(offset + 2, 0);
+                    this.state.draw(renderer);
+                }
+            } break;
         }
-        else this.state.draw(renderer, 0, 0, fadeRate);
     }
 
     key(code: string) {
@@ -46,23 +96,19 @@ export class TransitionManager {
             return;
         this.state.flick(direction, this);
     }
-    click(x: number, y:number, p: p5) {
+    click(x: number, y: number, p: p5) {
         const elapsed_time = performance.now() - this.start_time;
         if (elapsed_time < 1000)
             return;
         this.state.click(p.mouseX, p.mouseY, this);
     }
 
-    /*
-    update() {
-        this.state.transition(this);
-    }*/
-
     // 状態遷移アニメーションをはじめる
-    startTransiton(nextState: State, transitionType?: undefined) {
+    startTransiton(nextState: State, type: TransitionType) {
         this.oldState = this.state;
         this.state = nextState;
         this.start_time = performance.now();
+        this.type = type;
     }
 }
 
@@ -93,11 +139,10 @@ const sketch = (p: p5) => {
             (code) => transition_manager.key(code),
             (x, y) => transition_manager.click(x, y, p),
             (dir) => transition_manager.flick(dir));
-        
 
         const levelEditor = document.getElementById("level_editor") as HTMLTextAreaElement;
         levelEditor.addEventListener("input", () => {
-            function transpose<T>(a: T[][]): T[][]{
+            function transpose<T>(a: T[][]): T[][] {
                 return a[0].map((_, c) => a.map(r => r[c]));
             }
 
@@ -114,13 +159,13 @@ const sketch = (p: p5) => {
             initial_board.forEach(x => {
                 while (x.length < height) x.push(0);
             });
-            
+
             transition_manager.startTransiton(new Level(0, {
-                title:"NaN.\nTEST LEVEL", 
+                title: "NaN.\nTEST LEVEL",
                 description_ja: "これはテストステージです。",
                 description_en: "This is test level.",
                 initial_board: initial_board
-            }));
+            }), TransitionType.Fade);
         });
     };
 

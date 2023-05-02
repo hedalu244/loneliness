@@ -1,7 +1,7 @@
 import { Renderer } from "./renderer";
 import { Game, Board } from "./game";
 import { Title } from "./title";
-import { TransitionManager } from "./main";
+import { TransitionManager, TransitionType } from "./main";
 import { Direction } from "./algorithm";
 import { LevelParam, leveldata } from "./leveldata";
 import { Menu } from "./menu";
@@ -64,12 +64,12 @@ export class Level {
                 this.game.init();
             } break;
             case "Escape": {
-                manager.startTransiton(new Menu(0));
+                manager.startTransiton(new Menu(0), TransitionType.Fade);
             }
         }
 
         if (this.game.check()) {
-            manager.startTransiton(new Menu(0));
+            manager.startTransiton(new Menu(0), TransitionType.Fade);
         }
     }
 
@@ -90,7 +90,7 @@ export class Level {
         }
 
         if (this.game.check()) {
-            manager.startTransiton(new Menu(0));
+            manager.startTransiton(new Menu(0), TransitionType.Fade);
         }
     }
 
@@ -104,25 +104,25 @@ export class Level {
             return;
         }
         if (this.quitButton.hit(x, y)) {
-            manager.startTransiton(new Menu(0));
+            manager.startTransiton(new Menu(0), TransitionType.Fade);
             return;
         }
         
         if (this.nextLevelButton.hit(x, y) && leveldata[this.index + 1]) {
-            manager.startTransiton(new Level(this.index + 1, leveldata[this.index + 1]));
+            manager.startTransiton(new Level(this.index + 1, leveldata[this.index + 1]), TransitionType.Right);
             return;
         }
         if (this.prevLevelButton.hit(x, y) && leveldata[this.index - 1]) {
-            manager.startTransiton(new Level(this.index - 1, leveldata[this.index - 1]));
+            manager.startTransiton(new Level(this.index - 1, leveldata[this.index - 1]), TransitionType.Left);
             return;
         }
 
         if (this.game.check()) {
-            manager.startTransiton(new Menu(0));
+            manager.startTransiton(new Menu(0), TransitionType.Fade);
         }
     }
 
-    draw(renderer: Renderer, posX: number, posY: number, fadeRate: number) {
+    draw(renderer: Renderer) {
         renderer.clear();
         
         renderer.bgScr.background(255);
@@ -154,6 +154,6 @@ export class Level {
 
         this.game.draw(renderer);
         
-        renderer.render(posX, posY, fadeRate);
+        renderer.render();
     }
 }
