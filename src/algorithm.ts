@@ -43,6 +43,8 @@ export class UnionFind {
     }
 }
 
+// a:開始速度
+// b: 終了速度
 export function hermite(s: number, e: number, t: number, a: number, b: number)
 {
     if (t <= 0) return s;
@@ -52,4 +54,19 @@ export function hermite(s: number, e: number, t: number, a: number, b: number)
     const weight = (a + b - 2) * t * t * t + (-2 * a - b + 3) * t * t + a * t;
     //始点と終点で補間
     return s + (e - s) * weight;
+}
+
+// 減衰振動
+// x = 経過時間(ms)
+// T = 周期（ms）
+// R = 1周期後の減衰率（無次元）
+export function elastic(s: number, e: number, x: number, T: number = 250, R: number = 0.05) {
+    if (x <= 0) return s;
+    const tau = 2 * Math.PI;
+    const p = Math.atan(tau / Math.log(R));
+    
+    //減衰振動
+    const weight = Math.sin(p - tau / T * x) / Math.sin(p) * Math.pow(R, x / T);
+
+    return e + (s - e) * weight;
 }

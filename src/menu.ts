@@ -1,4 +1,4 @@
-import { Direction, hermite, n_array } from "./algorithm";
+import { Direction, elastic, n_array } from "./algorithm";
 import { Renderer } from "./renderer";
 import { Level } from "./level";
 import { TransitionManager } from "./main";
@@ -139,7 +139,7 @@ export class Menu {
         // t=0で-1, 60 < tで0, 間はsmoothstep
         function move_offset(t: number, dir: Direction) {
             if (dir == Direction.None) return [0, 0]
-            const amount = hermite(-1, 0, t / 200, 5.0, 1.0);
+            const amount = elastic(-1, 0, t);
 
             switch (dir) {
                 case Direction.Left:
@@ -154,9 +154,13 @@ export class Menu {
         }
 
         renderer.clear();
-        renderer.setBlobArea(this.width * this.cell_size, this.height * this.cell_size, this.cell_size * 0.46);
-        renderer.bgScr.noStroke()
+        renderer.setBlobArea(
+            (this.width + 0.5) * this.cell_size,
+            (this.height + 0.5) * this.cell_size,
+            this.cell_size * 0.46
+        );
 
+        renderer.bgScr.noStroke()
         renderer.bgScr.fill(Asset.black);
         renderer.bgScr.rect(
             renderer.p.width / 2,
