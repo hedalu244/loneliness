@@ -118,6 +118,9 @@ export class Menu {
     }
 
     draw(renderer: Renderer) {
+        if (this.anim_queue.length <= 1 && this.anim_starttime + 1000 < performance.now()) return;
+
+        renderer.needUpdate = true;
         const selecting = this.y * this.width + this.x;
 
         renderer.clear();
@@ -173,7 +176,5 @@ export class Menu {
             (this.anim_queue[0].x + offsetx - this.width / 2 + 0.5) * this.cell_size,
             (this.anim_queue[0].y + offsety - this.height / 2 + 0.5) * this.cell_size,
             0, this.cell_size * 0.42);
-
-        renderer.render();
     }
 }

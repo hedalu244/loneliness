@@ -9,7 +9,7 @@ import { Asset } from "./asset";
 export class Title {
     game: Game;
     constructor() {
-        this.game = new Game([[Cell.Free], [Cell.Empty], [Cell.Fixed]]);
+        this.game = new Game([[Cell.Player], [Cell.Empty], [Cell.Fixed]]);
     }
 
     key(code: string, manager: TransitionManager) {
@@ -63,6 +63,9 @@ export class Title {
     }
 
     draw(renderer: Renderer) {
+        if (this.game.anim_queue.length <= 1 && this.game.anim_starttime + 1000 < performance.now()) return;
+
+        renderer.needUpdate = true;
         renderer.clear();
         
         renderer.bgScr.background(255);
@@ -74,7 +77,5 @@ export class Title {
         renderer.bgScr.text("LONELINESS", 400, 300);
 
         this.game.draw(renderer);
-
-        renderer.render();
     }
 }

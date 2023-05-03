@@ -123,6 +123,9 @@ export class Level {
     }
 
     draw(renderer: Renderer) {
+        if (this.game.anim_queue.length <= 1 && this.game.anim_starttime + 1000 < performance.now()) return;
+
+        renderer.needUpdate = true;
         renderer.clear();
         
         renderer.bgScr.background(255);
@@ -154,7 +157,5 @@ export class Level {
         }
 
         this.game.draw(renderer);
-        
-        renderer.render();
     }
 }

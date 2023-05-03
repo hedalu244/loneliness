@@ -17,6 +17,8 @@ interface Dot {
 
 export class Renderer {
     p: p5;
+    needUpdate: boolean;
+
     blobShader: p5.Shader;
     dotShader: p5.Shader;
     blobScr: p5.Graphics;
@@ -290,7 +292,9 @@ export class Renderer {
     smooth_scale: number;
 
     constructor(p: p5) {
-        this.p = p
+        this.needUpdate = true;
+
+        this.p = p;
         p.rectMode(p.CENTER);
         p.imageMode(p.CENTER);
 
@@ -344,6 +348,8 @@ export class Renderer {
     
     /// fadeRate: 0～1の薄めぐあい
     render() {
+        if (!this.needUpdate) return;
+
         this.p.background(255);
         this.renderFloor();
         this.renderBlob();
@@ -370,6 +376,8 @@ export class Renderer {
         this.filterScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
 
         this.p.image(this.filterScr, this.p.width / 2, this.p.height / 2);
+
+        this.needUpdate = false;
     }
 
     // (shadowScr, bgScr) => mainScr

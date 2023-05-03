@@ -35,6 +35,9 @@ export class TransitionManager {
 
     draw(renderer: Renderer) {
         const elapsed_time = performance.now() - this.start_time;
+        
+        if (elapsed_time < 1000)
+        renderer.needUpdate = true;
 
         switch (this.type) {
             case TransitionType.Fade: {
@@ -78,6 +81,7 @@ export class TransitionManager {
                 }
             } break;
         }
+        renderer.render();
     }
 
     key(code: string) {
