@@ -14,6 +14,7 @@ export type Board = Cell[][]
 
 type BoardAnimation = {
     board: Board,
+    delay: number[][],
     move: Direction[][],
     type: Direction;
 }
@@ -61,6 +62,7 @@ export class Game {
 
         this.anim_queue.push({
             board: this.board,
+            delay: n_array(this.width + 2, () => n_array(this.height + 2, () => 0)),
             move: n_array(this.width + 2, () => n_array(this.height + 2, () => Direction.None)),
             type: Direction.None,
         })
@@ -78,7 +80,7 @@ export class Game {
                     direction == Direction.Left ? 3 : 0);
 
         // 各セルが動くのか判定
-        const move_check: boolean[][] = n_array(_width + 2, () => n_array(_height + 2, () => false))
+        const move_check: number[][] = n_array(_width + 2, () => n_array(_height + 2, () => -1))
         let move_flag = false;
 
         for (let i = 1; i <= _width; i++) {
@@ -89,13 +91,13 @@ export class Game {
 
                 if (_board[i][j] == Cell.Player && room) {
                     move_flag = true;
-                    move_check[i][j] = true;
+                    move_check[i][j] = 0;
                     // 左が動く
                     for (let k = 1; _board[i][j - k] == Cell.Free; k++)
-                        move_check[i][j - k] = true;
+                        move_check[i][j - k] = k;
                     // 右が動く
                     for (let k = 1; _board[i][j + k] == Cell.Free; k++)
-                        move_check[i][j + k] = true;
+                        move_check[i][j + k] = k;
                 }
             }
         }
@@ -108,14 +110,16 @@ export class Game {
         // 判定に基づき、移動後の盤面を生成
         const new_board: Cell[][] = n_array(_width + 2, i => n_array(_height + 2, j => _board[i][j]));
         const move_direction: Direction[][] = n_array(_width + 2, () => n_array(_height + 2, () => Direction.None))
+        const move_delay: number[][] = n_array(_width + 2, () => n_array(_height + 2, () => 0))
 
         for (let i = 1; i <= _width; i++)
             for (let j = 1; j <= _height; j++) {
-                if (move_check[i][j + 1]) {
+                if (move_check[i][j + 1] != -1) {
                     new_board[i][j] = _board[i][j + 1]
                     move_direction[i][j] = direction;
+                    move_delay[i][j] = move_check[i][j + 1];
                 }
-                else if (move_check[i][j]) {
+                else if (move_check[i][j] != -1) {
                     new_board[i][j] = Cell.Empty;
                 }
             }
@@ -129,6 +133,10 @@ export class Game {
                     direction == Direction.Left ? 1 : 0);
         this.anim_queue.push({
             board: this.board,
+            delay:rotate_matrix(move_delay,
+                direction == Direction.Right ? 3 :
+                    direction == Direction.Down ? 2 :
+                        direction == Direction.Left ? 1 : 0), 
             move: rotate_matrix(move_direction, 
                 direction == Direction.Right ? 3 :
                     direction == Direction.Down ? 2 :
@@ -151,6 +159,7 @@ export class Game {
 
         this.anim_queue.push({
             board: this.board,
+            delay: n_array(this.width + 2, () => n_array(this.height + 2, () => 0)),
             move: n_array(this.width + 2, () => n_array(this.height + 2, () => Direction.None)),
             type: Direction.None
         })
@@ -233,7 +242,7 @@ export class Game {
         renderer.clear()
         for (let i = 1; i <= this.width; i++)
             for (let j = 1; j <= this.height; j++) {
-                const delay = [0, i, this.width - i - 1, j, this.height - j - 1][this.anim_queue[0].type] * 20;
+                const delay = this.anim_queue[0].delay[i][j] * 20;
 
                 const fixedX = (i - this.width / 2 - 0.5) * this.cell_size;
                 const fixedY = (j - this.height / 2 - 0.5) * this.cell_size;
