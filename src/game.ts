@@ -1,4 +1,4 @@
-import { n_array, UnionFind, Direction, elastic } from "./algorithm";
+import { n_array, UnionFind, Direction, elastic, rotate_matrix } from "./algorithm";
 import { Asset } from "./asset";
 import { Renderer } from "./renderer";
 
@@ -7,9 +7,10 @@ export const Cell = {
     Wall: 1,
     Free: 2,
     Fixed: 3,
+    Player: 4,
 } as const;
 export type Cell = typeof Cell[keyof typeof Cell];
-export type Board = readonly (readonly Cell[])[]
+export type Board = Cell[][]
 
 type BoardAnimation = {
     board: Board,
@@ -18,7 +19,7 @@ type BoardAnimation = {
 }
 
 function isBlob(x: Cell): boolean {
-    return x == Cell.Free || x == Cell.Fixed;
+    return x == Cell.Free || x == Cell.Player || x == Cell.Fixed;
 }
 
 export class Game {
@@ -65,75 +66,65 @@ export class Game {
         })
         this.show()
     }
-    
+
     move(direction: Direction) {
         console.log("move", direction)
-        const new_board: Cell[][] = n_array(this.width + 2, () => n_array(this.height + 2, () => Cell.Wall))
-        const move_direction: Direction[][] = n_array(this.width + 2, () => n_array(this.height + 2, () => Direction.None))
 
-        // 何かしらの更新があったらtrue
+        // 左の場合だけ書けばよい
+        const [_width, _height] = direction == Direction.Up || direction == Direction.Down ? [this.width, this.height] : [this.height, this.width];
+        const _board =
+            direction == Direction.Right ? rotate_matrix(this.board, 1) :
+                direction == Direction.Down ? rotate_matrix(this.board, 2) :
+                    direction == Direction.Left ? rotate_matrix(this.board, 3) :
+                        rotate_matrix(this.board, 4);
+
+        const move_check: boolean[][] = n_array(_width + 2, () => n_array(_height + 2, () => false))
         let move_flag = false;
 
-        for (let i = 1; i <= this.width; i++)
-            for (let j = 1; j <= this.height; j++)
-                new_board[i][j] = this.board[i][j];
-
-        switch (direction) {
-            case Direction.Up: {
-                for (let i = 1; i <= this.width; i++)
-                    for (let j = 1; j <= this.height; j++) // 左の行から決定
-                        if (new_board[i][j - 1] == Cell.Empty && new_board[i][j] == Cell.Free) {
-                            new_board[i][j - 1] = Cell.Free;
-                            new_board[i][j] = Cell.Empty;
-                            move_direction[i][j - 1] = Direction.Up
-                            move_flag = true;
-                        }
-            } break;
-            case Direction.Down: {
-                for (let i = 1; i <= this.width; i++)
-                    for (let j = this.height; 1 <= j; j--) // 右の行から決定
-                        if (new_board[i][j + 1] == Cell.Empty && new_board[i][j] == Cell.Free) {
-                            new_board[i][j + 1] = Cell.Free;
-                            new_board[i][j] = Cell.Empty;
-                            move_direction[i][j + 1] = Direction.Down
-                            move_flag = true;
-                        }
-            } break;
-            case Direction.Left: {
-                for (let i = 1; i <= this.width; i++) // 上の行から決定
-                    for (let j = 1; j <= this.height; j++)
-                        if (new_board[i - 1][j] == Cell.Empty && new_board[i][j] == Cell.Free) {
-                            new_board[i - 1][j] = Cell.Free;
-                            new_board[i][j] = Cell.Empty;
-                            move_direction[i - 1][j] = Direction.Left;
-                            move_flag = true;
-                        }
-            } break;
-            case Direction.Right: {
-                for (let i = this.width; 1 <= i; i--) // 下の行から決定
-                    for (let j = 1; j <= this.height; j++)
-                        if (new_board[i + 1][j] == Cell.Empty && new_board[i][j] == Cell.Free) {
-                            new_board[i + 1][j] = Cell.Free;
-                            new_board[i][j] = Cell.Empty;
-                            move_direction[i + 1][j] = Direction.Right;
-                            move_flag = true;
-                        }
-            } break;
+        for (let i = 1; i <= _width; i++) {
+            for (let j = 1; j <= _height; j++) {
+                if (_board[i][j] == Cell.Free && move_check[i][j - 1])
+                    move_check[i][j] = move_flag = true;
+                if (_board[i][j] == Cell.Player && (move_check[i][j - 1] || _board[i][j - 1] == Cell.Empty))
+                    move_check[i][j] = move_flag = true;
+            }
         }
+
+        const new_board: Cell[][] = n_array(_width + 2, i => n_array(_height + 2, j => _board[i][j]));
+        const move_direction: Direction[][] = n_array(_width + 2, () => n_array(_height + 2, () => Direction.None))
+
+        for (let i = 1; i <= _width; i++)
+            for (let j = 1; j <= _height; j++) {
+                if (move_check[i][j + 1]) {
+                    new_board[i][j] = _board[i][j + 1]
+                    move_direction[i][j] = direction;
+                }
+                else if (move_check[i][j]) {
+                    new_board[i][j] = Cell.Empty;
+                }
+            }
 
         if (move_flag) {
             this.history.push(this.board);
-            this.board = new_board;
+            this.board =
+                direction == Direction.Right ? rotate_matrix(new_board, 3) :
+                    direction == Direction.Down ? rotate_matrix(new_board, 2) :
+                        direction == Direction.Left ? rotate_matrix(new_board, 1) :
+                            rotate_matrix(new_board, 0);
+            this.anim_queue.push({
+                board: this.board,
+                move:
+                    direction == Direction.Right ? rotate_matrix(move_direction, 3) :
+                        direction == Direction.Down ? rotate_matrix(move_direction, 2) :
+                            direction == Direction.Left ? rotate_matrix(move_direction, 1) :
+                                rotate_matrix(move_direction, 0),
+                type: direction,
+            });
             this.show()
         }
         else {
             console.log("can't move")
         }
-        this.anim_queue.push({
-            board: this.board, 
-            move: move_direction,
-            type: direction,
-        })
     }
 
     undo() {
@@ -194,16 +185,16 @@ export class Game {
 
     draw(renderer: Renderer) {
         const each_delay = 50;
-        
+
         let total_delay;
         if (this.anim_queue[0].type == Direction.Left || this.anim_queue[0].type == Direction.Right)
-            total_delay = each_delay * (this.width - 1);
+            total_delay = 200 + each_delay * (this.width - 1);
         else if (this.anim_queue[0].type == Direction.Up || this.anim_queue[0].type == Direction.Down)
-            total_delay = each_delay * (this.height - 1);
+            total_delay = 200 + each_delay * (this.height - 1);
         else
             total_delay = 0;
-        
-        if (1 < this.anim_queue.length && this.anim_starttime + 200 + total_delay < performance.now()) {
+
+        if (1 < this.anim_queue.length && this.anim_starttime + total_delay < performance.now()) {
             this.anim_queue.shift()
             this.anim_starttime = performance.now()
         }
@@ -232,8 +223,10 @@ export class Game {
             (this.height + 0.5) * this.cell_size,
             this.cell_size * 0.46
         );
-        
-        //*
+
+        renderer.bgScr.noStroke();
+        renderer.bgScr.fill(Asset.black);
+        /*
         renderer.bgScr.noStroke()
         renderer.bgScr.fill(Asset.black);
         renderer.bgScr.rect(
@@ -242,19 +235,29 @@ export class Game {
             (this.width + 0.40) * this.cell_size,
             (this.height + 0.40) * this.cell_size);
         //*/
-        
+
         renderer.clear()
         for (let i = 1; i <= this.width; i++)
             for (let j = 1; j <= this.height; j++) {
                 const delay = [0, i, this.width - i - 1, j, this.height - j - 1][this.anim_queue[0].type] * 20;
                 const [offsetx, offsety] = move_offset(anim_elapsetime - delay, this.anim_queue[0].move[i][j]);
 
+                if (this.anim_queue[0].board[i][j] != Cell.Wall) {
+                    renderer.bgScr.rect(
+                        renderer.p.width / 2 + (i - this.width / 2 - 0.5) * this.cell_size,
+                        renderer.p.height / 2 + (j - this.height / 2 - 0.5) * this.cell_size,
+                        1.20 * this.cell_size,
+                        1.20 * this.cell_size);
+                }
+
                 switch (this.anim_queue[0].board[i][j]) {
                     case Cell.Wall: {
+                        /*
                         renderer.addDot(
                             (i - this.width / 2 - 0.5) * this.cell_size,
                             (j - this.height / 2 - 0.5) * this.cell_size,
                             0, this.cell_size * 0.12, "white");
+                            */
                     } break;
                     case Cell.Free: {
                         renderer.addBlob(
@@ -271,6 +274,16 @@ export class Game {
                             (i - this.width / 2 - 0.5) * this.cell_size,
                             (j - this.height / 2 - 0.5) * this.cell_size,
                             0, this.cell_size * 0.12, "black");
+                    } break;
+                    case Cell.Player: {
+                        renderer.addBlob(
+                            (i + offsetx - this.width / 2 - 0.5) * this.cell_size,
+                            (j + offsety - this.height / 2 - 0.5) * this.cell_size,
+                            0, this.cell_size * 0.42);
+                        renderer.addDot(
+                            (i + offsetx - this.width / 2 - 0.5) * this.cell_size,
+                            (j + offsety - this.height / 2 - 0.5) * this.cell_size,
+                            0, this.cell_size * 0.22, "black");
                     } break;
                 }
             }

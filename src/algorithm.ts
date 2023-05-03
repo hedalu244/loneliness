@@ -7,9 +7,22 @@ export const Direction = {
 } as const;
 export type Direction = typeof Direction[keyof typeof Direction];
 
-export function n_array<T>(length: number, map: (v: unknown, k: number) => T): T[] {
-    return Array.from({ length: length }, map)
+export function n_array<T>(length: number, map: (i: number) => T): T[] {
+    return Array.from({ length: length }, (_, i) => map(i))
 }
+
+export function rotate_matrix<T>(matrix: T[][], count: number = 1): T[][] {
+    let ans = matrix;
+    count = count % 4;
+    if (count == 0) count = 4
+
+    for (let i = 0; i < count; i++) {
+        let width = ans.length;
+        let height = ans[0].length;
+        ans =  n_array(height, i => n_array(width, j => ans[width - j - 1][i]));
+    }
+    return ans;
+} 
 
 export class UnionFind {
     parent: number[];
@@ -17,7 +30,7 @@ export class UnionFind {
 
     constructor(N: number) {
         this.rank = n_array(N, () => 0);
-        this.parent = n_array(N, (v, k) => k);
+        this.parent = n_array(N, k => k);
     }
     root(i: number): number {
         if (this.parent[i] == i)
