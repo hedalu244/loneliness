@@ -131,30 +131,12 @@ export class Menu {
         renderer.bgScr.textSize(44);
         renderer.bgScr.textFont(Asset.fontEB);
         renderer.bgScr.text((selecting + 1 + ". ").padStart(4, "0") + leveldata[selecting]?.title, 400, 600);
-        
+
         if (1 < this.anim_queue.length && this.anim_starttime + 200 < performance.now()) {
             this.anim_queue.shift()
             this.anim_starttime = performance.now()
         }
         const anim_elapsetime = performance.now() - this.anim_starttime;
-
-        // t = アニメーション開始からの経過時間
-        // t=0で-1, 60 < tで0, 間はsmoothstep
-        function move_offset(t: number, dir: Direction) {
-            if (dir == Direction.None) return [0, 0]
-            const amount = elastic(-1, 0, t);
-
-            switch (dir) {
-                case Direction.Left:
-                    return [-amount, 0];
-                case Direction.Right:
-                    return [amount, 0];
-                case Direction.Up:
-                    return [0, -amount];
-                case Direction.Down:
-                    return [0, amount];
-            }
-        }
 
         renderer.clear();
         renderer.setBlobArea(
@@ -171,10 +153,20 @@ export class Menu {
             (this.width + 0.40) * this.cell_size,
             (this.height + 0.40) * this.cell_size);
 
-        const [offsetx, offsety] = move_offset(anim_elapsetime, this.anim_queue[0].type);
-        renderer.addBlob(
-            (this.anim_queue[0].x + offsetx - this.width / 2 + 0.5) * this.cell_size,
-            (this.anim_queue[0].y + offsety - this.height / 2 + 0.5) * this.cell_size,
-            0, this.cell_size * 0.42);
+        // 以下選択中のblobのアニメーション
+        const fixedX = (this.anim_queue[0].x - this.width / 2 + 0.5) * this.cell_size;
+        const fixedY = (this.anim_queue[0].y - this.height / 2 + 0.5) * this.cell_size;
+
+        const [prevX, prevY] =
+            this.anim_queue[0].type == Direction.Left ? [fixedX + this.cell_size, fixedY] :
+                this.anim_queue[0].type == Direction.Right ? [fixedX - this.cell_size, fixedY] :
+                    this.anim_queue[0].type == Direction.Up ? [fixedX, fixedY + this.cell_size] :
+                        this.anim_queue[0].type == Direction.Down ? [fixedX, fixedY - this.cell_size] :
+                            [fixedX, fixedY];
+
+        const animX = elastic(prevX, fixedX, anim_elapsetime);
+        const animY = elastic(prevY, fixedY, anim_elapsetime);
+
+        renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
     }
 }

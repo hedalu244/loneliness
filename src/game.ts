@@ -200,24 +200,6 @@ export class Game {
         }
         const anim_elapsetime = performance.now() - this.anim_starttime;
 
-        // t = アニメーション開始からの経過時間
-        // t=0で-1, 60 < tで0, 間はsmoothstep
-        function move_offset(t: number, dir: Direction) {
-            if (dir == Direction.None) return [0, 0]
-            const amount = elastic(-1, 0, t);
-
-            switch (dir) {
-                case Direction.Left:
-                    return [-amount, 0];
-                case Direction.Right:
-                    return [amount, 0];
-                case Direction.Up:
-                    return [0, -amount];
-                case Direction.Down:
-                    return [0, amount];
-            }
-        }
-
         renderer.setBlobArea(
             (this.width + 0.5) * this.cell_size,
             (this.height + 0.5) * this.cell_size,
@@ -240,50 +222,42 @@ export class Game {
         for (let i = 1; i <= this.width; i++)
             for (let j = 1; j <= this.height; j++) {
                 const delay = [0, i, this.width - i - 1, j, this.height - j - 1][this.anim_queue[0].type] * 20;
-                const [offsetx, offsety] = move_offset(anim_elapsetime - delay, this.anim_queue[0].move[i][j]);
+
+                const fixedX = (i - this.width / 2 - 0.5) * this.cell_size;
+                const fixedY = (j - this.height / 2 - 0.5) * this.cell_size;
+
+                const [prevX, prevY] =
+                    this.anim_queue[0].move[i][j] == Direction.Left ? [fixedX + this.cell_size, fixedY] :
+                        this.anim_queue[0].move[i][j] == Direction.Right ? [fixedX - this.cell_size, fixedY] :
+                            this.anim_queue[0].move[i][j] == Direction.Up ? [fixedX, fixedY + this.cell_size] :
+                                this.anim_queue[0].move[i][j] == Direction.Down ? [fixedX, fixedY - this.cell_size] :
+                                    [fixedX, fixedY];
+
+                const animX = elastic(prevX, fixedX, anim_elapsetime - delay);
+                const animY = elastic(prevY, fixedY, anim_elapsetime - delay);
 
                 if (this.anim_queue[0].board[i][j] != Cell.Wall) {
                     renderer.bgScr.rect(
-                        renderer.p.width / 2 + (i - this.width / 2 - 0.5) * this.cell_size,
-                        renderer.p.height / 2 + (j - this.height / 2 - 0.5) * this.cell_size,
+                        fixedX + renderer.p.width / 2,
+                        fixedY + renderer.p.height / 2,
                         1.20 * this.cell_size,
                         1.20 * this.cell_size);
                 }
 
                 switch (this.anim_queue[0].board[i][j]) {
                     case Cell.Wall: {
-                        /*
-                        renderer.addDot(
-                            (i - this.width / 2 - 0.5) * this.cell_size,
-                            (j - this.height / 2 - 0.5) * this.cell_size,
-                            0, this.cell_size * 0.12, "white");
-                            */
+                        // renderer.addDot(fixedX, fixedY, 0, this.cell_size * 0.12, "white");
                     } break;
                     case Cell.Free: {
-                        renderer.addBlob(
-                            (i + offsetx - this.width / 2 - 0.5) * this.cell_size,
-                            (j + offsety - this.height / 2 - 0.5) * this.cell_size,
-                            0, this.cell_size * 0.42);
+                        renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
                     } break;
                     case Cell.Fixed: {
-                        renderer.addBlob(
-                            (i + offsetx - this.width / 2 - 0.5) * this.cell_size,
-                            (j + offsety - this.height / 2 - 0.5) * this.cell_size,
-                            0, this.cell_size * 0.42);
-                        renderer.addDot(
-                            (i - this.width / 2 - 0.5) * this.cell_size,
-                            (j - this.height / 2 - 0.5) * this.cell_size,
-                            0, this.cell_size * 0.12, "black");
+                        renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
+                        renderer.addDot(animX, animY, 0, this.cell_size * 0.12, "black");
                     } break;
                     case Cell.Player: {
-                        renderer.addBlob(
-                            (i + offsetx - this.width / 2 - 0.5) * this.cell_size,
-                            (j + offsety - this.height / 2 - 0.5) * this.cell_size,
-                            0, this.cell_size * 0.42);
-                        renderer.addDot(
-                            (i + offsetx - this.width / 2 - 0.5) * this.cell_size,
-                            (j + offsety - this.height / 2 - 0.5) * this.cell_size,
-                            0, this.cell_size * 0.22, "black");
+                        renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
+                        renderer.addDot(animX, animY, 0, this.cell_size * 0.17, "black");
                     } break;
                 }
             }

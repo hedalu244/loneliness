@@ -355,25 +355,7 @@ export class Renderer {
         this.renderBlob();
         this.renderDot();
         this.renderFxaa();
-
-        this.filterScr.clear(0, 0, 0, 0);
-        this.filterScr.noStroke();
-        this.filterScr.shader(this.lensShader);
-        this.lensShader.setUniform('res', [this.mainScr.width, this.mainScr.height]);
-        this.lensShader.setUniform('tex', this.mainScr);
-        this.lensShader.setUniform('fade', this.fade);
-        this.lensShader.setUniform('offset', [this.offsetX, this.offsetY]);
-        this.filterScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
-
-        this.mainScr.clear(0, 0, 0, 0)
-        this.mainScr.image(this.filterScr, 0, 0, 0, 0);
-
-        this.filterScr.clear(0, 0, 0, 0);
-        this.filterScr.noStroke();
-        this.filterScr.shader(this.BlurShader);
-        this.BlurShader.setUniform('res', [this.mainScr.width, this.mainScr.height]);
-        this.BlurShader.setUniform('tex', this.mainScr);
-        this.filterScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+        this.renderFilter();
 
         this.p.image(this.filterScr, this.p.width / 2, this.p.height / 2);
 
@@ -440,6 +422,27 @@ export class Renderer {
         
         this.mainScr.resetShader();
         this.mainScr.image(this.fxaaScr, 0, 0);
+    }
+
+    renderFilter() {
+        this.filterScr.clear(0, 0, 0, 0);
+        this.filterScr.noStroke();
+        this.filterScr.shader(this.lensShader);
+        this.lensShader.setUniform('res', [this.mainScr.width, this.mainScr.height]);
+        this.lensShader.setUniform('tex', this.mainScr);
+        this.lensShader.setUniform('fade', this.fade);
+        this.lensShader.setUniform('offset', [this.offsetX, this.offsetY]);
+        this.filterScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+
+        this.mainScr.clear(0, 0, 0, 0)
+        this.mainScr.image(this.filterScr, 0, 0, 0, 0);
+
+        this.filterScr.clear(0, 0, 0, 0);
+        this.filterScr.noStroke();
+        this.filterScr.shader(this.BlurShader);
+        this.BlurShader.setUniform('res', [this.mainScr.width, this.mainScr.height]);
+        this.BlurShader.setUniform('tex', this.mainScr);
+        this.filterScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
     }
 
     setBlobArea(width: number, height: number, smooth_scale: number) {
