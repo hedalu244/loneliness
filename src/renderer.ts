@@ -377,7 +377,11 @@ export class Renderer {
         this.shadowScr.clear(1, 1, 1, 1);
         this.shadowScr.noStroke();
         this.shadowScr.fill(0);
-        this.blobs.forEach(a => this.shadowScr.image(Asset.shadow80, a.x - 50, a.y + 50))
+        this.blobs.forEach(a => this.shadowScr.image(
+            Asset.shadow80,
+            a.x - 50, a.y + 50,
+            Asset.shadow80.width / 40 * a.r,
+            Asset.shadow80.height / 40 * a.r));
 
         this.mainScr.clear(0, 0, 0, 0);
         this.mainScr.noStroke();
