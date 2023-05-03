@@ -131,7 +131,8 @@ export class Level {
         renderer.bgScr.textAlign(renderer.p.LEFT);
         renderer.bgScr.textSize(44);
         renderer.bgScr.textFont(Asset.fontEB);
-        renderer.bgScr.text(this.title, 64, 100);
+        renderer.bgScr.text((this.index + 1 + ". ").padStart(4, "0"), 60, 100);
+        renderer.bgScr.text(this.title, 60, 150);
         
         renderer.bgScr.textSize(26);
         renderer.bgScr.textFont("sans-serif");

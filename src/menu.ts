@@ -124,10 +124,10 @@ export class Menu {
 
         renderer.bgScr.background(255);
         renderer.bgScr.fill(Asset.black);
-        renderer.bgScr.textAlign(renderer.p.LEFT);
-        renderer.bgScr.textSize(36);
+        renderer.bgScr.textAlign(renderer.p.CENTER);
+        renderer.bgScr.textSize(44);
         renderer.bgScr.textFont(Asset.fontEB);
-        renderer.bgScr.text(leveldata[selecting]?.title, 60, 100);
+        renderer.bgScr.text((selecting + 1 + ". ").padStart(4, "0") + leveldata[selecting]?.title, 400, 600);
         
         if (1 < this.anim_queue.length && this.anim_starttime + 200 < performance.now()) {
             this.anim_queue.shift()

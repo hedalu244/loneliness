@@ -9,7 +9,7 @@ export interface LevelParam {
 
 export const leveldata: LevelParam[] = [
     {
-        title: "01.\nAAA",
+        title: "AAA",
         description_ja: "これはテストです。",
         description_en: "this is test text.",
         initial_board: [
@@ -20,7 +20,7 @@ export const leveldata: LevelParam[] = [
         ]
     },
     {
-        title: "02.\nBBB",
+        title: "BBB",
         description_ja: "これはテストです。",
         description_en: "this is test text.",
         initial_board: [
@@ -31,7 +31,7 @@ export const leveldata: LevelParam[] = [
         ]
     },
     {
-        title: "03.\nCCC",
+        title: "CCC",
         description_ja: "これはテストです。",
         description_en: "this is test text.",
         initial_board: [
