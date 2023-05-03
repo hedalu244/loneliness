@@ -72,24 +72,40 @@ export class Game {
 
         // 左の場合だけ書けばよい
         const [_width, _height] = direction == Direction.Up || direction == Direction.Down ? [this.width, this.height] : [this.height, this.width];
-        const _board =
-            direction == Direction.Right ? rotate_matrix(this.board, 1) :
-                direction == Direction.Down ? rotate_matrix(this.board, 2) :
-                    direction == Direction.Left ? rotate_matrix(this.board, 3) :
-                        rotate_matrix(this.board, 4);
+        const _board =rotate_matrix(this.board,
+            direction == Direction.Right ? 1 :
+                direction == Direction.Down ? 2 :
+                    direction == Direction.Left ? 3 : 0);
 
+        // 各セルが動くのか判定
         const move_check: boolean[][] = n_array(_width + 2, () => n_array(_height + 2, () => false))
         let move_flag = false;
 
         for (let i = 1; i <= _width; i++) {
+            let room = false; // 左端に余裕があるか
             for (let j = 1; j <= _height; j++) {
-                if (_board[i][j] == Cell.Free && move_check[i][j - 1])
-                    move_check[i][j] = move_flag = true;
-                if (_board[i][j] == Cell.Player && (move_check[i][j - 1] || _board[i][j - 1] == Cell.Empty))
-                    move_check[i][j] = move_flag = true;
+                if (_board[i][j] == Cell.Empty) room = true;
+                if (_board[i][j] == Cell.Fixed || _board[i][j] == Cell.Wall) room = false;
+
+                if (_board[i][j] == Cell.Player && room) {
+                    move_flag = true;
+                    move_check[i][j] = true;
+                    // 左が動く
+                    for (let k = 1; _board[i][j - k] == Cell.Free; k++)
+                        move_check[i][j - k] = true;
+                    // 右が動く
+                    for (let k = 1; _board[i][j + k] == Cell.Free; k++)
+                        move_check[i][j + k] = true;
+                }
             }
         }
 
+        if (!move_flag) {
+            console.log("can't move");
+            return
+        }
+
+        // 判定に基づき、移動後の盤面を生成
         const new_board: Cell[][] = n_array(_width + 2, i => n_array(_height + 2, j => _board[i][j]));
         const move_direction: Direction[][] = n_array(_width + 2, () => n_array(_height + 2, () => Direction.None))
 
@@ -104,27 +120,23 @@ export class Game {
                 }
             }
 
-        if (move_flag) {
-            this.history.push(this.board);
-            this.board =
-                direction == Direction.Right ? rotate_matrix(new_board, 3) :
-                    direction == Direction.Down ? rotate_matrix(new_board, 2) :
-                        direction == Direction.Left ? rotate_matrix(new_board, 1) :
-                            rotate_matrix(new_board, 0);
-            this.anim_queue.push({
-                board: this.board,
-                move:
-                    direction == Direction.Right ? rotate_matrix(move_direction, 3) :
-                        direction == Direction.Down ? rotate_matrix(move_direction, 2) :
-                            direction == Direction.Left ? rotate_matrix(move_direction, 1) :
-                                rotate_matrix(move_direction, 0),
-                type: direction,
-            });
-            this.show()
-        }
-        else {
-            console.log("can't move")
-        }
+            
+        // 履歴、アニメーションを更新
+        this.history.push(this.board);
+        this.board = rotate_matrix(new_board, 
+            direction == Direction.Right ? 3 :
+                direction == Direction.Down ? 2 :
+                    direction == Direction.Left ? 1 : 0);
+        this.anim_queue.push({
+            board: this.board,
+            move: rotate_matrix(move_direction, 
+                direction == Direction.Right ? 3 :
+                    direction == Direction.Down ? 2 :
+                        direction == Direction.Left ? 1 : 0),
+            type: direction,
+        });
+        
+        this.show()
     }
 
     undo() {
