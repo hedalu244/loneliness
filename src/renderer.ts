@@ -15,6 +15,11 @@ interface Dot {
     color: "black" | "white";
 }
 
+interface Emission {
+    x: number,
+    y: number,
+}
+
 export class Renderer {
     p: p5;
     needUpdate: boolean;
@@ -289,6 +294,7 @@ export class Renderer {
 
     blobs: Blob[];
     dots: Dot[];
+    emissions: Emission[];
     smooth_scale: number;
 
     constructor(p: p5) {
@@ -336,6 +342,7 @@ export class Renderer {
     clear() {
         this.blobs = [];
         this.dots = [];
+        this.emissions = [];
     }
 
     addBlob(x: number, y: number, z: number, r: number) {
@@ -344,6 +351,10 @@ export class Renderer {
 
     addDot(x: number, y: number, z: number, r: number, color: "black" | "white") {
         this.dots.push({ x, y, z, r, color });
+    }
+
+    addEmission(x: number, y: number) {
+        this.emissions.push({ x, y });
     }
     
     /// fadeRate: 0～1の薄めぐあい
@@ -355,6 +366,7 @@ export class Renderer {
         this.renderBlob();
         this.renderDot();
         this.renderFxaa();
+        this.renderEmission();
         this.renderFilter();
 
         this.p.image(this.filterScr, this.p.width / 2, this.p.height / 2);
@@ -409,6 +421,15 @@ export class Renderer {
             this.blobScr.sphere(a.r);
             this.blobScr.pop();
         });
+    }
+
+    renderEmission() {
+        this.mainScr.resetShader();
+        this.mainScr.blendMode(this.p.ADD);
+        this.emissions.forEach(a => {
+            this.mainScr.image(Asset.emmision80, a.x, a.y, 200, 200);
+        });
+        this.mainScr.blendMode(this.p.BLEND);
     }
 
     // blobScr => fxaaScr => mainScr

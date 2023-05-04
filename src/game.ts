@@ -280,7 +280,7 @@ export class Game {
                     } break;
                     case Cell.Player: {
                         renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
-                        //renderer.addDot(animX, animY, 0, this.cell_size * 0.17, "black");
+                        renderer.addEmission(animX, animY);
                     } break;
                 }
             }

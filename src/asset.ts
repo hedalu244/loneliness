@@ -2,6 +2,7 @@ import p5 from "p5";
 
 export class Asset {
     static shadow80: p5.Image;
+    static emmision80: p5.Image;
     static fontR: p5.Font;
     static fontEB: p5.Font;
     static black = 90;
@@ -15,6 +16,7 @@ export class Asset {
 
     static preload(p: p5) {
         this.shadow80 = p.loadImage("./shadow80.png");
+        this.emmision80 = p.loadImage("./emmision.png");
         this.fontR = p.loadFont("./DIN_2014_R.ttf");
         this.fontEB = p.loadFont("./DIN_2014_EB.ttf");
 
