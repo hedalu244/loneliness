@@ -223,7 +223,7 @@ export class Game {
 
         renderer.bgScr.noStroke();
         renderer.bgScr.fill(Asset.black);
-        //*
+        /*
         renderer.bgScr.noStroke()
         renderer.bgScr.fill(Asset.black);
         renderer.bgScr.rect(
@@ -251,7 +251,7 @@ export class Game {
                 const animX = elastic(prevX, fixedX, anim_elapsetime - delay);
                 const animY = elastic(prevY, fixedY, anim_elapsetime - delay);
                 
-                /*
+                //*
                 if (this.anim_queue[0].board[i][j] != Cell.Wall) {
                     renderer.bgScr.rect(
                         fixedX + renderer.p.width / 2,
@@ -263,7 +263,7 @@ export class Game {
 
                 switch (this.anim_queue[0].board[i][j]) {
                     case Cell.Wall: {
-                        renderer.addDot(fixedX, fixedY, 0, this.cell_size * 0.12, "white");
+                        //renderer.addDot(fixedX, fixedY, 0, this.cell_size * 0.12, "white");
                     } break;
                     case Cell.Free: {
                         renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
