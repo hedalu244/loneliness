@@ -3,12 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hello p5</title>
-  <!-- スクリプト(main.ts)の読み込み -->
-  <!-- Parcelのv2系ではスクリプトの読み込みにtype="module"の指定が必要です -->
+  <title>loneliness</title>
   <script src="/index.b7a05eb9.js" defer=""></script>
+  <style>body {
+  background-color: #f0f0f0;
+  flex-flow: column;
+  align-items: center;
+  display: flex;
+}
+
+</style>
 </head>
 <body>
-  <h1>はじめてのp5.js</h1>
+  <div id="wrapper"></div>
+  <textarea id="level_editor"></textarea>
+  <div>
+  <h2>操作方法</h2>
+  <dl>
+    <dt>移動</dt>
+    <dl>上下左右キー / フリック</dl>
+    <dt>１手戻る</dt>
+    <dl>Zキー</dl>
+    <dt>リセット</dt>
+    <dl>Rキー</dl>
+    <dt>メニューに戻る</dt>
+    <dl>Escキー</dl>
+  </dl>
+  </div>
 </body>
 </html>
