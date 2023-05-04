@@ -9,6 +9,9 @@ import { Menu } from "./menu";
 import { Asset } from "./asset";
 import { Cell } from "./game";
 import { EmptyState } from "./StartScreen";
+import { leveldata } from "./leveldata";
+
+export let solved: boolean[];
 
 type State = EmptyState | Title | Menu | Level;
 
@@ -36,8 +39,8 @@ export class TransitionManager {
     draw(renderer: Renderer) {
         const elapsed_time = performance.now() - this.start_time;
         
-        if (elapsed_time < 1000)
-        renderer.needUpdate = true;
+        if (elapsed_time <= 1100)
+            renderer.needUpdate = true;
 
         switch (this.type) {
             case TransitionType.Fade: {
@@ -140,6 +143,9 @@ const sketch = (p: p5) => {
             (x, y) => transition_manager.click(x, y, p),
             (dir) => transition_manager.flick(dir));
 
+        solved = n_array(leveldata.length, () => false);
+        
+        // 以下製作用コード
         const levelEditor = document.getElementById("level_editor") as HTMLTextAreaElement;
         levelEditor.addEventListener("input", () => {
             function transpose<T>(a: T[][]): T[][] {

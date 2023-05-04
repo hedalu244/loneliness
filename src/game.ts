@@ -5,9 +5,9 @@ import { Renderer } from "./renderer";
 export const Cell = {
     Empty: 0,
     Wall: 1,
-    Free: 2,
-    Fixed: 3,
-    Player: 4,
+    Player: 2,
+    Free: 3,
+    Fixed: 4,
 } as const;
 export type Cell = typeof Cell[keyof typeof Cell];
 export type Board = Cell[][]
@@ -229,7 +229,7 @@ export class Game {
 
         renderer.bgScr.noStroke();
         renderer.bgScr.fill(Asset.black);
-        /*
+        //*
         renderer.bgScr.noStroke()
         renderer.bgScr.fill(Asset.black);
         renderer.bgScr.rect(
@@ -256,7 +256,8 @@ export class Game {
 
                 const animX = elastic(prevX, fixedX, anim_elapsetime - delay);
                 const animY = elastic(prevY, fixedY, anim_elapsetime - delay);
-
+                
+                /*
                 if (this.anim_queue[0].board[i][j] != Cell.Wall) {
                     renderer.bgScr.rect(
                         fixedX + renderer.p.width / 2,
@@ -264,21 +265,22 @@ export class Game {
                         1.20 * this.cell_size,
                         1.20 * this.cell_size);
                 }
+                //*/
 
                 switch (this.anim_queue[0].board[i][j]) {
                     case Cell.Wall: {
-                        // renderer.addDot(fixedX, fixedY, 0, this.cell_size * 0.12, "white");
+                        renderer.addDot(fixedX, fixedY, 0, this.cell_size * 0.12, "white");
                     } break;
                     case Cell.Free: {
                         renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
                     } break;
                     case Cell.Fixed: {
                         renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
-                        renderer.addDot(animX, animY, 0, this.cell_size * 0.12, "black");
+                        renderer.addDot(fixedX, fixedY, 0, this.cell_size * 0.12, "black");
                     } break;
                     case Cell.Player: {
                         renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
-                        renderer.addDot(animX, animY, 0, this.cell_size * 0.17, "black");
+                        //renderer.addDot(animX, animY, 0, this.cell_size * 0.17, "black");
                     } break;
                 }
             }

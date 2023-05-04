@@ -57,9 +57,6 @@ export class Title {
         }
     }
     click(x: number, y:number, manager: TransitionManager) {
-        if (this.game.check()) {
-            manager.startTransiton(new Menu(0), TransitionType.Fade);
-        }
     }
 
     draw(renderer: Renderer) {
