@@ -558,160 +558,166 @@ function hmrAccept(bundle, id) {
 
 },{}],"jeorp":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "solved", ()=>solved);
+parcelHelpers.export(exports, "save", ()=>save);
+parcelHelpers.export(exports, "load", ()=>load);
+parcelHelpers.export(exports, "TransitionType", ()=>TransitionType);
+parcelHelpers.export(exports, "TransitionManager", ()=>TransitionManager);
 var _p5 = require("p5");
 var _p5Default = parcelHelpers.interopDefault(_p5);
-const Cell = {
-    Empty: 0,
-    Wall: 1,
-    Free: 2,
-    Fixed: 3
+var _algorithm = require("./algorithm");
+var _renderer = require("./renderer");
+var _level = require("./level");
+var _input = require("./input");
+var _asset = require("./asset");
+var _game = require("./game");
+var _startScreen = require("./StartScreen");
+var _leveldata = require("./leveldata");
+let solved;
+function save() {
+    localStorage.setItem("loneliness", JSON.stringify(solved));
+}
+function load() {
+    const savedata = localStorage.getItem("loneliness");
+    if (savedata == null) solved = (0, _algorithm.n_array)((0, _leveldata.leveldata).length, ()=>false);
+    else solved = JSON.parse(savedata);
+}
+const TransitionType = {
+    Fade: "fade",
+    Left: "left",
+    Right: "right"
 };
-const Direction = {
-    None: 0,
-    Left: 1,
-    Right: 2,
-    Top: 3,
-    Bottom: 4
-};
-/*
-const CellMove = {
-    None: 0,
-    Left: 1,
-    Right: 2,
-    Top: 3,
-    Bottom: 4,
-}
-type CellMove = typeof CellMove[keyof typeof CellMove];
-
-type BoardAnimation = {
-    board: Cell[][],
-    move: CellMove[][]
-}
-*/ function n_array(length, map) {
-    return Array.from({
-        length: length
-    }, map);
-}
-class Level {
-    constructor(initial_board){
-        this.height = initial_board.length;
-        this.width = initial_board[0].length;
-        this.initial_board = initial_board;
-        this.board = initial_board;
-        this.history = [];
-        this.init();
+class TransitionManager {
+    constructor(state){
+        this.state = state;
+        this.oldState = new (0, _startScreen.EmptyState)();
+        this.start_time = performance.now();
+        this.type = TransitionType.Fade;
     }
-    // 門番を付けて初期化
-    init() {
-        const new_board = n_array(this.height + 2, ()=>n_array(this.width + 2, ()=>Cell.Wall));
-        for(let i = 0; i < this.height; i++)for(let j = 0; j < this.width; j++)new_board[i + 1][j + 1] = this.initial_board[i][j];
-        this.board = new_board;
-        this.history.push(this.board);
-        this.show();
-    }
-    move(direction) {
-        console.log("move", direction);
-        const new_board = n_array(this.height + 2, ()=>n_array(this.width + 2, ()=>Cell.Wall));
-        // 何かしらの更新があったらtrue
-        let move_flag = false;
-        for(let i = 1; i <= this.height; i++)for(let j = 1; j <= this.width; j++)new_board[i][j] = this.board[i][j];
-        switch(direction){
-            case Direction.Left:
-                for(let i = 1; i <= this.height; i++)for(let j = 1; j <= this.width; j++)if (new_board[i][j - 1] == Cell.Empty && new_board[i][j] == Cell.Free) {
-                    new_board[i][j - 1] = Cell.Free;
-                    new_board[i][j] = Cell.Empty;
-                    move_flag = true;
+    draw(renderer) {
+        const elapsed_time = performance.now() - this.start_time;
+        switch(this.type){
+            case TransitionType.Fade:
+                {
+                    const t = elapsed_time / 500 - 1;
+                    const fadeRate = Math.max(0, 1 - t * t);
+                    renderer.setFade(fadeRate);
+                    renderer.setOffset(0, 0);
+                    if (elapsed_time < 500) this.oldState.draw(renderer);
+                    else this.state.draw(renderer);
                 }
                 break;
-            case Direction.Right:
-                for(let i = 1; i <= this.height; i++)for(let j = this.width; 1 <= j; j--)if (new_board[i][j + 1] == Cell.Empty && new_board[i][j] == Cell.Free) {
-                    new_board[i][j + 1] = Cell.Free;
-                    new_board[i][j] = Cell.Empty;
-                    move_flag = true;
+            case TransitionType.Right:
+                {
+                    const offset = (0, _algorithm.elastic)(0, 2, elapsed_time, 500, 0.001);
+                    renderer.setFade(0);
+                    if (offset < 1) {
+                        renderer.setOffset(offset, 0);
+                        this.oldState.draw(renderer);
+                    } else {
+                        renderer.setOffset(offset - 2, 0);
+                        this.state.draw(renderer);
+                    }
                 }
                 break;
-            case Direction.Top:
-                for(let i = 1; i <= this.height; i++)for(let j = 1; j <= this.width; j++)if (new_board[i - 1][j] == Cell.Empty && new_board[i][j] == Cell.Free) {
-                    new_board[i - 1][j] = Cell.Free;
-                    new_board[i][j] = Cell.Empty;
-                    move_flag = true;
-                }
-                break;
-            case Direction.Bottom:
-                for(let i = this.height; 1 <= i; i--)for(let j = 1; j <= this.width; j++)if (new_board[i + 1][j] == Cell.Empty && new_board[i][j] == Cell.Free) {
-                    new_board[i + 1][j] = Cell.Free;
-                    new_board[i][j] = Cell.Empty;
-                    move_flag = true;
+            case TransitionType.Left:
+                {
+                    const offset = (0, _algorithm.elastic)(0, -2, elapsed_time, 500, 0.001);
+                    renderer.setFade(0);
+                    if (-1 < offset) {
+                        renderer.setOffset(offset, 0);
+                        this.oldState.draw(renderer);
+                    } else {
+                        renderer.setOffset(offset + 2, 0);
+                        this.state.draw(renderer);
+                    }
                 }
                 break;
         }
-        if (move_flag) {
-            this.history.push(this.board);
-            this.board = new_board;
-            this.show();
-        } else console.log("can't move");
+        renderer.render();
+        if (elapsed_time < 1000) renderer.needUpdate = true;
     }
-    undo() {
-        console.log("undo");
-        let history = this.history.pop();
-        if (history == undefined) {
-            console.log("cant undo");
-            return;
-        }
-        this.board = history;
-        this.show();
+    key(code) {
+        const elapsed_time = performance.now() - this.start_time;
+        if (elapsed_time < 1000) return;
+        this.state.key(code, this);
     }
-    show() {
-        console.log(this.history.map((x)=>JSON.stringify(x)).join("\n"));
-        console.log(this.board.map((x)=>JSON.stringify(x)).join("\n"));
+    flick(direction) {
+        const elapsed_time = performance.now() - this.start_time;
+        if (elapsed_time < 1000) return;
+        this.state.flick(direction, this);
+    }
+    click(x, y, p) {
+        const elapsed_time = performance.now() - this.start_time;
+        if (elapsed_time < 1000) return;
+        this.state.click(p.mouseX, p.mouseY, this);
+    }
+    // 状態遷移アニメーションをはじめる
+    startTransiton(nextState, type) {
+        this.oldState = this.state;
+        this.state = nextState;
+        this.start_time = performance.now();
+        this.type = type;
     }
 }
-function test() {
-    const level = new Level([
-        [
-            0,
-            3,
-            0,
-            3
-        ],
-        [
-            0,
-            2,
-            0,
-            0
-        ],
-        [
-            0,
-            0,
-            2,
-            3
-        ],
-        [
-            0,
-            0,
-            1,
-            0
-        ]
-    ]);
-    level.move(Direction.Left);
-    level.move(Direction.Right);
-    level.move(Direction.Top);
-    level.move(Direction.Bottom);
-    level.undo();
-}
-test();
 const sketch = (p)=>{
+    let renderer;
+    let transition_manager = new TransitionManager(new (0, _startScreen.StartScreen)());
+    /*
+    const level = new Level(
+        "01.\nTUTRIAL", [
+        n_array(6, () => Math.floor(Math.random() * 4)),
+        n_array(6, () => Math.floor(Math.random() * 4)),
+        n_array(6, () => Math.floor(Math.random() * 4)),
+        n_array(6, () => Math.floor(Math.random() * 4)),
+        n_array(6, () => Math.floor(Math.random() * 4)),
+        n_array(6, () => Math.floor(Math.random() * 4)),
+    ])
+    */ p.preload = ()=>{
+        (0, _asset.Asset).preload(p);
+    };
     p.setup = ()=>{
-        p.createCanvas(400, 400);
+        const canvas = p.createCanvas(800, 800);
+        canvas.parent("wrapper");
+        renderer = new (0, _renderer.Renderer)(p);
+        (0, _input.initInputEvent)(canvas.elt, (code)=>transition_manager.key(code), (x, y)=>transition_manager.click(x, y, p), (dir)=>transition_manager.flick(dir));
+        load();
+        // 以下製作用コード
+        const levelEditor = document.getElementById("level_editor");
+        levelEditor.addEventListener("input", ()=>{
+            function transpose(a) {
+                return a[0].map((_, c)=>a.map((r)=>r[c]));
+            }
+            function cell(x) {
+                for(let key in 0, _game.Cell)if (x == (0, _game.Cell)[key]) return (0, _game.Cell)[key];
+                return (0, _game.Cell).Empty;
+            }
+            const value = levelEditor.value;
+            let initial_board = value.trim().split("\n").map((x)=>x.trim().split(" ").map((x)=>cell(+x)));
+            const height = Math.max(...initial_board.map((x)=>x.length));
+            initial_board.forEach((x)=>{
+                while(x.length < height)x.push(0);
+            });
+            initial_board = transpose(initial_board);
+            transition_manager.startTransiton(new (0, _level.Level)(0, {
+                title: "TEST LEVEL",
+                description_ja: "これはテストステージです。",
+                description_en: "This is test level.",
+                initial_board: initial_board
+            }), TransitionType.Fade);
+        });
     };
     p.draw = ()=>{
-        p.background(220);
-        p.ellipse(50, 50, 80, 80);
+        //transition_manager.update();
+        transition_manager.draw(renderer);
+    //level.draw(renderer);
+    //p.noLoop();
     };
 };
 new (0, _p5Default.default)(sketch);
 
-},{"p5":"7Uk5U","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"7Uk5U":[function(require,module,exports) {
+},{"p5":"7Uk5U","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./algorithm":"laafY","./renderer":"g6IVn","./level":"7j7hd","./input":"a2w3B","./asset":"cIMAM","./game":"edeGs","./StartScreen":"l9TZk","./leveldata":"2gicQ"}],"7Uk5U":[function(require,module,exports) {
 /*! p5.js v1.6.0 February 22, 2023 */ var global = arguments[3];
 !function(e1) {
     module.exports = e1();
@@ -28314,6 +28320,1396 @@ exports.export = function(dest, destName, get) {
     });
 };
 
-},{}]},["cnpQZ","jeorp"], "jeorp", "parcelRequire94c2")
+},{}],"laafY":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "Direction", ()=>Direction);
+parcelHelpers.export(exports, "n_array", ()=>n_array);
+parcelHelpers.export(exports, "rotate_matrix", ()=>rotate_matrix);
+parcelHelpers.export(exports, "UnionFind", ()=>UnionFind);
+// a:開始速度
+// b: 終了速度
+parcelHelpers.export(exports, "hermite", ()=>hermite);
+// 減衰振動
+// x = 経過時間(ms)
+// T = 周期（ms）
+// R = 1周期後の減衰率（無次元）
+parcelHelpers.export(exports, "elastic", ()=>elastic);
+const Direction = {
+    None: 0,
+    Left: 1,
+    Right: 2,
+    Up: 3,
+    Down: 4
+};
+function n_array(length, map) {
+    return Array.from({
+        length: length
+    }, (_, i)=>map(i));
+}
+function rotate_matrix(matrix, count = 1) {
+    let ans = matrix;
+    count = count % 4;
+    if (count == 0) count = 4;
+    for(let i = 0; i < count; i++){
+        let width = ans.length;
+        let height = ans[0].length;
+        ans = n_array(height, (i)=>n_array(width, (j)=>ans[width - j - 1][i]));
+    }
+    return ans;
+}
+class UnionFind {
+    constructor(N){
+        this.rank = n_array(N, ()=>0);
+        this.parent = n_array(N, (k)=>k);
+    }
+    root(i) {
+        if (this.parent[i] == i) return i;
+        const root = this.root(this.parent[i]);
+        this.parent[i] = root;
+        return root;
+    }
+    unite(a, b) {
+        a = this.root(a);
+        b = this.root(b);
+        if (a == b) return;
+        if (this.rank[a] < this.rank[b]) this.parent[a] = b;
+        else {
+            this.parent[b] = a;
+            if (this.rank[b] == this.rank[a]) this.rank[a] += 1;
+        }
+    }
+}
+function hermite(s, e, t, a, b) {
+    if (t <= 0) return s;
+    if (1 <= t) return e;
+    //0～1でエルミート補間
+    const weight = (a + b - 2) * t * t * t + (-2 * a - b + 3) * t * t + a * t;
+    //始点と終点で補間
+    return s + (e - s) * weight;
+}
+function elastic(s, e, x, T = 125, R = 0.15) {
+    if (x <= 0) return s;
+    const p = Math.atan(Math.PI / Math.log(R));
+    //減衰振動
+    const weight = Math.sin(p - Math.PI / T * x) / Math.sin(p) * Math.pow(R, x / T);
+    return e + (s - e) * weight;
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"g6IVn":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "Renderer", ()=>Renderer);
+var _asset = require("./asset");
+class Renderer {
+    static lightingFS = `
+    precision highp float;
+
+    const vec3 light_dir = normalize(vec3(1.0, -1.0, -1.4));
+    const vec3 directional = vec3(0.4);
+    const vec3 ambient = vec3(0.6);
+
+    vec3 lighting(vec3 color, vec3 normal, float shadow) {
+        vec3 lambert = max(0., dot(normal, light_dir)) * shadow * directional;
+
+        float f = min(1., 1. + normal.z);
+        float f2 = f * f;
+        vec3 fresnel = f * f2 * f2 * ambient * 0.3;
+
+        return (lambert + ambient) * color + fresnel;
+    }`;
+    static dotVS = `
+    attribute vec3 aPosition;
+    attribute vec3 aNormal;
+    attribute vec2 aTexCoord;
+    attribute vec4 aVertexColor;
+    
+    uniform mat4 uModelViewMatrix;
+    uniform mat4 uProjectionMatrix;
+    uniform mat3 uNormalMatrix;
+    
+    uniform vec4 uMaterialColor;
+    uniform bool uUseVertexColor;
+    
+    varying vec3 vVertexNormal;
+    varying vec4 vColor;
+    
+    void main(void) {
+        vec4 positionVec4 = vec4(aPosition, 1.0);
+        gl_Position = uProjectionMatrix * uModelViewMatrix * positionVec4;
+        vVertexNormal = normalize(vec3( uNormalMatrix * aNormal ));
+        vColor = (uUseVertexColor ? aVertexColor : uMaterialColor);
+    }`;
+    static dotFS = `
+    varying vec3 vVertexNormal;
+    varying vec4 vColor;
+
+    void main(void) {
+        vec3 n = vVertexNormal * vec3(1, 1, -1);
+        gl_FragColor = vec4(lighting(vColor.rgb, n, 1.0), 1.0);
+    }`;
+    static floorFS = `
+    varying vec2 uv;
+    uniform vec2 res;
+
+    uniform sampler2D color_tex;
+    uniform sampler2D shadow_tex;
+
+    void main(void) {
+        vec3 color = texture2D(color_tex, uv).rgb;
+        float shadow = texture2D(shadow_tex, uv).r;
+        gl_FragColor = vec4(lighting(color.rgb, vec3(0, 0, -1), shadow), 1.0);
+    }`;
+    static ScreenVS = `
+    precision highp float;
+
+    attribute vec3 aPosition;
+    attribute vec2 aTexCoord;
+    varying vec2 uv;
+
+    void main() {
+        vec4 position = vec4(aPosition.xy, 1.0, 1.0);
+
+        gl_Position = position;
+        uv = aTexCoord;
+    }`;
+    static blobFS = `
+    varying vec2 uv;
+    uniform vec2 res;
+    uniform float smooth_param;
+
+    const int 	NUM_BLOBS			= 20;
+    const int 	TRACE_STEPS 		= 100;
+    const float TRACE_EPSILON 		= 0.001;
+    const float TRACE_DISTANCE		= 200.0;
+    const float NORMAL_EPSILON		= 0.01;
+
+    uniform vec4 blobs[NUM_BLOBS];
+
+    const vec3 blobColor = vec3(1.0);
+
+    float smin(float a, float b, float k) {
+        float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+        return mix(b, a, h) - k * h * (1.0 - h);
+    } 
+
+    float blobs_field(vec3 at) {
+        float sum = TRACE_DISTANCE;
+        for (int i = 0; i < NUM_BLOBS; ++i) {
+            if (blobs[i].w == 0.) continue;
+            float r = length(blobs[i].xyz - at) - blobs[i].w;
+            sum = smin(sum, r, smooth_param);
+        }
+        return sum;
+    }
+
+    vec3 normal(vec3 at) {
+        vec2 e = vec2(0.0, NORMAL_EPSILON);
+        return normalize(vec3(blobs_field(at + e.yxx) - blobs_field(at), 
+                              blobs_field(at + e.xyx) - blobs_field(at),
+                              blobs_field(at + e.xxy) - blobs_field(at)));
+    }
+
+    vec4 raymarch(vec3 pos, vec3 dir) {
+        float l = 0.;
+        for (int i = 0; i < TRACE_STEPS; i++) {
+            float d = blobs_field(pos + dir * l);
+            if (d < TRACE_EPSILON)
+                break;
+            l += d;
+            if (l > TRACE_DISTANCE) break;
+        }
+        return vec4(pos + dir * l, l);
+    }
+
+    void main() {
+        vec3 eye = vec3((uv - 0.5) * res, -100);
+        vec3 dir = vec3(0, 0, 1);
+        
+        vec4 pos = raymarch(eye, dir);
+
+        if (pos.w >= TRACE_DISTANCE) {
+            gl_FragColor = vec4(0, 0, 0, 0);
+            return;
+        }
+        else {
+            vec3 n = normal(pos.xyz);
+            gl_FragColor = vec4(lighting(blobColor, n, 1.0), 1.0);
+        }
+    }`;
+    static fxaaFS = `
+    precision highp float;
+    
+    varying vec2 uv;
+    uniform vec2 res;
+    
+    uniform sampler2D tex;
+
+    float lum(vec4 color) {
+        return dot(color, vec4(0.299, 0.587, 0.114, 1.));
+    }
+    
+    void main() {
+        //FXAA
+        vec4 center = texture2D(tex, uv);
+    
+        vec2 px = 1.0 / res.xy;    
+        float lumC = lum(center);
+        float lumL = lum(texture2D(tex, uv + vec2(-0.5, 0) * px));
+        float lumR = lum(texture2D(tex, uv + vec2( 0.5, 0) * px));
+        float lumT = lum(texture2D(tex, uv + vec2( 0, -0.5) * px));
+        float lumB = lum(texture2D(tex, uv + vec2( 0,  0.5) * px));
+        
+        float maxlum = max(max(max(lumL, lumR), max(lumT, lumB)), lumC);
+        float minlum = min(min(min(lumL, lumR), min(lumT, lumB)), lumC);
+    
+        vec2 dir = normalize(vec2(lumB - lumT, lumL - lumR));
+        
+        vec2 alignedDir = abs(dir.x) < 0.5 ? vec2(0, dir.y / (dir.x + 0.001))
+                        : abs(dir.y) < 0.5 ? vec2(dir.x / (dir.y + 0.001), 0) : dir;
+        //vec2 alignedDir = dir * dir * dir / (dir.yx + 0.01);
+        
+        vec2 offset1 = clamp(alignedDir, -0.5, 0.5) * px;
+        vec2 offset2 = clamp(alignedDir, -1.5, 1.5) * px;
+        
+        vec4 rgbN1 = texture2D(tex, uv - offset1);
+        vec4 rgbP1 = texture2D(tex, uv + offset1);
+        vec4 rgbN2 = texture2D(tex, uv - offset2);
+        vec4 rgbP2 = texture2D(tex, uv + offset2);
+        
+        vec4 AA1 = (rgbN1 + rgbP1) * 0.5;
+        vec4 AA2 = (rgbN1 + rgbP1 + rgbN2 + rgbP2) * 0.25;
+        
+        float lumAA2 = lum(AA2);
+        gl_FragColor = (minlum < lumAA2 && lumAA2 < maxlum) ? AA2 : AA1;
+
+        // gl_FragColor.rgb = 0. < gl_FragColor.a ? gl_FragColor.rgb / gl_FragColor.a : gl_FragColor.rgb;
+    }`;
+    static lensFS = `
+    precision highp float;
+    
+    varying vec2 uv;
+    uniform vec2 res;
+    
+    uniform sampler2D tex;
+    uniform float fade;
+    uniform vec2 offset;
+
+    const vec3 fade_color = vec3(0.88);
+
+    float distort(float x, float a, float fix) {
+        return (pow(a, x) - 1.) / (pow(a, fix) - 1.);
+    }
+
+    float random(vec2 uv) {
+        return fract(sin(dot(uv.xy ,vec2(12.9898,78.233))) * 43758.5453);
+    }
+    
+    void main() {
+        vec2 duv = uv - 0.5;
+
+        float l = length(duv);
+        duv = duv * distort(l, 1.1, 1.) / l;
+
+        float r = texture2D(tex, duv * 1.012 + 0.5 + offset).r;
+        float g = texture2D(tex, duv * 1.006 + 0.5 + offset).g;
+        float b = texture2D(tex, duv * 1.000 + 0.5 + offset).b;
+        vec3 color = mix(vec3(r, g, b), fade_color, fade);
+
+        float vignette = 1. - l * 0.2;
+        float noise = random(uv) * 0.008 - 0.004;
+
+        gl_FragColor = vec4(color * vignette + noise, 1);
+    }`;
+    static blurFS = `
+    precision highp float;
+    
+    varying vec2 uv;
+    uniform vec2 res;
+    
+    uniform sampler2D tex;
+    
+    void main() {
+        vec4 x = texture2D(tex, uv);
+
+        vec2 duv = (uv - 0.5) * 0.004;
+        vec2 cuv = duv.yx * vec2(1, -1);
+        vec4 a = texture2D(tex, uv + duv);
+        vec4 b = texture2D(tex, uv - duv);
+        vec4 c = texture2D(tex, uv + cuv);
+        vec4 d = texture2D(tex, uv - cuv);
+
+        gl_FragColor = vec4((a + a + b + c + d).rgb * .2, 1);
+    }`;
+    constructor(p){
+        this.needUpdate = true;
+        this.p = p;
+        p.rectMode(p.CENTER);
+        p.imageMode(p.CENTER);
+        this.bgScr = p.createGraphics(p.width, p.height);
+        this.bgScr.rectMode(p.CENTER);
+        this.bgScr.imageMode(p.CENTER);
+        this.shadowScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
+        this.shadowScr.setAttributes("depth", false);
+        this.shadowScr.rectMode(p.CENTER);
+        this.shadowScr.imageMode(p.CENTER);
+        this.blobScr = this.p.createGraphics(p.width, p.height, this.p.WEBGL);
+        this.blobScr.setAttributes("alpha", true);
+        this.blobShader = this.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS);
+        this.dotShader = this.blobScr.createShader(Renderer.dotVS, Renderer.lightingFS + Renderer.dotFS);
+        this.fxaaScr = this.p.createGraphics(p.width, p.height, this.p.WEBGL);
+        this.fxaaScr.setAttributes("depth", false);
+        this.fxaaScr.setAttributes("alpha", true);
+        this.fxaaShader = this.fxaaScr.createShader(Renderer.ScreenVS, Renderer.fxaaFS);
+        this.mainScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
+        this.mainScr.setAttributes("depth", false);
+        this.mainScr.rectMode(p.CENTER);
+        this.mainScr.imageMode(p.CENTER);
+        this.floorShader = this.mainScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.floorFS);
+        this.filterScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
+        this.filterScr.rectMode(p.CENTER);
+        this.filterScr.imageMode(p.CENTER);
+        this.lensShader = this.filterScr.createShader(Renderer.ScreenVS, Renderer.lensFS);
+        this.BlurShader = this.filterScr.createShader(Renderer.ScreenVS, Renderer.blurFS);
+        this.setBlobArea(p.width, p.height, 0);
+        this.clear();
+    }
+    clear() {
+        this.blobs = [];
+        this.dots = [];
+        this.emissions = [];
+    }
+    addBlob(x, y, z, r) {
+        this.blobs.push({
+            x,
+            y,
+            z,
+            r
+        });
+    }
+    addDot(x, y, z, r, color) {
+        this.dots.push({
+            x,
+            y,
+            z,
+            r,
+            color
+        });
+    }
+    addEmission(x, y) {
+        this.emissions.push({
+            x,
+            y
+        });
+    }
+    /// fadeRate: 0～1の薄めぐあい
+    render() {
+        if (!this.needUpdate) return;
+        this.p.background(255);
+        this.renderFloor();
+        this.renderBlob();
+        this.renderDot();
+        this.renderFxaa();
+        this.renderEmission();
+        this.renderFilter();
+        this.p.image(this.filterScr, this.p.width / 2, this.p.height / 2);
+        this.needUpdate = false;
+    }
+    // (shadowScr, bgScr) => mainScr
+    renderFloor() {
+        this.shadowScr.clear(1, 1, 1, 1);
+        this.shadowScr.noStroke();
+        this.shadowScr.fill(0);
+        this.blobs.forEach((a)=>this.shadowScr.image((0, _asset.Asset).shadow80, a.x - 50, a.y + 50, (0, _asset.Asset).shadow80.width / 40 * a.r, (0, _asset.Asset).shadow80.height / 40 * a.r));
+        this.mainScr.clear(0, 0, 0, 0);
+        this.mainScr.noStroke();
+        this.mainScr.shader(this.floorShader);
+        this.floorShader.setUniform("res", [
+            this.mainScr.width,
+            this.mainScr.height
+        ]);
+        this.floorShader.setUniform("color_tex", this.bgScr);
+        this.floorShader.setUniform("shadow_tex", this.shadowScr);
+        this.mainScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+    }
+    // blob => blobScr
+    renderBlob() {
+        if (this.blobs.length == 0) {
+            this.blobScr.clear(0, 0, 0, 0);
+            return;
+        }
+        const blob_params = [];
+        this.blobs.forEach((a)=>blob_params.push(a.x, a.y, a.z, a.r));
+        while(blob_params.length < 80)blob_params.push(0);
+        this.blobScr.clear(0, 0, 0, 0);
+        this.blobScr.noStroke();
+        this.blobScr.shader(this.blobShader);
+        this.blobShader.setUniform("blobs", blob_params);
+        this.blobShader.setUniform("res", [
+            this.blobScr.width,
+            this.blobScr.height
+        ]);
+        this.blobShader.setUniform("smooth_param", this.smooth_scale);
+        this.blobScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+    }
+    // dot => blobScr
+    renderDot() {
+        this.blobScr.shader(this.dotShader);
+        this.blobScr.noStroke();
+        this.dots.forEach((a)=>{
+            this.blobScr.fill(a.color == "black" ? (0, _asset.Asset).black : 255);
+            this.blobScr.push();
+            this.blobScr.translate(a.x, a.y, a.z);
+            this.blobScr.sphere(a.r);
+            this.blobScr.pop();
+        });
+    }
+    renderEmission() {
+        this.mainScr.resetShader();
+        this.mainScr.blendMode(this.p.ADD);
+        this.emissions.forEach((a)=>{
+            this.mainScr.image((0, _asset.Asset).emmision80, a.x, a.y, 200, 200);
+        });
+        this.mainScr.blendMode(this.p.BLEND);
+    }
+    // blobScr => fxaaScr => mainScr
+    renderFxaa() {
+        this.fxaaScr.clear(0, 0, 0, 0);
+        this.fxaaScr.noStroke();
+        this.fxaaScr.shader(this.fxaaShader);
+        this.fxaaShader.setUniform("res", [
+            this.blobScr.width,
+            this.blobScr.height
+        ]);
+        this.fxaaShader.setUniform("tex", this.blobScr);
+        this.fxaaScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+        this.mainScr.resetShader();
+        this.mainScr.image(this.fxaaScr, 0, 0);
+    }
+    renderFilter() {
+        this.filterScr.clear(0, 0, 0, 0);
+        this.filterScr.noStroke();
+        this.filterScr.shader(this.lensShader);
+        this.lensShader.setUniform("res", [
+            this.mainScr.width,
+            this.mainScr.height
+        ]);
+        this.lensShader.setUniform("tex", this.mainScr);
+        this.lensShader.setUniform("fade", this.fade);
+        this.lensShader.setUniform("offset", [
+            this.offsetX,
+            this.offsetY
+        ]);
+        this.filterScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+        this.mainScr.clear(0, 0, 0, 0);
+        this.mainScr.image(this.filterScr, 0, 0, 0, 0);
+        this.filterScr.clear(0, 0, 0, 0);
+        this.filterScr.noStroke();
+        this.filterScr.shader(this.BlurShader);
+        this.BlurShader.setUniform("res", [
+            this.mainScr.width,
+            this.mainScr.height
+        ]);
+        this.BlurShader.setUniform("tex", this.mainScr);
+        this.filterScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+    }
+    setBlobArea(width, height, smooth_scale) {
+        this.smooth_scale = smooth_scale;
+        if (this.blobScr && this.blobScr.width == width && this.blobScr.height == height) return;
+        //does not work
+        //this.blobScr.size(width, height);
+        //this.fxaaScr.size(width, height);
+        //*
+        this.blobScr.width = width;
+        this.blobScr.height = height;
+        this.blobScr.ortho(-width / 2, width / 2, -height / 2, height / 2);
+        this.fxaaScr.width = width;
+        this.fxaaScr.height = height;
+    //*/
+    }
+    setFade(fade) {
+        this.fade = fade;
+    }
+    setOffset(x, y) {
+        this.offsetX = x;
+        this.offsetY = y;
+    }
+}
+
+},{"./asset":"cIMAM","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"cIMAM":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "Asset", ()=>Asset);
+class Asset {
+    static black = 90;
+    static preload(p) {
+        this.shadow80 = p.loadImage("./shadow80.png");
+        this.emmision80 = p.loadImage("./emmision.png");
+        this.fontR = p.loadFont("./DIN_2014_R.ttf");
+        this.fontEB = p.loadFont("./DIN_2014_EB.ttf");
+        this.undoButton = p.loadImage("./button_undo.png");
+        this.initButton = p.loadImage("./button_reset.png");
+        this.quitButton = p.loadImage("./button_quit.png");
+        this.leftButton = p.loadImage("./button_left.png");
+        this.rightButton = p.loadImage("./button_right.png");
+    /*
+        const loop_head = new Audio("./loop_head.mp3");
+        const loop_tail = new Audio("./loop_tail.mp3");
+        
+        document.addEventListener("click", (event) => {
+            loop_head.play();
+        });
+        
+        loop_head.addEventListener('ended', function() { 
+            loop_tail.play();
+            loop_tail.loop = true;  // ループ再生
+            console.log('ended');
+        }, false);
+        */ }
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"7j7hd":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "Level", ()=>Level);
+var _game = require("./game");
+var _main = require("./main");
+var _algorithm = require("./algorithm");
+var _leveldata = require("./leveldata");
+var _menu = require("./menu");
+var _button = require("./button");
+var _asset = require("./asset");
+class Level {
+    constructor(index, levelParam){
+        this.index = index;
+        this.title = levelParam.title;
+        this.description_ja = levelParam.description_ja;
+        this.description_en = levelParam.description_en;
+        this.game = new (0, _game.Game)(levelParam.initial_board);
+        this.undoButton = new (0, _button.Button)(700, 80, 50, 50, (0, _asset.Asset).undoButton);
+        this.initButton = new (0, _button.Button)(620, 80, 50, 50, (0, _asset.Asset).initButton);
+        this.quitButton = new (0, _button.Button)(480, 80, 50, 50, (0, _asset.Asset).quitButton);
+        this.prevLevelButton = new (0, _button.Button)(60, 400, 40, 40, (0, _asset.Asset).leftButton);
+        this.nextLevelButton = new (0, _button.Button)(740, 400, 40, 40, (0, _asset.Asset).rightButton);
+    }
+    complete(manager) {
+        (0, _main.solved)[this.index] = true;
+        if (this.index + 1 < (0, _main.solved).length && !(0, _main.solved)[this.index + 1]) manager.startTransiton(new Level(this.index + 1, (0, _leveldata.leveldata)[this.index + 1]), (0, _main.TransitionType).Right);
+        else manager.startTransiton(new (0, _menu.Menu)(0), (0, _main.TransitionType).Fade);
+    }
+    key(code, manager) {
+        switch(code){
+            case "ArrowLeft":
+                this.game.move((0, _algorithm.Direction).Left);
+                break;
+            case "ArrowRight":
+                this.game.move((0, _algorithm.Direction).Right);
+                break;
+            case "ArrowUp":
+                this.game.move((0, _algorithm.Direction).Up);
+                break;
+            case "ArrowDown":
+                this.game.move((0, _algorithm.Direction).Down);
+                break;
+            case "KeyZ":
+                this.game.undo();
+                break;
+            case "KeyR":
+                this.game.init();
+                break;
+            case "KeyR":
+                this.game.init();
+                break;
+            case "Escape":
+                manager.startTransiton(new (0, _menu.Menu)(0), (0, _main.TransitionType).Fade);
+        }
+        if (this.game.check()) this.complete(manager);
+    }
+    flick(direction, manager) {
+        switch(direction){
+            case (0, _algorithm.Direction).Left:
+                this.game.move((0, _algorithm.Direction).Left);
+                break;
+            case (0, _algorithm.Direction).Right:
+                this.game.move((0, _algorithm.Direction).Right);
+                break;
+            case (0, _algorithm.Direction).Up:
+                this.game.move((0, _algorithm.Direction).Up);
+                break;
+            case (0, _algorithm.Direction).Down:
+                this.game.move((0, _algorithm.Direction).Down);
+                break;
+        }
+        if (this.game.check()) this.complete(manager);
+    }
+    click(x, y, manager) {
+        if (this.undoButton.hit(x, y)) {
+            this.game.undo();
+            return;
+        }
+        if (this.initButton.hit(x, y)) {
+            this.game.init();
+            return;
+        }
+        if (this.quitButton.hit(x, y)) {
+            manager.startTransiton(new (0, _menu.Menu)(0), (0, _main.TransitionType).Fade);
+            return;
+        }
+        if (this.nextLevelButton.hit(x, y) && (0, _leveldata.leveldata)[this.index + 1]) {
+            manager.startTransiton(new Level(this.index + 1, (0, _leveldata.leveldata)[this.index + 1]), (0, _main.TransitionType).Right);
+            return;
+        }
+        if (this.prevLevelButton.hit(x, y) && (0, _leveldata.leveldata)[this.index - 1]) {
+            manager.startTransiton(new Level(this.index - 1, (0, _leveldata.leveldata)[this.index - 1]), (0, _main.TransitionType).Left);
+            return;
+        }
+        if (this.game.check()) this.complete(manager);
+    }
+    draw(renderer) {
+        renderer.clear();
+        renderer.bgScr.background(255);
+        renderer.bgScr.fill((0, _asset.Asset).black);
+        renderer.bgScr.textAlign(renderer.p.LEFT);
+        renderer.bgScr.textSize(44);
+        renderer.bgScr.textFont((0, _asset.Asset).fontEB);
+        renderer.bgScr.text((this.index + 1 + ". ").padStart(4, "0"), 60, 80);
+        renderer.bgScr.text(this.title, 60, 130);
+        renderer.bgScr.textSize(26);
+        renderer.bgScr.textFont("sans-serif");
+        renderer.bgScr.text(this.description_ja, 60, 700);
+        renderer.bgScr.textSize(26);
+        renderer.bgScr.textFont((0, _asset.Asset).fontR);
+        renderer.bgScr.text(this.description_en, 60, 740);
+        this.undoButton.draw(renderer);
+        this.initButton.draw(renderer);
+        this.quitButton.draw(renderer);
+        if ((0, _leveldata.leveldata)[this.index + 1]) this.nextLevelButton.draw(renderer);
+        if ((0, _leveldata.leveldata)[this.index - 1]) this.prevLevelButton.draw(renderer);
+        this.game.draw(renderer);
+        if (1 < this.game.anim_queue.length || performance.now() < this.game.anim_starttime + 500) renderer.needUpdate = true;
+    }
+}
+
+},{"./game":"edeGs","./main":"jeorp","./algorithm":"laafY","./leveldata":"2gicQ","./menu":"at6He","./button":"hHDeU","./asset":"cIMAM","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"edeGs":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "Cell", ()=>Cell);
+parcelHelpers.export(exports, "Game", ()=>Game);
+var _algorithm = require("./algorithm");
+var _asset = require("./asset");
+const Cell = {
+    Empty: 0,
+    Wall: 1,
+    Player: 2,
+    Free: 3,
+    Fixed: 4
+};
+function isBlob(x) {
+    return x == Cell.Free || x == Cell.Player || x == Cell.Fixed;
+}
+class Game {
+    constructor(initial_board){
+        this.width = initial_board.length;
+        this.height = initial_board[0].length;
+        this.initial_board = initial_board;
+        this.cell_size = Math.min(520 / this.width, 400 / this.height, 80);
+        this.history = [];
+        this.anim_queue = [];
+        this.anim_starttime = performance.now();
+        this.init();
+    }
+    // 門番を付けて初期化
+    init() {
+        const new_board = (0, _algorithm.n_array)(this.width + 2, ()=>(0, _algorithm.n_array)(this.height + 2, ()=>Cell.Wall));
+        for(let i = 0; i < this.width; i++)for(let j = 0; j < this.height; j++)new_board[i + 1][j + 1] = this.initial_board[i][j];
+        if (this.board) this.history.push(this.board);
+        this.board = new_board;
+        this.anim_queue.push({
+            board: this.board,
+            delay: (0, _algorithm.n_array)(this.width + 2, ()=>(0, _algorithm.n_array)(this.height + 2, ()=>0)),
+            move: (0, _algorithm.n_array)(this.width + 2, ()=>(0, _algorithm.n_array)(this.height + 2, ()=>(0, _algorithm.Direction).None)),
+            type: (0, _algorithm.Direction).None
+        });
+        this.show();
+    }
+    move(direction) {
+        console.log("move", direction);
+        // 左の場合だけ書けばよい
+        const [_width, _height] = direction == (0, _algorithm.Direction).Up || direction == (0, _algorithm.Direction).Down ? [
+            this.width,
+            this.height
+        ] : [
+            this.height,
+            this.width
+        ];
+        const _board = (0, _algorithm.rotate_matrix)(this.board, direction == (0, _algorithm.Direction).Right ? 1 : direction == (0, _algorithm.Direction).Down ? 2 : direction == (0, _algorithm.Direction).Left ? 3 : 0);
+        // 各セルが動くのか判定
+        const move_check = (0, _algorithm.n_array)(_width + 2, ()=>(0, _algorithm.n_array)(_height + 2, ()=>-1));
+        let move_flag = false;
+        for(let i = 1; i <= _width; i++){
+            let room = false; // 左端に余裕があるか
+            for(let j = 1; j <= _height; j++){
+                if (_board[i][j] == Cell.Empty) room = true;
+                if (_board[i][j] == Cell.Fixed || _board[i][j] == Cell.Wall) room = false;
+                if (_board[i][j] == Cell.Player && room) {
+                    move_flag = true;
+                    move_check[i][j] = 0;
+                    // 左が動く
+                    for(let k = 1; _board[i][j - k] == Cell.Free; k++)move_check[i][j - k] = k;
+                    // 右が動く
+                    for(let k = 1; _board[i][j + k] == Cell.Free; k++)move_check[i][j + k] = k;
+                }
+            }
+        }
+        if (!move_flag) {
+            console.log("can't move");
+            return;
+        }
+        // 判定に基づき、移動後の盤面を生成
+        const new_board = (0, _algorithm.n_array)(_width + 2, (i)=>(0, _algorithm.n_array)(_height + 2, (j)=>_board[i][j]));
+        const move_direction = (0, _algorithm.n_array)(_width + 2, ()=>(0, _algorithm.n_array)(_height + 2, ()=>(0, _algorithm.Direction).None));
+        const move_delay = (0, _algorithm.n_array)(_width + 2, ()=>(0, _algorithm.n_array)(_height + 2, ()=>0));
+        for(let i = 1; i <= _width; i++)for(let j = 1; j <= _height; j++){
+            if (move_check[i][j + 1] != -1) {
+                new_board[i][j] = _board[i][j + 1];
+                move_direction[i][j] = direction;
+                move_delay[i][j] = move_check[i][j + 1];
+            } else if (move_check[i][j] != -1) new_board[i][j] = Cell.Empty;
+        }
+        // 履歴、アニメーションを更新
+        this.history.push(this.board);
+        this.board = (0, _algorithm.rotate_matrix)(new_board, direction == (0, _algorithm.Direction).Right ? 3 : direction == (0, _algorithm.Direction).Down ? 2 : direction == (0, _algorithm.Direction).Left ? 1 : 0);
+        this.anim_queue.push({
+            board: this.board,
+            delay: (0, _algorithm.rotate_matrix)(move_delay, direction == (0, _algorithm.Direction).Right ? 3 : direction == (0, _algorithm.Direction).Down ? 2 : direction == (0, _algorithm.Direction).Left ? 1 : 0),
+            move: (0, _algorithm.rotate_matrix)(move_direction, direction == (0, _algorithm.Direction).Right ? 3 : direction == (0, _algorithm.Direction).Down ? 2 : direction == (0, _algorithm.Direction).Left ? 1 : 0),
+            type: direction
+        });
+        this.show();
+    }
+    undo() {
+        console.log("undo");
+        let history = this.history.pop();
+        if (history == undefined) {
+            console.log("cant undo");
+            return;
+        }
+        this.board = history;
+        this.anim_queue.push({
+            board: this.board,
+            delay: (0, _algorithm.n_array)(this.width + 2, ()=>(0, _algorithm.n_array)(this.height + 2, ()=>0)),
+            move: (0, _algorithm.n_array)(this.width + 2, ()=>(0, _algorithm.n_array)(this.height + 2, ()=>(0, _algorithm.Direction).None)),
+            type: (0, _algorithm.Direction).None
+        });
+        this.show();
+    }
+    check() {
+        // DSU構築
+        const uf = new (0, _algorithm.UnionFind)(this.width * this.height);
+        let lastBlob = 0;
+        for(let i = 0; i < this.width; i++)for(let j = 0; j < this.height; j++){
+            const x = this.board[i + 1][j + 1];
+            const u = this.board[i + 2][j + 1];
+            const l = this.board[i + 1][j + 2];
+            const xid = i * this.height + j;
+            const uid = (i + 1) * this.height + j;
+            const lid = i * this.height + j + 1;
+            if (isBlob(x)) lastBlob = xid;
+            if (isBlob(x) && isBlob(u)) uf.unite(xid, uid);
+            if (isBlob(x) && isBlob(l)) uf.unite(xid, lid);
+        }
+        // 1つでも lastBlobと連結していない blob があれば false
+        for(let i = 0; i < this.width; i++)for(let j = 0; j < this.height; j++){
+            const x = this.board[i + 1][j + 1];
+            const xid = i * this.height + j;
+            if (isBlob(x) && uf.root(xid) != uf.root(lastBlob)) return false;
+        }
+        return true;
+    }
+    show() {
+        console.log(this.history.map((x)=>JSON.stringify(x)).join("\n"));
+        console.log(this.board.map((x)=>JSON.stringify(x)).join("\n"));
+        console.log(this.anim_queue.map((x)=>JSON.stringify(x)).join("\n"));
+    }
+    draw(renderer) {
+        const each_delay = 50;
+        const total_delay = 250;
+        if (1 < this.anim_queue.length && this.anim_starttime + total_delay < performance.now()) {
+            this.anim_queue.shift();
+            this.anim_starttime = performance.now();
+        }
+        const anim_elapsetime = performance.now() - this.anim_starttime;
+        renderer.setBlobArea((this.width + 0.5) * this.cell_size, (this.height + 0.5) * this.cell_size, this.cell_size * 0.46);
+        renderer.bgScr.noStroke();
+        renderer.bgScr.fill((0, _asset.Asset).black);
+        //*
+        renderer.bgScr.noStroke();
+        renderer.bgScr.fill((0, _asset.Asset).black);
+        renderer.bgScr.rect(renderer.p.width / 2, renderer.p.height / 2, (this.width + 0.40) * this.cell_size, (this.height + 0.40) * this.cell_size);
+        //*/
+        renderer.clear();
+        for(let i = 1; i <= this.width; i++)for(let j = 1; j <= this.height; j++){
+            const delay = this.anim_queue[0].delay[i][j] * 20;
+            const fixedX = (i - this.width / 2 - 0.5) * this.cell_size;
+            const fixedY = (j - this.height / 2 - 0.5) * this.cell_size;
+            const [prevX, prevY] = this.anim_queue[0].move[i][j] == (0, _algorithm.Direction).Left ? [
+                fixedX + this.cell_size,
+                fixedY
+            ] : this.anim_queue[0].move[i][j] == (0, _algorithm.Direction).Right ? [
+                fixedX - this.cell_size,
+                fixedY
+            ] : this.anim_queue[0].move[i][j] == (0, _algorithm.Direction).Up ? [
+                fixedX,
+                fixedY + this.cell_size
+            ] : this.anim_queue[0].move[i][j] == (0, _algorithm.Direction).Down ? [
+                fixedX,
+                fixedY - this.cell_size
+            ] : [
+                fixedX,
+                fixedY
+            ];
+            const animX = (0, _algorithm.elastic)(prevX, fixedX, anim_elapsetime - delay);
+            const animY = (0, _algorithm.elastic)(prevY, fixedY, anim_elapsetime - delay);
+            /*
+                if (this.anim_queue[0].board[i][j] != Cell.Wall) {
+                    renderer.bgScr.rect(
+                        fixedX + renderer.p.width / 2,
+                        fixedY + renderer.p.height / 2,
+                        1.20 * this.cell_size,
+                        1.20 * this.cell_size);
+                }
+                //*/ switch(this.anim_queue[0].board[i][j]){
+                case Cell.Wall:
+                    renderer.addDot(fixedX, fixedY, 0, this.cell_size * 0.12, "white");
+                    break;
+                case Cell.Free:
+                    renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
+                    break;
+                case Cell.Fixed:
+                    renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
+                    renderer.addDot(fixedX, fixedY, 0, this.cell_size * 0.12, "black");
+                    break;
+                case Cell.Player:
+                    renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
+                    renderer.addEmission(animX, animY);
+                    break;
+            }
+        }
+    }
+}
+
+},{"./algorithm":"laafY","./asset":"cIMAM","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"2gicQ":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "leveldata", ()=>leveldata);
+const leveldata = [
+    {
+        title: "AAA",
+        description_ja: "すべてのカタマリを繋いでください。",
+        description_en: "Connect all the blobs.",
+        initial_board: [
+            [
+                0,
+                0,
+                2
+            ],
+            [
+                3,
+                0,
+                1
+            ],
+            [
+                1,
+                0,
+                3
+            ],
+            [
+                0,
+                0,
+                0
+            ],
+            [
+                3,
+                0,
+                0
+            ]
+        ]
+    },
+    {
+        title: "BBB",
+        description_ja: "固定されたカタマリは動かせません。",
+        description_en: "A fixed blob cannot be moved.",
+        initial_board: [
+            [
+                3,
+                2,
+                3
+            ],
+            [
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                0,
+                0
+            ],
+            [
+                1,
+                0,
+                1
+            ],
+            [
+                1,
+                4,
+                1
+            ]
+        ]
+    },
+    {
+        title: "CCC",
+        description_ja: "これはテストです。",
+        description_en: "this is test text.",
+        initial_board: [
+            [
+                3,
+                0,
+                1,
+                4
+            ],
+            [
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                2,
+                1
+            ],
+            [
+                0,
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                3
+            ]
+        ]
+    },
+    {
+        title: "DDD",
+        description_ja: "これはテストです。",
+        description_en: "this is test text.",
+        initial_board: [
+            [
+                2,
+                3,
+                3,
+                4
+            ],
+            [
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0,
+                4
+            ]
+        ]
+    }
+];
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"at6He":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "Menu", ()=>Menu);
+var _algorithm = require("./algorithm");
+var _level = require("./level");
+var _main = require("./main");
+var _leveldata = require("./leveldata");
+var _asset = require("./asset");
+class Menu {
+    constructor(selecting){
+        this.width = 5;
+        this.height = 3;
+        this.x = selecting % this.width;
+        this.y = Math.floor(selecting / this.width);
+        this.cell_size = 80;
+        this.anim_queue = [];
+        this.anim_starttime = performance.now();
+        this.anim_queue.push({
+            x: this.x,
+            y: this.y,
+            type: (0, _algorithm.Direction).None
+        });
+    }
+    move(direction) {
+        const unlocked = (0, _main.solved).filter((x)=>x).length + 3;
+        console.log(unlocked);
+        let new_x = direction == (0, _algorithm.Direction).Left ? this.x - 1 : direction == (0, _algorithm.Direction).Right ? this.x + 1 : this.x;
+        let new_y = direction == (0, _algorithm.Direction).Up ? this.y - 1 : direction == (0, _algorithm.Direction).Down ? this.y + 1 : this.y;
+        let selecting = new_y * this.width + new_x;
+        if (new_x < 0 || this.width <= new_x || new_y < 0 || this.height <= new_y || unlocked <= selecting) return;
+        this.x = new_x;
+        this.y = new_y;
+        this.anim_queue.push({
+            x: this.x,
+            y: this.y,
+            type: direction
+        });
+        console.log(this.x, this.y);
+    }
+    key(code, manager) {
+        switch(code){
+            case "ArrowLeft":
+                this.move((0, _algorithm.Direction).Left);
+                break;
+            case "ArrowRight":
+                this.move((0, _algorithm.Direction).Right);
+                break;
+            case "ArrowUp":
+                this.move((0, _algorithm.Direction).Up);
+                break;
+            case "ArrowDown":
+                this.move((0, _algorithm.Direction).Down);
+                break;
+            case "Enter":
+                {
+                    const selecting = this.y * this.width + this.x;
+                    manager.startTransiton(new (0, _level.Level)(selecting, (0, _leveldata.leveldata)[selecting]), (0, _main.TransitionType).Fade);
+                }
+        }
+    }
+    flick(direction, manager) {
+        switch(direction){
+            case (0, _algorithm.Direction).Left:
+                this.move((0, _algorithm.Direction).Left);
+                break;
+            case (0, _algorithm.Direction).Right:
+                this.move((0, _algorithm.Direction).Right);
+                break;
+            case (0, _algorithm.Direction).Up:
+                this.move((0, _algorithm.Direction).Up);
+                break;
+            case (0, _algorithm.Direction).Down:
+                this.move((0, _algorithm.Direction).Down);
+                break;
+        }
+    }
+    click(x, y, manager) {
+        const selecting = this.y * this.width + this.x;
+        manager.startTransiton(new (0, _level.Level)(selecting, (0, _leveldata.leveldata)[selecting]), (0, _main.TransitionType).Fade);
+    }
+    draw(renderer) {
+        const unlocked = (0, _main.solved).filter((x)=>x).length + 3;
+        const selecting = this.y * this.width + this.x;
+        renderer.clear();
+        renderer.bgScr.background(255);
+        renderer.bgScr.fill((0, _asset.Asset).black);
+        renderer.bgScr.textAlign(renderer.p.CENTER);
+        renderer.bgScr.textSize(44);
+        renderer.bgScr.textFont((0, _asset.Asset).fontEB);
+        renderer.bgScr.text((selecting + 1 + ". ").padStart(4, "0") + (0, _leveldata.leveldata)[selecting]?.title, 400, 600);
+        if (1 < this.anim_queue.length && this.anim_starttime + 200 < performance.now()) {
+            this.anim_queue.shift();
+            this.anim_starttime = performance.now();
+        }
+        const anim_elapsetime = performance.now() - this.anim_starttime;
+        renderer.clear();
+        renderer.setBlobArea((this.width + 0.5) * this.cell_size, (this.height + 0.5) * this.cell_size, this.cell_size * 0.46);
+        renderer.bgScr.noStroke();
+        renderer.bgScr.fill((0, _asset.Asset).black);
+        renderer.bgScr.rect(renderer.p.width / 2, renderer.p.height / 2, (this.width + 0.40) * this.cell_size, (this.height + 0.40) * this.cell_size);
+        for(let x = 0; x < this.width; x++)for(let y = 0; y < this.height; y++){
+            let index = y * this.width + x;
+            if (index < unlocked) {
+                renderer.bgScr.fill((0, _main.solved)[index] ? 180 : 255);
+                renderer.bgScr.textAlign(renderer.p.CENTER);
+                renderer.bgScr.textSize(40);
+                renderer.bgScr.textFont((0, _asset.Asset).fontEB);
+                renderer.bgScr.text((index + 1 + "").padStart(2, "0"), (x - this.width / 2 + 0.5) * this.cell_size + renderer.p.width / 2, (y - this.height / 2 + 0.5) * this.cell_size + renderer.p.height / 2 + 15);
+            }
+            if (unlocked <= index) renderer.addDot((x - this.width / 2 + 0.5) * this.cell_size, (y - this.height / 2 + 0.5) * this.cell_size, 0, this.cell_size * 0.12, "white");
+        }
+        // 以下選択中のblobのアニメーション
+        const fixedX = (this.anim_queue[0].x - this.width / 2 + 0.5) * this.cell_size;
+        const fixedY = (this.anim_queue[0].y - this.height / 2 + 0.5) * this.cell_size;
+        const [prevX, prevY] = this.anim_queue[0].type == (0, _algorithm.Direction).Left ? [
+            fixedX + this.cell_size,
+            fixedY
+        ] : this.anim_queue[0].type == (0, _algorithm.Direction).Right ? [
+            fixedX - this.cell_size,
+            fixedY
+        ] : this.anim_queue[0].type == (0, _algorithm.Direction).Up ? [
+            fixedX,
+            fixedY + this.cell_size
+        ] : this.anim_queue[0].type == (0, _algorithm.Direction).Down ? [
+            fixedX,
+            fixedY - this.cell_size
+        ] : [
+            fixedX,
+            fixedY
+        ];
+        const animX = (0, _algorithm.elastic)(prevX, fixedX, anim_elapsetime);
+        const animY = (0, _algorithm.elastic)(prevY, fixedY, anim_elapsetime);
+        renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
+        renderer.addEmission(animX, animY);
+        if (1 < this.anim_queue.length || performance.now() < this.anim_starttime + 500) renderer.needUpdate = true;
+    }
+}
+
+},{"./algorithm":"laafY","./level":"7j7hd","./main":"jeorp","./leveldata":"2gicQ","./asset":"cIMAM","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"hHDeU":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "Button", ()=>Button);
+class Button {
+    constructor(x, y, w, h, texture){
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        this.texture = texture;
+    }
+    draw(renderer) {
+        renderer.bgScr.image(this.texture, this.x, this.y);
+    //renderer.bgScr.fill(Asset.black);
+    //renderer.bgScr.rect(this.x, this.y, this.w, this.h);
+    }
+    hit(mouseX, mouseY) {
+        return this.x - this.w / 2 <= mouseX && mouseX < this.x + this.w / 2 && this.y - this.h / 2 <= mouseY && mouseY < this.y + this.h / 2;
+    }
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"a2w3B":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "initInputEvent", ()=>initInputEvent);
+var _algorithm = require("./algorithm");
+const strokes = [];
+const flickRange = 50;
+const tapRange = 30;
+function isFrick(stroke) {
+    const dx = stroke.log[stroke.log.length - 1].x - stroke.log[0].x;
+    const dy = stroke.log[stroke.log.length - 1].y - stroke.log[0].y;
+    if (dx * dx + dy * dy < flickRange * flickRange) return (0, _algorithm.Direction).None;
+    if (Math.abs(dy) < Math.abs(dx)) return 0 < dx ? (0, _algorithm.Direction).Right : (0, _algorithm.Direction).Left;
+    else return 0 < dy ? (0, _algorithm.Direction).Down : (0, _algorithm.Direction).Up;
+}
+function isTap(stroke) {
+    const dx = stroke.log[stroke.log.length - 1].x - stroke.log[0].x;
+    const dy = stroke.log[stroke.log.length - 1].y - stroke.log[0].y;
+    return dx * dx + dy * dy < tapRange;
+}
+function initInputEvent(element, key, click, flick) {
+    element.addEventListener("touchstart", (event)=>{
+        event.preventDefault();
+        Array.from(event.changedTouches).forEach((touch)=>{
+            const rect = element.getBoundingClientRect();
+            const stroke = {
+                id: touch.identifier,
+                log: [
+                    {
+                        x: touch.clientX - rect.left,
+                        y: touch.clientY - rect.top
+                    }
+                ]
+            };
+            strokes.push(stroke);
+        });
+    }, false);
+    element.addEventListener("touchmove", (event)=>{
+        event.preventDefault();
+        Array.from(event.changedTouches).forEach((touch)=>{
+            const rect = element.getBoundingClientRect();
+            const stroke = strokes.find((x)=>x.id === touch.identifier);
+            if (stroke === undefined) return;
+            stroke.log.push({
+                x: touch.clientX - rect.left,
+                y: touch.clientY - rect.top
+            });
+        });
+    }, false);
+    element.addEventListener("touchend", (event)=>{
+        event.preventDefault();
+        Array.from(event.changedTouches).forEach((touch)=>{
+            const strokeIndex = strokes.findIndex((x)=>x.id === touch.identifier);
+            if (strokeIndex === -1) return;
+            const stroke = strokes[strokeIndex];
+            strokes.splice(strokeIndex, 1); // remove it; we're done
+            if (isTap(stroke)) {
+                click(stroke.log[stroke.log.length - 1].x, stroke.log[stroke.log.length - 1].y);
+                return;
+            }
+            const result = isFrick(stroke);
+            if (result != (0, _algorithm.Direction).None) flick(result);
+        });
+    }, false);
+    element.addEventListener("touchcancel", (event)=>{
+        event.preventDefault();
+        Array.from(event.changedTouches).forEach((touch)=>{
+            const strokeIndex = strokes.findIndex((x)=>x.id === touch.identifier);
+            if (strokeIndex === -1) return;
+            strokes.splice(strokeIndex, 1); // remove it; we're done
+        });
+    }, false);
+    document.addEventListener("click", (event)=>{
+        click(event.x, event.y);
+    }, false);
+    document.addEventListener("keydown", (event)=>{
+        if (event.repeat) return;
+        key(event.code);
+    }, false);
+//const ua = navigator.userAgent;
+//inputStyle = /(iPhone|iPad|iPod|Android)/i.test(ua) ? "touch" : "keyboard";
+}
+
+},{"./algorithm":"laafY","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"l9TZk":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "EmptyState", ()=>EmptyState);
+parcelHelpers.export(exports, "StartScreen", ()=>StartScreen);
+var _asset = require("./asset");
+var _main = require("./main");
+var _title = require("./title");
+class EmptyState {
+    constructor(){}
+    draw(renderer) {}
+    key(code, manager) {}
+    flick(direction, manager) {}
+    click(x, y, manager) {}
+}
+class StartScreen {
+    constructor(){}
+    draw(renderer) {
+        renderer.bgScr.background(255);
+        renderer.bgScr.fill((0, _asset.Asset).black);
+        renderer.bgScr.textAlign(renderer.p.CENTER);
+        renderer.bgScr.textSize(26);
+        renderer.bgScr.textFont("sans-serif");
+        renderer.bgScr.text("このゲームは孤独を味わうゲームです。\n是非ひとりでプレイしてください。", 400, 300);
+        renderer.bgScr.textSize(26);
+        renderer.bgScr.textFont((0, _asset.Asset).fontR);
+        renderer.bgScr.text("This game is about finding pleasure in solitude.\nPlease play by yourself.", 400, 400);
+        renderer.bgScr.textSize(40);
+        renderer.bgScr.textFont((0, _asset.Asset).fontEB);
+        renderer.bgScr.text("Click / Tap to Start", 400, 600);
+    }
+    key(code, manager) {
+        if (code == "Enter") manager.startTransiton(new (0, _title.Title)(), (0, _main.TransitionType).Fade);
+    }
+    flick(direction, manager) {}
+    click(x, y, manager) {
+        manager.startTransiton(new (0, _title.Title)(), (0, _main.TransitionType).Fade);
+    }
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./asset":"cIMAM","./main":"jeorp","./title":"1bH2g"}],"1bH2g":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "Title", ()=>Title);
+var _algorithm = require("./algorithm");
+var _main = require("./main");
+var _game = require("./game");
+var _menu = require("./menu");
+var _asset = require("./asset");
+class Title {
+    constructor(){
+        this.game = new (0, _game.Game)([
+            [
+                (0, _game.Cell).Player
+            ],
+            [
+                (0, _game.Cell).Empty
+            ],
+            [
+                (0, _game.Cell).Empty
+            ],
+            [
+                (0, _game.Cell).Empty
+            ],
+            [
+                (0, _game.Cell).Free
+            ]
+        ]);
+    }
+    key(code, manager) {
+        switch(code){
+            case "ArrowLeft":
+                this.game.move((0, _algorithm.Direction).Left);
+                break;
+            case "ArrowRight":
+                this.game.move((0, _algorithm.Direction).Right);
+                break;
+            case "ArrowUp":
+                this.game.move((0, _algorithm.Direction).Up);
+                break;
+            case "ArrowDown":
+                this.game.move((0, _algorithm.Direction).Down);
+                break;
+            case "KeyZ":
+                this.game.undo();
+                break;
+            case "KeyR":
+                this.game.init();
+                break;
+        }
+        if (this.game.check()) manager.startTransiton(new (0, _menu.Menu)(0), (0, _main.TransitionType).Fade);
+    }
+    flick(direction, manager) {
+        switch(direction){
+            case (0, _algorithm.Direction).Left:
+                this.game.move((0, _algorithm.Direction).Left);
+                break;
+            case (0, _algorithm.Direction).Right:
+                this.game.move((0, _algorithm.Direction).Right);
+                break;
+            case (0, _algorithm.Direction).Up:
+                this.game.move((0, _algorithm.Direction).Up);
+                break;
+            case (0, _algorithm.Direction).Down:
+                this.game.move((0, _algorithm.Direction).Down);
+                break;
+        }
+        if (this.game.check()) manager.startTransiton(new (0, _menu.Menu)(0), (0, _main.TransitionType).Fade);
+    }
+    click(x, y, manager) {}
+    draw(renderer) {
+        renderer.clear();
+        renderer.bgScr.background(255);
+        renderer.bgScr.fill((0, _asset.Asset).black);
+        renderer.bgScr.textSize(60);
+        renderer.bgScr.textFont((0, _asset.Asset).fontEB);
+        renderer.bgScr.textAlign(renderer.p.CENTER);
+        renderer.bgScr.text("LONELINESS", 400, 300);
+        this.game.draw(renderer);
+        if (1 < this.game.anim_queue.length || performance.now() < this.game.anim_starttime + 500) renderer.needUpdate = true;
+    }
+}
+
+},{"./algorithm":"laafY","./main":"jeorp","./game":"edeGs","./menu":"at6He","./asset":"cIMAM","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["cnpQZ","jeorp"], "jeorp", "parcelRequire94c2")
 
 //# sourceMappingURL=index.b7a05eb9.js.map
