@@ -72,13 +72,12 @@ export function hermite(s: number, e: number, t: number, a: number, b: number) {
 // x = 経過時間(ms)
 // T = 周期（ms）
 // R = 1周期後の減衰率（無次元）
-export function elastic(s: number, e: number, x: number, T: number = 250, R: number = 0.03) {
+export function elastic(s: number, e: number, x: number, T: number = 125, R: number = 0.15) {
     if (x <= 0) return s;
-    const tau = 2 * Math.PI;
-    const p = Math.atan(tau / Math.log(R));
+    const p = Math.atan(Math.PI / Math.log(R));
     
     //減衰振動
-    const weight = Math.sin(p - tau / T * x) / Math.sin(p) * Math.pow(R, x / T);
+    const weight = Math.sin(p - Math.PI/ T * x) / Math.sin(p) * Math.pow(R, x / T);
 
     return e + (s - e) * weight;
 }
