@@ -397,6 +397,10 @@ export class Renderer {
 
     // blob => blobScr
     renderBlob() {
+        if (this.blobs.length == 0) { 
+            this.blobScr.clear(0, 0, 0, 0);
+            return;
+        }
         const blob_params: number[] = [];
         this.blobs.forEach(a => blob_params.push(a.x, a.y, a.z, a.r))
         while (blob_params.length < 80)

@@ -8,7 +8,7 @@ import { initInputEvent } from "./input";
 import { Menu } from "./menu";
 import { Asset } from "./asset";
 import { Cell } from "./game";
-import { EmptyState } from "./StartScreen";
+import { EmptyState, StartScreen } from "./StartScreen";
 import { leveldata } from "./leveldata";
 
 export let solved: boolean[];
@@ -128,7 +128,7 @@ export class TransitionManager {
 
 const sketch = (p: p5) => {
     let renderer: Renderer;
-    let transition_manager = new TransitionManager(new Title());
+    let transition_manager = new TransitionManager(new StartScreen());
     /*
     const level = new Level(
         "01.\nTUTRIAL", [

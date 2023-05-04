@@ -1,6 +1,8 @@
 import { Direction } from "./algorithm";
-import { TransitionManager } from "./main";
+import { Asset } from "./asset";
+import { TransitionManager, TransitionType } from "./main";
 import { Renderer } from "./renderer";
+import { Title } from "./title";
 
 export class EmptyState {
     constructor() {}
@@ -12,5 +14,35 @@ export class EmptyState {
     flick(direction: Direction, manager: TransitionManager) {
     }
     click(x: number, y: number, manager: TransitionManager) {
+    }
+}
+
+export class StartScreen {
+    constructor() {}
+
+    draw(renderer: Renderer) {
+        renderer.bgScr.background(255);
+        renderer.bgScr.fill(Asset.black);
+        renderer.bgScr.textAlign(renderer.p.CENTER);
+        renderer.bgScr.textSize(26);
+        renderer.bgScr.textFont("sans-serif");
+        renderer.bgScr.text("このゲームは孤独を味わうゲームです。\n是非ひとりでプレイしてください。", 400, 300);
+
+        renderer.bgScr.textSize(26);
+        renderer.bgScr.textFont(Asset.fontR);
+        renderer.bgScr.text("This game is about finding pleasure in solitude.\nPlease play by yourself.", 400, 400);
+
+        renderer.bgScr.textSize(40);
+        renderer.bgScr.textFont(Asset.fontEB);
+        renderer.bgScr.text("Click / Tap to Start", 400, 600);
+    }
+    key(code: string, manager: TransitionManager) {
+        if (code == "Enter")
+            manager.startTransiton(new Title(), TransitionType.Fade);
+    }
+    flick(direction: Direction, manager: TransitionManager) {
+    }
+    click(x: number, y: number, manager: TransitionManager) {
+        manager.startTransiton(new Title(), TransitionType.Fade);
     }
 }

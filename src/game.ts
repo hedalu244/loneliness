@@ -39,7 +39,8 @@ export class Game {
         this.width = initial_board.length;
         this.height = initial_board[0].length;
         this.initial_board = initial_board;
-        this.cell_size = 80;
+
+        this.cell_size = Math.min(520 / this.width, 400 / this.height, 80);
 
         this.history = [];
         this.anim_queue = [];
