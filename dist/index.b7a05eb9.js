@@ -586,7 +586,9 @@ function load() {
 const TransitionType = {
     Fade: "fade",
     Left: "left",
-    Right: "right"
+    Right: "right",
+    ClearFade: "clear_fade",
+    ClearRight: "clear_right"
 };
 class TransitionManager {
     constructor(state){
@@ -596,9 +598,11 @@ class TransitionManager {
         this.type = TransitionType.Fade;
     }
     draw(renderer) {
-        const elapsed_time = performance.now() - this.start_time;
+        const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 500 : 0;
+        const elapsed_time = performance.now() - this.start_time - shift;
         switch(this.type){
             case TransitionType.Fade:
+            case TransitionType.ClearFade:
                 {
                     const t = elapsed_time / 500 - 1;
                     const fadeRate = Math.max(0, 1 - t * t);
@@ -609,6 +613,7 @@ class TransitionManager {
                 }
                 break;
             case TransitionType.Right:
+            case TransitionType.ClearRight:
                 {
                     const offset = (0, _algorithm.elastic)(0, 2, elapsed_time, 500, 0.001);
                     renderer.setFade(0);
@@ -639,17 +644,20 @@ class TransitionManager {
         if (elapsed_time < 1000) renderer.needUpdate = true;
     }
     key(code) {
-        const elapsed_time = performance.now() - this.start_time;
+        const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 500 : 0;
+        const elapsed_time = performance.now() - this.start_time - shift;
         if (elapsed_time < 1000) return;
         this.state.key(code, this);
     }
     flick(direction) {
-        const elapsed_time = performance.now() - this.start_time;
+        const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 500 : 0;
+        const elapsed_time = performance.now() - this.start_time - shift;
         if (elapsed_time < 1000) return;
         this.state.flick(direction, this);
     }
     click(x, y, p) {
-        const elapsed_time = performance.now() - this.start_time;
+        const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 500 : 0;
+        const elapsed_time = performance.now() - this.start_time - shift;
         if (elapsed_time < 1000) return;
         this.state.click(p.mouseX, p.mouseY, this);
     }
@@ -28894,8 +28902,8 @@ class Level {
     }
     complete(manager) {
         (0, _main.solved)[this.index] = true;
-        if (this.index + 1 < (0, _main.solved).length && !(0, _main.solved)[this.index + 1]) manager.startTransiton(new Level(this.index + 1, (0, _leveldata.leveldata)[this.index + 1]), (0, _main.TransitionType).Right);
-        else manager.startTransiton(new (0, _menu.Menu)(0), (0, _main.TransitionType).Fade);
+        if (this.index + 1 < (0, _main.solved).length && !(0, _main.solved)[this.index + 1]) manager.startTransiton(new Level(this.index + 1, (0, _leveldata.leveldata)[this.index + 1]), (0, _main.TransitionType).ClearRight);
+        else manager.startTransiton(new (0, _menu.Menu)(0), (0, _main.TransitionType).ClearFade);
     }
     key(code, manager) {
         switch(code){
@@ -29142,12 +29150,15 @@ class Game {
         renderer.setBlobArea((this.width + 0.5) * this.cell_size, (this.height + 0.5) * this.cell_size, this.cell_size * 0.46);
         renderer.bgScr.noStroke();
         renderer.bgScr.fill((0, _asset.Asset).black);
-        //*
-        renderer.bgScr.noStroke();
-        renderer.bgScr.fill((0, _asset.Asset).black);
-        renderer.bgScr.rect(renderer.p.width / 2, renderer.p.height / 2, (this.width + 0.40) * this.cell_size, (this.height + 0.40) * this.cell_size);
-        //*/
-        renderer.clear();
+        /*
+        renderer.bgScr.noStroke()
+        renderer.bgScr.fill(Asset.black);
+        renderer.bgScr.rect(
+            renderer.p.width / 2,
+            renderer.p.height / 2,
+            (this.width + 0.40) * this.cell_size,
+            (this.height + 0.40) * this.cell_size);
+        //*/ renderer.clear();
         for(let i = 1; i <= this.width; i++)for(let j = 1; j <= this.height; j++){
             const delay = this.anim_queue[0].delay[i][j] * 20;
             const fixedX = (i - this.width / 2 - 0.5) * this.cell_size;
@@ -29170,17 +29181,11 @@ class Game {
             ];
             const animX = (0, _algorithm.elastic)(prevX, fixedX, anim_elapsetime - delay);
             const animY = (0, _algorithm.elastic)(prevY, fixedY, anim_elapsetime - delay);
-            /*
-                if (this.anim_queue[0].board[i][j] != Cell.Wall) {
-                    renderer.bgScr.rect(
-                        fixedX + renderer.p.width / 2,
-                        fixedY + renderer.p.height / 2,
-                        1.20 * this.cell_size,
-                        1.20 * this.cell_size);
-                }
-                //*/ switch(this.anim_queue[0].board[i][j]){
+            //*
+            if (this.anim_queue[0].board[i][j] != Cell.Wall) renderer.bgScr.rect(fixedX + renderer.p.width / 2, fixedY + renderer.p.height / 2, 1.20 * this.cell_size, 1.20 * this.cell_size);
+            //*/
+            switch(this.anim_queue[0].board[i][j]){
                 case Cell.Wall:
-                    renderer.addDot(fixedX, fixedY, 0, this.cell_size * 0.12, "white");
                     break;
                 case Cell.Free:
                     renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);

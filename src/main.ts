@@ -28,7 +28,9 @@ type State = EmptyState | Title | Menu | Level;
 export const TransitionType = {
     Fade: "fade",
     Left: "left",
-    Right: "right"
+    Right: "right",
+    ClearFade: "clear_fade",
+    ClearRight: "clear_right",
 } as const;
 export type TransitionType = typeof TransitionType[keyof typeof TransitionType];
 
@@ -47,10 +49,12 @@ export class TransitionManager {
     }
 
     draw(renderer: Renderer) {
-        const elapsed_time = performance.now() - this.start_time;
-        
+        const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 500 : 0;
+        const elapsed_time = performance.now() - this.start_time - shift;
+
         switch (this.type) {
-            case TransitionType.Fade: {
+            case TransitionType.Fade:
+            case TransitionType.ClearFade: {
                 const t = elapsed_time / 500 - 1;
                 const fadeRate = Math.max(0, 1 - t * t);
 
@@ -63,7 +67,8 @@ export class TransitionManager {
                     this.state.draw(renderer);
             } break;
 
-            case TransitionType.Right: {
+            case TransitionType.Right:
+            case TransitionType.ClearRight: {
                 const offset = elastic(0, 2, elapsed_time, 500, 0.001);
                 renderer.setFade(0);
 
@@ -99,19 +104,22 @@ export class TransitionManager {
     }
 
     key(code: string) {
-        const elapsed_time = performance.now() - this.start_time;
+        const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 500 : 0;
+        const elapsed_time = performance.now() - this.start_time - shift;
         if (elapsed_time < 1000)
             return;
         this.state.key(code, this);
     }
     flick(direction: Direction) {
-        const elapsed_time = performance.now() - this.start_time;
+        const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 500 : 0;
+        const elapsed_time = performance.now() - this.start_time - shift;
         if (elapsed_time < 1000)
             return;
         this.state.flick(direction, this);
     }
     click(x: number, y: number, p: p5) {
-        const elapsed_time = performance.now() - this.start_time;
+        const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 500 : 0;
+        const elapsed_time = performance.now() - this.start_time - shift;
         if (elapsed_time < 1000)
             return;
         this.state.click(p.mouseX, p.mouseY, this);
