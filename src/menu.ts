@@ -5,6 +5,7 @@ import { TransitionManager, TransitionType, solved } from "./main";
 import { Cell, Game } from "./game";
 import { leveldata } from "./leveldata";
 import { Asset } from "./asset";
+import { Button } from "./button";
 
 type MenuAnimation = {
     x: number,
@@ -22,12 +23,16 @@ export class Menu {
 
     anim_queue: MenuAnimation[];
     anim_starttime: number;
+    
+    muteButton: Button;
 
     constructor(selecting: number) {
         this.width = 5;
         this.height = 3;
         this.x = selecting % this.width;
         this.y = Math.floor(selecting / this.width);
+
+        this.muteButton = new Button(700, 80, 50, 50, Asset.muteButton);
 
         this.cell_size = 80;
 
@@ -87,7 +92,10 @@ export class Menu {
             case "Enter": {
                 const selecting = this.y * this.width + this.x;
                 manager.startTransiton(new Level(selecting, leveldata[selecting]), TransitionType.Fade);
-            }
+            } break;
+            case "KeyM": {
+                Asset.toggleMute();
+            } break;
         }
     }
     flick(direction: Direction, manager: TransitionManager) {
@@ -107,6 +115,11 @@ export class Menu {
         }
     }
     click(x: number, y: number, manager: TransitionManager) {
+        if (this.muteButton.hit(x, y)) {
+            Asset.toggleMute();
+            return;
+        }
+
         const selecting = this.y * this.width + this.x;
         manager.startTransiton(new Level(selecting, leveldata[selecting]), TransitionType.Fade);
     }
@@ -118,16 +131,20 @@ export class Menu {
         renderer.clear();
 
         renderer.bgScr.background(255);
+
         renderer.bgScr.fill(Asset.black);
         renderer.bgScr.textAlign(renderer.p.CENTER);
         renderer.bgScr.textSize(44);
         renderer.bgScr.textFont(Asset.fontEB);
         renderer.bgScr.text((selecting + 1 + ". ").padStart(4, "0") + leveldata[selecting]?.title, 400, 600);
 
+        this.muteButton.draw(renderer);
+
+        // 以下3D描画
         if (1 < this.anim_queue.length && this.anim_starttime + 200 < performance.now()) {
             this.anim_queue.shift();
             this.anim_starttime = performance.now();
-            Asset.play_move_sound();
+            Asset.playMoveSound();
         }
         const anim_elapsetime = performance.now() - this.anim_starttime;
 

@@ -28861,6 +28861,7 @@ class Asset {
         Asset.quitButton = p.loadImage("./button_quit.png");
         Asset.leftButton = p.loadImage("./button_left.png");
         Asset.rightButton = p.loadImage("./button_right.png");
+        Asset.muteButton = p.loadImage("./button_mute.png");
         Asset.loop_head = new Audio("./loop_head.mp3");
         Asset.loop_tail = new Audio("./loop_tail.mp3");
         Asset.loop_head.addEventListener("ended", function() {
@@ -28872,18 +28873,32 @@ class Asset {
         Asset.clear_sound = new Audio("./clear.mp3");
         Asset.button_sound = new Audio("./cork.mp3");
     }
-    static play_move_sound() {
+    static playMoveSound() {
+        if (Asset.mute) return;
         const i = Math.floor(Math.random() * Asset.move_sound.length);
         Asset.move_sound[i].currentTime = 0;
         Asset.move_sound[i].play();
     }
-    static play_clear_sound() {
+    static playClearSound() {
+        if (Asset.mute) return;
         Asset.clear_sound.currentTime = 0;
         Asset.clear_sound.play();
     }
-    static play_button_sound() {
+    static playButtonSound() {
+        if (Asset.mute) return;
         Asset.button_sound.currentTime = 0;
         Asset.button_sound.play();
+    }
+    static toggleMute() {
+        if (Asset.mute) {
+            Asset.loop_head.volume = 1;
+            Asset.loop_tail.volume = 1;
+            Asset.mute = false;
+        } else {
+            Asset.loop_head.volume = 0;
+            Asset.loop_tail.volume = 0;
+            Asset.mute = true;
+        }
     }
 }
 
@@ -28913,7 +28928,7 @@ class Level {
     }
     complete(manager) {
         (0, _main.solved)[this.index] = true;
-        (0, _asset.Asset).play_clear_sound();
+        (0, _asset.Asset).playClearSound();
         if (this.index + 1 < (0, _main.solved).length && !(0, _main.solved)[this.index + 1]) manager.startTransiton(new Level(this.index + 1, (0, _leveldata.leveldata)[this.index + 1]), (0, _main.TransitionType).ClearRight);
         else manager.startTransiton(new (0, _menu.Menu)(0), (0, _main.TransitionType).ClearFade);
     }
@@ -28940,8 +28955,12 @@ class Level {
             case "KeyR":
                 this.game.init();
                 break;
+            case "KeyM":
+                (0, _asset.Asset).toggleMute();
+                break;
             case "Escape":
                 manager.startTransiton(new (0, _menu.Menu)(0), (0, _main.TransitionType).Fade);
+                break;
         }
         if (this.game.check()) this.complete(manager);
     }
@@ -28964,27 +28983,27 @@ class Level {
     }
     click(x, y, manager) {
         if (this.undoButton.hit(x, y)) {
-            (0, _asset.Asset).play_button_sound();
+            (0, _asset.Asset).playButtonSound();
             this.game.undo();
             return;
         }
         if (this.initButton.hit(x, y)) {
-            (0, _asset.Asset).play_button_sound();
+            (0, _asset.Asset).playButtonSound();
             this.game.init();
             return;
         }
         if (this.quitButton.hit(x, y)) {
-            (0, _asset.Asset).play_button_sound();
+            (0, _asset.Asset).playButtonSound();
             manager.startTransiton(new (0, _menu.Menu)(0), (0, _main.TransitionType).Fade);
             return;
         }
         if (this.nextLevelButton.hit(x, y) && (0, _leveldata.leveldata)[this.index + 1]) {
-            (0, _asset.Asset).play_button_sound();
+            (0, _asset.Asset).playButtonSound();
             manager.startTransiton(new Level(this.index + 1, (0, _leveldata.leveldata)[this.index + 1]), (0, _main.TransitionType).Right);
             return;
         }
         if (this.prevLevelButton.hit(x, y) && (0, _leveldata.leveldata)[this.index - 1]) {
-            (0, _asset.Asset).play_button_sound();
+            (0, _asset.Asset).playButtonSound();
             manager.startTransiton(new Level(this.index - 1, (0, _leveldata.leveldata)[this.index - 1]), (0, _main.TransitionType).Left);
             return;
         }
@@ -29162,7 +29181,7 @@ class Game {
         if (1 < this.anim_queue.length && this.anim_starttime + total_delay < performance.now()) {
             this.anim_queue.shift();
             this.anim_starttime = performance.now();
-            (0, _asset.Asset).play_move_sound();
+            (0, _asset.Asset).playMoveSound();
         }
         const anim_elapsetime = performance.now() - this.anim_starttime;
         renderer.setBlobArea((this.width + 0.5) * this.cell_size, (this.height + 0.5) * this.cell_size, this.cell_size * 0.46);
@@ -29375,12 +29394,14 @@ var _level = require("./level");
 var _main = require("./main");
 var _leveldata = require("./leveldata");
 var _asset = require("./asset");
+var _button = require("./button");
 class Menu {
     constructor(selecting){
         this.width = 5;
         this.height = 3;
         this.x = selecting % this.width;
         this.y = Math.floor(selecting / this.width);
+        this.muteButton = new (0, _button.Button)(700, 80, 50, 50, (0, _asset.Asset).muteButton);
         this.cell_size = 80;
         this.anim_queue = [];
         this.anim_starttime = performance.now();
@@ -29425,6 +29446,10 @@ class Menu {
                     const selecting = this.y * this.width + this.x;
                     manager.startTransiton(new (0, _level.Level)(selecting, (0, _leveldata.leveldata)[selecting]), (0, _main.TransitionType).Fade);
                 }
+                break;
+            case "KeyM":
+                (0, _asset.Asset).toggleMute();
+                break;
         }
     }
     flick(direction, manager) {
@@ -29444,6 +29469,10 @@ class Menu {
         }
     }
     click(x, y, manager) {
+        if (this.muteButton.hit(x, y)) {
+            (0, _asset.Asset).toggleMute();
+            return;
+        }
         const selecting = this.y * this.width + this.x;
         manager.startTransiton(new (0, _level.Level)(selecting, (0, _leveldata.leveldata)[selecting]), (0, _main.TransitionType).Fade);
     }
@@ -29457,10 +29486,12 @@ class Menu {
         renderer.bgScr.textSize(44);
         renderer.bgScr.textFont((0, _asset.Asset).fontEB);
         renderer.bgScr.text((selecting + 1 + ". ").padStart(4, "0") + (0, _leveldata.leveldata)[selecting]?.title, 400, 600);
+        this.muteButton.draw(renderer);
+        // 以下3D描画
         if (1 < this.anim_queue.length && this.anim_starttime + 200 < performance.now()) {
             this.anim_queue.shift();
             this.anim_starttime = performance.now();
-            (0, _asset.Asset).play_move_sound();
+            (0, _asset.Asset).playMoveSound();
         }
         const anim_elapsetime = performance.now() - this.anim_starttime;
         renderer.clear();
@@ -29506,7 +29537,7 @@ class Menu {
     }
 }
 
-},{"./algorithm":"laafY","./level":"7j7hd","./main":"jeorp","./leveldata":"2gicQ","./asset":"cIMAM","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"hHDeU":[function(require,module,exports) {
+},{"./algorithm":"laafY","./level":"7j7hd","./main":"jeorp","./leveldata":"2gicQ","./asset":"cIMAM","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./button":"hHDeU"}],"hHDeU":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Button", ()=>Button);
@@ -29666,8 +29697,10 @@ var _main = require("./main");
 var _game = require("./game");
 var _menu = require("./menu");
 var _asset = require("./asset");
+var _button = require("./button");
 class Title {
     constructor(){
+        this.muteButton = new (0, _button.Button)(700, 80, 50, 50, (0, _asset.Asset).muteButton);
         this.game = new (0, _game.Game)([
             [
                 (0, _game.Cell).Player
@@ -29706,6 +29739,9 @@ class Title {
             case "KeyR":
                 this.game.init();
                 break;
+            case "KeyM":
+                (0, _asset.Asset).toggleMute();
+                break;
         }
         if (this.game.check()) manager.startTransiton(new (0, _menu.Menu)(0), (0, _main.TransitionType).Fade);
     }
@@ -29726,7 +29762,12 @@ class Title {
         }
         if (this.game.check()) manager.startTransiton(new (0, _menu.Menu)(0), (0, _main.TransitionType).Fade);
     }
-    click(x, y, manager) {}
+    click(x, y, manager) {
+        if (this.muteButton.hit(x, y)) {
+            (0, _asset.Asset).toggleMute();
+            return;
+        }
+    }
     draw(renderer) {
         renderer.clear();
         renderer.bgScr.background(255);
@@ -29735,11 +29776,12 @@ class Title {
         renderer.bgScr.textFont((0, _asset.Asset).fontEB);
         renderer.bgScr.textAlign(renderer.p.CENTER);
         renderer.bgScr.text("LONELINESS", 400, 300);
+        this.muteButton.draw(renderer);
         this.game.draw(renderer);
         if (1 < this.game.anim_queue.length || performance.now() < this.game.anim_starttime + 500) renderer.needUpdate = true;
     }
 }
 
-},{"./algorithm":"laafY","./main":"jeorp","./game":"edeGs","./menu":"at6He","./asset":"cIMAM","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["cnpQZ","jeorp"], "jeorp", "parcelRequire94c2")
+},{"./algorithm":"laafY","./main":"jeorp","./game":"edeGs","./menu":"at6He","./asset":"cIMAM","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./button":"hHDeU"}]},["cnpQZ","jeorp"], "jeorp", "parcelRequire94c2")
 
 //# sourceMappingURL=index.b7a05eb9.js.map

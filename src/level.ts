@@ -42,7 +42,7 @@ export class Level {
 
     complete(manager: TransitionManager) {
         solved[this.index] = true;
-        Asset.play_clear_sound();
+        Asset.playClearSound();
         if (this.index + 1 < solved.length && !solved[this.index + 1])
             manager.startTransiton(new Level(this.index + 1, leveldata[this.index + 1]), TransitionType.ClearRight);
         else
@@ -72,9 +72,12 @@ export class Level {
             case "KeyR": {
                 this.game.init();
             } break;
+            case "KeyM": {
+                Asset.toggleMute();
+            } break;
             case "Escape": {
                 manager.startTransiton(new Menu(0), TransitionType.Fade);
-            }
+            } break;
         }
 
         if (this.game.check()) {
@@ -105,28 +108,28 @@ export class Level {
 
     click(x: number, y:number, manager: TransitionManager) {
         if (this.undoButton.hit(x, y)) {
-            Asset.play_button_sound();
+            Asset.playButtonSound();
             this.game.undo();
             return;
         }
         if (this.initButton.hit(x, y)) {
-            Asset.play_button_sound();
+            Asset.playButtonSound();
             this.game.init();
             return;
         }
         if (this.quitButton.hit(x, y)) {
-            Asset.play_button_sound();
+            Asset.playButtonSound();
             manager.startTransiton(new Menu(0), TransitionType.Fade);
             return;
         }
         
         if (this.nextLevelButton.hit(x, y) && leveldata[this.index + 1]) {
-            Asset.play_button_sound();
+            Asset.playButtonSound();
             manager.startTransiton(new Level(this.index + 1, leveldata[this.index + 1]), TransitionType.Right);
             return;
         }
         if (this.prevLevelButton.hit(x, y) && leveldata[this.index - 1]) {
-            Asset.play_button_sound();
+            Asset.playButtonSound();
             manager.startTransiton(new Level(this.index - 1, leveldata[this.index - 1]), TransitionType.Left);
             return;
         }

@@ -11,6 +11,7 @@ export class Asset {
     static undoButton: p5.Image;
     static initButton: p5.Image;
     static quitButton: p5.Image;
+    static muteButton: p5.Image;
 
     static leftButton: p5.Image;
     static rightButton: p5.Image;
@@ -23,6 +24,8 @@ export class Asset {
     static clear_sound: HTMLAudioElement;
     static button_sound: HTMLAudioElement;
 
+    static mute: boolean;
+
     static preload(p: p5) {
         Asset.shadow80 = p.loadImage("./shadow80.png");
         Asset.emmision80 = p.loadImage("./emmision.png");
@@ -34,6 +37,7 @@ export class Asset {
         Asset.quitButton = p.loadImage("./button_quit.png");
         Asset.leftButton = p.loadImage("./button_left.png");
         Asset.rightButton = p.loadImage("./button_right.png");
+        Asset.muteButton = p.loadImage("./button_mute.png");
         
         
         Asset.loop_head = new Audio("./loop_head.mp3");
@@ -51,19 +55,34 @@ export class Asset {
         Asset.button_sound = new Audio("./cork.mp3");
     }
 
-    static play_move_sound() {
+    static playMoveSound() {
+        if (Asset.mute) return;
         const i = Math.floor(Math.random() * Asset.move_sound.length);
         Asset.move_sound[i].currentTime = 0;
         Asset.move_sound[i].play();
     }
 
-    static play_clear_sound() {
+    static playClearSound() {
+        if (Asset.mute) return;
         Asset.clear_sound.currentTime = 0;
         Asset.clear_sound.play()
     }
 
-    static play_button_sound() {
+    static playButtonSound() {
+        if (Asset.mute) return;
         Asset.button_sound.currentTime = 0;
         Asset.button_sound.play();
+    }
+
+    static toggleMute() {
+        if (Asset.mute) {
+            Asset.loop_head.volume = 1;
+            Asset.loop_tail.volume = 1;
+            Asset.mute = false;
+        } else {
+            Asset.loop_head.volume = 0;
+            Asset.loop_tail.volume = 0;
+            Asset.mute = true;
+        }
     }
 }

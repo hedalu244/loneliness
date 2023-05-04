@@ -5,10 +5,15 @@ import { TransitionManager, TransitionType } from "./main";
 import { Cell, Game } from "./game";
 import { Menu } from "./menu";
 import { Asset } from "./asset";
+import { Button } from "./button";
 
 export class Title {
     game: Game;
+    
+    muteButton: Button;
+    
     constructor() {
+        this.muteButton = new Button(700, 80, 50, 50, Asset.muteButton);
         this.game = new Game([[Cell.Player], [Cell.Empty], [Cell.Empty], [Cell.Empty], [Cell.Free]]);
     }
 
@@ -31,6 +36,9 @@ export class Title {
             } break;
             case "KeyR": {
                 this.game.init();
+            } break;
+            case "KeyM": {
+                Asset.toggleMute();
             } break;
         }
         if (this.game.check()) {
@@ -57,6 +65,10 @@ export class Title {
         }
     }
     click(x: number, y:number, manager: TransitionManager) {
+        if (this.muteButton.hit(x, y)) {
+            Asset.toggleMute();
+            return;
+        }
     }
 
     draw(renderer: Renderer) {
@@ -64,12 +76,14 @@ export class Title {
         
         renderer.bgScr.background(255);
 
+
         renderer.bgScr.fill(Asset.black);
         renderer.bgScr.textSize(60);
         renderer.bgScr.textFont(Asset.fontEB);
         renderer.bgScr.textAlign(renderer.p.CENTER);
         renderer.bgScr.text("LONELINESS", 400, 300);
 
+        this.muteButton.draw(renderer);
         this.game.draw(renderer);
         
         if (1 < this.game.anim_queue.length || performance.now() < this.game.anim_starttime + 500)
