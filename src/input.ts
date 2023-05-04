@@ -7,6 +7,7 @@ interface TouchStroke {
 const strokes: TouchStroke[] = [];
 
 const flickRange = 50;
+const tapRange = 30;
 function isFrick(stroke: TouchStroke): Direction {
     const dx = stroke.log[stroke.log.length - 1].x - stroke.log[0].x;
     const dy = stroke.log[stroke.log.length - 1].y - stroke.log[0].y;
@@ -20,6 +21,13 @@ function isFrick(stroke: TouchStroke): Direction {
     else {
         return (0 < dy) ? Direction.Down : Direction.Up;
     }
+}
+
+function isTap(stroke: TouchStroke): boolean {
+    const dx = stroke.log[stroke.log.length - 1].x - stroke.log[0].x;
+    const dy = stroke.log[stroke.log.length - 1].y - stroke.log[0].y;
+
+    return dx * dx + dy * dy < tapRange;
 }
 
 export function initInputEvent(element: HTMLElement,
@@ -56,6 +64,12 @@ export function initInputEvent(element: HTMLElement,
             const stroke = strokes[strokeIndex];
             strokes.splice(strokeIndex, 1);  // remove it; we're done
             
+            if (isTap(stroke)) {
+                click(stroke.log[stroke.log.length - 1].x, 
+                      stroke.log[stroke.log.length - 1].y);
+                return;
+            }
+
             const result = isFrick(stroke);
             if (result != Direction.None)
                 flick(result);
