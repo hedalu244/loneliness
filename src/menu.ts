@@ -149,7 +149,7 @@ export class Menu {
             for (let y = 0; y < this.height; y++) {
                 let index = y * this.width + x;
                 if (index < unlocked) {
-                    renderer.bgScr.fill(255);
+                    renderer.bgScr.fill(solved[index] ? 180 : 255);
                     renderer.bgScr.textAlign(renderer.p.CENTER);
                     renderer.bgScr.textSize(40);
                     renderer.bgScr.textFont(Asset.fontEB);
@@ -183,6 +183,7 @@ export class Menu {
         const animY = elastic(prevY, fixedY, anim_elapsetime);
 
         renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
+        renderer.addEmission(animX, animY);
         
         if (1 < this.anim_queue.length || performance.now() < this.anim_starttime + 500)
             renderer.needUpdate = true;

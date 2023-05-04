@@ -12,6 +12,16 @@ import { EmptyState } from "./StartScreen";
 import { leveldata } from "./leveldata";
 
 export let solved: boolean[];
+export function save() {
+    localStorage.setItem("loneliness", JSON.stringify(solved));
+}
+export function load() {
+    const savedata = localStorage.getItem("loneliness");
+    if (savedata == null)
+        solved = n_array(leveldata.length, () => false);
+    else
+        solved = JSON.parse(savedata);
+}
 
 type State = EmptyState | Title | Menu | Level;
 
@@ -144,7 +154,7 @@ const sketch = (p: p5) => {
             (x, y) => transition_manager.click(x, y, p),
             (dir) => transition_manager.flick(dir));
 
-        solved = n_array(leveldata.length, () => false);
+        load();
         
         // 以下製作用コード
         const levelEditor = document.getElementById("level_editor") as HTMLTextAreaElement;

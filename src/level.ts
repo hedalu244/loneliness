@@ -1,7 +1,7 @@
 import { Renderer } from "./renderer";
 import { Game, Board } from "./game";
 import { Title } from "./title";
-import { TransitionManager, TransitionType } from "./main";
+import { TransitionManager, TransitionType, solved } from "./main";
 import { Direction } from "./algorithm";
 import { LevelParam, leveldata } from "./leveldata";
 import { Menu } from "./menu";
@@ -40,6 +40,14 @@ export class Level {
         this.nextLevelButton = new Button(740, 400, 40, 40, Asset.rightButton);
     }
 
+    complete(manager: TransitionManager) {
+        solved[this.index] = true;
+        if (this.index + 1 < solved.length && !solved[this.index + 1])
+            manager.startTransiton(new Level(this.index + 1, leveldata[this.index + 1]), TransitionType.Right);
+        else
+            manager.startTransiton(new Menu(0), TransitionType.Fade);
+    }
+
     key(code: string, manager: TransitionManager) {
         switch (code) {
             case "ArrowLeft": {
@@ -69,7 +77,7 @@ export class Level {
         }
 
         if (this.game.check()) {
-            manager.startTransiton(new Menu(0), TransitionType.Fade);
+            this.complete(manager);
         }
     }
 
@@ -90,7 +98,7 @@ export class Level {
         }
 
         if (this.game.check()) {
-            manager.startTransiton(new Menu(0), TransitionType.Fade);
+            this.complete(manager)
         }
     }
 
@@ -118,7 +126,7 @@ export class Level {
         }
 
         if (this.game.check()) {
-            manager.startTransiton(new Menu(0), TransitionType.Fade);
+            this.complete(manager);
         }
     }
 

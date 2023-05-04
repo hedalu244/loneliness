@@ -13,10 +13,11 @@ export const leveldata: LevelParam[] = [
         description_ja: "これはテストです。",
         description_en: "this is test text.",
         initial_board: [
-            [1, 0, 2, 3],
-            [2, 0, 0, 1],
-            [0, 1, 3, 0],
-            [4, 0, 0, 0],
+            [0, 0, 2],
+            [3, 0, 1],
+            [1, 0, 3],
+            [0, 0, 0],
+            [3, 0, 0]
         ]
     },
     {
@@ -24,10 +25,11 @@ export const leveldata: LevelParam[] = [
         description_ja: "これはテストです。",
         description_en: "this is test text.",
         initial_board: [
-            [1],
-            [2],
-            [0],
-            [3],
+            [3, 2, 3],
+            [0, 0, 0],
+            [0, 0, 0],
+            [1, 0, 1],
+            [1, 4, 1],
         ]
     },
     {
@@ -35,10 +37,23 @@ export const leveldata: LevelParam[] = [
         description_ja: "これはテストです。",
         description_en: "this is test text.",
         initial_board: [
-            [1],
-            [2],
-            [0],
-            [3],
+            [3, 0, 1, 4],
+            [0, 0, 0, 0],
+            [0, 1, 2, 1],
+            [0, 1, 0, 0],
+            [0, 0, 0, 3],
+        ]
+    },
+    {
+        title: "DDD",
+        description_ja: "これはテストです。",
+        description_en: "this is test text.",
+        initial_board: [
+            [2, 3, 3, 4],
+            [0, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 0, 0],
+            [0, 1, 0, 4],
         ]
     },
 ];
