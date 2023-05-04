@@ -10,8 +10,8 @@ export interface LevelParam {
 export const leveldata: LevelParam[] = [
     {
         title: "AAA",
-        description_ja: "これはテストです。",
-        description_en: "this is test text.",
+        description_ja: "すべてのカタマリを繋いでください。",
+        description_en: "Connect all the blobs.",
         initial_board: [
             [0, 0, 2],
             [3, 0, 1],
@@ -22,8 +22,8 @@ export const leveldata: LevelParam[] = [
     },
     {
         title: "BBB",
-        description_ja: "これはテストです。",
-        description_en: "this is test text.",
+        description_ja: "固定されたカタマリは動かせません。",
+        description_en: "A fixed blob cannot be moved.",
         initial_board: [
             [3, 2, 3],
             [0, 0, 0],
