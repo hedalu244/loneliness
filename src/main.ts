@@ -168,7 +168,7 @@ const sketch = (p: p5) => {
             });
 
             transition_manager.startTransiton(new Level(0, {
-                title: "NaN.\nTEST LEVEL",
+                title: "TEST LEVEL",
                 description_ja: "これはテストステージです。",
                 description_en: "This is test level.",
                 initial_board: initial_board

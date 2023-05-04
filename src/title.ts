@@ -9,7 +9,7 @@ import { Asset } from "./asset";
 export class Title {
     game: Game;
     constructor() {
-        this.game = new Game([[Cell.Free], [Cell.Empty], [Cell.Player], [Cell.Empty], [Cell.Fixed]]);
+        this.game = new Game([[Cell.Player], [Cell.Empty], [Cell.Empty], [Cell.Empty], [Cell.Free]]);
     }
 
     key(code: string, manager: TransitionManager) {
