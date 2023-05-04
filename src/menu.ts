@@ -115,10 +115,6 @@ export class Menu {
         const unlocked = solved.filter(x => x).length + 3;
         const selecting = this.y * this.width + this.x;
 
-        if (this.anim_queue.length <= 1 && this.anim_starttime + 1000 < performance.now()) return;
-
-        renderer.needUpdate = true;
-
         renderer.clear();
 
         renderer.bgScr.background(255);
@@ -187,5 +183,8 @@ export class Menu {
         const animY = elastic(prevY, fixedY, anim_elapsetime);
 
         renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
+        
+        if (1 < this.anim_queue.length || performance.now() < this.anim_starttime + 500)
+            renderer.needUpdate = true;
     }
 }

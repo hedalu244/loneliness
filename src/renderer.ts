@@ -359,8 +359,9 @@ export class Renderer {
     
     /// fadeRate: 0～1の薄めぐあい
     render() {
-        if (!this.needUpdate) return;
-
+        if (!this.needUpdate)
+            return;
+        
         this.p.background(255);
         this.renderFloor();
         this.renderBlob();
