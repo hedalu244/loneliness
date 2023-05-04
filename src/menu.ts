@@ -127,6 +127,7 @@ export class Menu {
         if (1 < this.anim_queue.length && this.anim_starttime + 200 < performance.now()) {
             this.anim_queue.shift();
             this.anim_starttime = performance.now();
+            Asset.play_move_sound();
         }
         const anim_elapsetime = performance.now() - this.anim_starttime;
 

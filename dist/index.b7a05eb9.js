@@ -598,7 +598,7 @@ class TransitionManager {
         this.type = TransitionType.Fade;
     }
     draw(renderer) {
-        const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 500 : 0;
+        const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 1000 : 0;
         const elapsed_time = performance.now() - this.start_time - shift;
         switch(this.type){
             case TransitionType.Fade:
@@ -644,19 +644,19 @@ class TransitionManager {
         if (elapsed_time < 1000) renderer.needUpdate = true;
     }
     key(code) {
-        const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 500 : 0;
+        const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 1000 : 0;
         const elapsed_time = performance.now() - this.start_time - shift;
         if (elapsed_time < 800) return;
         this.state.key(code, this);
     }
     flick(direction) {
-        const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 500 : 0;
+        const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 1000 : 0;
         const elapsed_time = performance.now() - this.start_time - shift;
         if (elapsed_time < 800) return;
         this.state.flick(direction, this);
     }
     click(x, y, p) {
-        const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 500 : 0;
+        const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 1000 : 0;
         const elapsed_time = performance.now() - this.start_time - shift;
         if (elapsed_time < 800) return;
         this.state.click(p.mouseX, p.mouseY, this);
@@ -28848,6 +28848,7 @@ class Renderer {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Asset", ()=>Asset);
+var _algorithm = require("./algorithm");
 class Asset {
     static black = 90;
     static preload(p) {
@@ -28867,10 +28868,26 @@ class Asset {
             Asset.loop_tail.loop = true; // ループ再生
             console.log("ended");
         }, false);
+        Asset.move_sound = (0, _algorithm.n_array)(8, (i)=>new Audio(`./pop_${i}.wav`));
+        Asset.clear_sound = new Audio("./clear.mp3");
+        Asset.button_sound = new Audio("./cork.mp3");
+    }
+    static play_move_sound() {
+        const i = Math.floor(Math.random() * Asset.move_sound.length);
+        Asset.move_sound[i].currentTime = 0;
+        Asset.move_sound[i].play();
+    }
+    static play_clear_sound() {
+        Asset.clear_sound.currentTime = 0;
+        Asset.clear_sound.play();
+    }
+    static play_button_sound() {
+        Asset.button_sound.currentTime = 0;
+        Asset.button_sound.play();
     }
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"7j7hd":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./algorithm":"laafY"}],"7j7hd":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Level", ()=>Level);
@@ -28896,6 +28913,7 @@ class Level {
     }
     complete(manager) {
         (0, _main.solved)[this.index] = true;
+        (0, _asset.Asset).play_clear_sound();
         if (this.index + 1 < (0, _main.solved).length && !(0, _main.solved)[this.index + 1]) manager.startTransiton(new Level(this.index + 1, (0, _leveldata.leveldata)[this.index + 1]), (0, _main.TransitionType).ClearRight);
         else manager.startTransiton(new (0, _menu.Menu)(0), (0, _main.TransitionType).ClearFade);
     }
@@ -28946,22 +28964,27 @@ class Level {
     }
     click(x, y, manager) {
         if (this.undoButton.hit(x, y)) {
+            (0, _asset.Asset).play_button_sound();
             this.game.undo();
             return;
         }
         if (this.initButton.hit(x, y)) {
+            (0, _asset.Asset).play_button_sound();
             this.game.init();
             return;
         }
         if (this.quitButton.hit(x, y)) {
+            (0, _asset.Asset).play_button_sound();
             manager.startTransiton(new (0, _menu.Menu)(0), (0, _main.TransitionType).Fade);
             return;
         }
         if (this.nextLevelButton.hit(x, y) && (0, _leveldata.leveldata)[this.index + 1]) {
+            (0, _asset.Asset).play_button_sound();
             manager.startTransiton(new Level(this.index + 1, (0, _leveldata.leveldata)[this.index + 1]), (0, _main.TransitionType).Right);
             return;
         }
         if (this.prevLevelButton.hit(x, y) && (0, _leveldata.leveldata)[this.index - 1]) {
+            (0, _asset.Asset).play_button_sound();
             manager.startTransiton(new Level(this.index - 1, (0, _leveldata.leveldata)[this.index - 1]), (0, _main.TransitionType).Left);
             return;
         }
@@ -29139,6 +29162,7 @@ class Game {
         if (1 < this.anim_queue.length && this.anim_starttime + total_delay < performance.now()) {
             this.anim_queue.shift();
             this.anim_starttime = performance.now();
+            (0, _asset.Asset).play_move_sound();
         }
         const anim_elapsetime = performance.now() - this.anim_starttime;
         renderer.setBlobArea((this.width + 0.5) * this.cell_size, (this.height + 0.5) * this.cell_size, this.cell_size * 0.46);
@@ -29436,6 +29460,7 @@ class Menu {
         if (1 < this.anim_queue.length && this.anim_starttime + 200 < performance.now()) {
             this.anim_queue.shift();
             this.anim_starttime = performance.now();
+            (0, _asset.Asset).play_move_sound();
         }
         const anim_elapsetime = performance.now() - this.anim_starttime;
         renderer.clear();

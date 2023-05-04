@@ -42,6 +42,7 @@ export class Level {
 
     complete(manager: TransitionManager) {
         solved[this.index] = true;
+        Asset.play_clear_sound();
         if (this.index + 1 < solved.length && !solved[this.index + 1])
             manager.startTransiton(new Level(this.index + 1, leveldata[this.index + 1]), TransitionType.ClearRight);
         else
@@ -104,23 +105,28 @@ export class Level {
 
     click(x: number, y:number, manager: TransitionManager) {
         if (this.undoButton.hit(x, y)) {
+            Asset.play_button_sound();
             this.game.undo();
             return;
         }
         if (this.initButton.hit(x, y)) {
+            Asset.play_button_sound();
             this.game.init();
             return;
         }
         if (this.quitButton.hit(x, y)) {
+            Asset.play_button_sound();
             manager.startTransiton(new Menu(0), TransitionType.Fade);
             return;
         }
         
         if (this.nextLevelButton.hit(x, y) && leveldata[this.index + 1]) {
+            Asset.play_button_sound();
             manager.startTransiton(new Level(this.index + 1, leveldata[this.index + 1]), TransitionType.Right);
             return;
         }
         if (this.prevLevelButton.hit(x, y) && leveldata[this.index - 1]) {
+            Asset.play_button_sound();
             manager.startTransiton(new Level(this.index - 1, leveldata[this.index - 1]), TransitionType.Left);
             return;
         }

@@ -210,8 +210,9 @@ export class Game {
         const total_delay = 250;
 
         if (1 < this.anim_queue.length && this.anim_starttime + total_delay < performance.now()) {
-            this.anim_queue.shift()
-            this.anim_starttime = performance.now()
+            this.anim_queue.shift();
+            this.anim_starttime = performance.now();
+            Asset.play_move_sound();
         }
         const anim_elapsetime = performance.now() - this.anim_starttime;
 

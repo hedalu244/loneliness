@@ -1,4 +1,5 @@
 import p5 from "p5";
+import { n_array } from "./algorithm";
 
 export class Asset {
     static shadow80: p5.Image;
@@ -16,6 +17,11 @@ export class Asset {
 
     static loop_head: HTMLAudioElement;
     static loop_tail: HTMLAudioElement;
+
+    static move_sound: HTMLAudioElement[];
+
+    static clear_sound: HTMLAudioElement;
+    static button_sound: HTMLAudioElement;
 
     static preload(p: p5) {
         Asset.shadow80 = p.loadImage("./shadow80.png");
@@ -38,5 +44,26 @@ export class Asset {
             Asset.loop_tail.loop = true;  // ループ再生
             console.log('ended');
         }, false);
+
+        Asset.move_sound = n_array(8, (i) => new Audio(`./pop_${i}.wav`));
+
+        Asset.clear_sound = new Audio("./clear.mp3");
+        Asset.button_sound = new Audio("./cork.mp3");
+    }
+
+    static play_move_sound() {
+        const i = Math.floor(Math.random() * Asset.move_sound.length);
+        Asset.move_sound[i].currentTime = 0;
+        Asset.move_sound[i].play();
+    }
+
+    static play_clear_sound() {
+        Asset.clear_sound.currentTime = 0;
+        Asset.clear_sound.play()
+    }
+
+    static play_button_sound() {
+        Asset.button_sound.currentTime = 0;
+        Asset.button_sound.play();
     }
 }
