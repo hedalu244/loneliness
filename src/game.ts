@@ -206,14 +206,7 @@ export class Game {
 
     draw(renderer: Renderer) {
         const each_delay = 50;
-
-        let total_delay;
-        if (this.anim_queue[0].type == Direction.Left || this.anim_queue[0].type == Direction.Right)
-            total_delay = 200 + each_delay * (this.width - 1);
-        else if (this.anim_queue[0].type == Direction.Up || this.anim_queue[0].type == Direction.Down)
-            total_delay = 200 + each_delay * (this.height - 1);
-        else
-            total_delay = 0;
+        const total_delay = 250;
 
         if (1 < this.anim_queue.length && this.anim_starttime + total_delay < performance.now()) {
             this.anim_queue.shift()
