@@ -37,12 +37,15 @@ export class StartScreen {
         renderer.bgScr.text("Click / Tap to Start", 400, 600);
     }
     key(code: string, manager: TransitionManager) {
-        if (code == "Enter")
+        if (code == "Enter") {
+            Asset.loop_head.play();
             manager.startTransiton(new Title(), TransitionType.Fade);
+        }
     }
     flick(direction: Direction, manager: TransitionManager) {
     }
     click(x: number, y: number, manager: TransitionManager) {
+        Asset.loop_head.play();
         manager.startTransiton(new Title(), TransitionType.Fade);
     }
 }

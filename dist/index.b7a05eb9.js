@@ -646,19 +646,19 @@ class TransitionManager {
     key(code) {
         const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 500 : 0;
         const elapsed_time = performance.now() - this.start_time - shift;
-        if (elapsed_time < 1000) return;
+        if (elapsed_time < 800) return;
         this.state.key(code, this);
     }
     flick(direction) {
         const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 500 : 0;
         const elapsed_time = performance.now() - this.start_time - shift;
-        if (elapsed_time < 1000) return;
+        if (elapsed_time < 800) return;
         this.state.flick(direction, this);
     }
     click(x, y, p) {
         const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 500 : 0;
         const elapsed_time = performance.now() - this.start_time - shift;
-        if (elapsed_time < 1000) return;
+        if (elapsed_time < 800) return;
         this.state.click(p.mouseX, p.mouseY, this);
     }
     // 状態遷移アニメーションをはじめる
@@ -28851,29 +28851,23 @@ parcelHelpers.export(exports, "Asset", ()=>Asset);
 class Asset {
     static black = 90;
     static preload(p) {
-        this.shadow80 = p.loadImage("./shadow80.png");
-        this.emmision80 = p.loadImage("./emmision.png");
-        this.fontR = p.loadFont("./DIN_2014_R.ttf");
-        this.fontEB = p.loadFont("./DIN_2014_EB.ttf");
-        this.undoButton = p.loadImage("./button_undo.png");
-        this.initButton = p.loadImage("./button_reset.png");
-        this.quitButton = p.loadImage("./button_quit.png");
-        this.leftButton = p.loadImage("./button_left.png");
-        this.rightButton = p.loadImage("./button_right.png");
-    /*
-        const loop_head = new Audio("./loop_head.mp3");
-        const loop_tail = new Audio("./loop_tail.mp3");
-        
-        document.addEventListener("click", (event) => {
-            loop_head.play();
-        });
-        
-        loop_head.addEventListener('ended', function() { 
-            loop_tail.play();
-            loop_tail.loop = true;  // ループ再生
-            console.log('ended');
+        Asset.shadow80 = p.loadImage("./shadow80.png");
+        Asset.emmision80 = p.loadImage("./emmision.png");
+        Asset.fontR = p.loadFont("./DIN_2014_R.ttf");
+        Asset.fontEB = p.loadFont("./DIN_2014_EB.ttf");
+        Asset.undoButton = p.loadImage("./button_undo.png");
+        Asset.initButton = p.loadImage("./button_reset.png");
+        Asset.quitButton = p.loadImage("./button_quit.png");
+        Asset.leftButton = p.loadImage("./button_left.png");
+        Asset.rightButton = p.loadImage("./button_right.png");
+        Asset.loop_head = new Audio("./loop_head.mp3");
+        Asset.loop_tail = new Audio("./loop_tail.mp3");
+        Asset.loop_head.addEventListener("ended", function() {
+            Asset.loop_tail.play();
+            Asset.loop_tail.loop = true; // ループ再生
+            console.log("ended");
         }, false);
-        */ }
+    }
 }
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"7j7hd":[function(require,module,exports) {
@@ -29582,9 +29576,11 @@ function initInputEvent(element, key, click, flick) {
         });
     }, false);
     document.addEventListener("click", (event)=>{
+        event.preventDefault();
         click(event.x, event.y);
     }, false);
     document.addEventListener("keydown", (event)=>{
+        event.preventDefault();
         if (event.repeat) return;
         key(event.code);
     }, false);
@@ -29624,10 +29620,14 @@ class StartScreen {
         renderer.bgScr.text("Click / Tap to Start", 400, 600);
     }
     key(code, manager) {
-        if (code == "Enter") manager.startTransiton(new (0, _title.Title)(), (0, _main.TransitionType).Fade);
+        if (code == "Enter") {
+            (0, _asset.Asset).loop_head.play();
+            manager.startTransiton(new (0, _title.Title)(), (0, _main.TransitionType).Fade);
+        }
     }
     flick(direction, manager) {}
     click(x, y, manager) {
+        (0, _asset.Asset).loop_head.play();
         manager.startTransiton(new (0, _title.Title)(), (0, _main.TransitionType).Fade);
     }
 }

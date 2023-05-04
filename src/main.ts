@@ -106,21 +106,21 @@ export class TransitionManager {
     key(code: string) {
         const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 500 : 0;
         const elapsed_time = performance.now() - this.start_time - shift;
-        if (elapsed_time < 1000)
+        if (elapsed_time < 800)
             return;
         this.state.key(code, this);
     }
     flick(direction: Direction) {
         const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 500 : 0;
         const elapsed_time = performance.now() - this.start_time - shift;
-        if (elapsed_time < 1000)
+        if (elapsed_time < 800)
             return;
         this.state.flick(direction, this);
     }
     click(x: number, y: number, p: p5) {
         const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 500 : 0;
         const elapsed_time = performance.now() - this.start_time - shift;
-        if (elapsed_time < 1000)
+        if (elapsed_time < 800)
             return;
         this.state.click(p.mouseX, p.mouseY, this);
     }
