@@ -2,7 +2,8 @@
   "private": true,
   "scripts": {
     "dev": "parcel src/index.html --open",
-    "build": "parcel build src/index.html --dist-dir dist2 --public-url https://hedalu244.github.io/loneliness/dist2/ "
+    "build": "parcel build src/index.html --public-url https://hedalu244.github.io/loneliness/dist/",
+    "build2": "parcel build src/index.html --dist-dir dist2 --public-url https://hedalu244.github.io/loneliness/dist2/"
   },
   "devDependencies": {
     "@types/p5": "^1.6.1",

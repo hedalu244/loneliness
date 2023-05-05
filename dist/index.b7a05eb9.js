@@ -28419,7 +28419,7 @@ class Renderer {
     static lightingFS = `
     precision highp float;
 
-    const vec3 light_dir = normalize(vec3(1.0, -1.0, -1.4));
+    const vec3 light_dir = normalize(vec3(0.5, -0.5, -0.707));
     const vec3 directional = vec3(0.4);
     const vec3 ambient = vec3(0.6);
 
@@ -28663,10 +28663,6 @@ class Renderer {
         this.bgScr = p.createGraphics(p.width, p.height);
         this.bgScr.rectMode(p.CENTER);
         this.bgScr.imageMode(p.CENTER);
-        this.shadowScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
-        this.shadowScr.setAttributes("depth", false);
-        this.shadowScr.rectMode(p.CENTER);
-        this.shadowScr.imageMode(p.CENTER);
         this.blobScr = this.p.createGraphics(p.width, p.height, this.p.WEBGL);
         this.blobScr.setAttributes("alpha", true);
         this.blobShader = this.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS);
@@ -28676,10 +28672,10 @@ class Renderer {
         this.fxaaScr.setAttributes("alpha", true);
         this.fxaaShader = this.fxaaScr.createShader(Renderer.ScreenVS, Renderer.fxaaFS);
         this.mainScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
+        this.mainScr.noStroke();
         this.mainScr.setAttributes("depth", false);
         this.mainScr.rectMode(p.CENTER);
         this.mainScr.imageMode(p.CENTER);
-        this.floorShader = this.mainScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.floorFS);
         this.filterScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
         this.filterScr.rectMode(p.CENTER);
         this.filterScr.imageMode(p.CENTER);
@@ -28731,22 +28727,17 @@ class Renderer {
         (0, _performance.countFrame)();
         this.needUpdate = false;
     }
-    // (shadowScr, bgScr) => mainScr
+    // bgScr => mainScr
     renderFloor() {
-        this.shadowScr.clear(1, 1, 1, 1);
-        this.shadowScr.noStroke();
-        this.shadowScr.fill(0);
-        this.blobs.forEach((a)=>this.shadowScr.image((0, _asset.Asset).shadow80, a.x - 50, a.y + 50, (0, _asset.Asset).shadow80.width / 40 * a.r, (0, _asset.Asset).shadow80.height / 40 * a.r));
+        // (light_dir.z * directional * shadow + ambient) * color;
+        // light　0.8828 225
+        // shadow 0.6    153
         this.mainScr.clear(0, 0, 0, 0);
-        this.mainScr.noStroke();
-        this.mainScr.shader(this.floorShader);
-        this.floorShader.setUniform("res", [
-            this.mainScr.width,
-            this.mainScr.height
-        ]);
-        this.floorShader.setUniform("color_tex", this.bgScr);
-        this.floorShader.setUniform("shadow_tex", this.shadowScr);
-        this.mainScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+        this.mainScr.background(225);
+        this.blobs.forEach((a)=>this.mainScr.image((0, _asset.Asset).shadow80, a.x - 50, a.y + 50, (0, _asset.Asset).shadow80.width / 40 * a.r, (0, _asset.Asset).shadow80.height / 40 * a.r));
+        this.mainScr.blendMode(this.p.MULTIPLY);
+        this.mainScr.image(this.bgScr, 0, 0);
+        this.mainScr.blendMode(this.p.BLEND);
     }
     // blob => blobScr
     renderBlob() {
