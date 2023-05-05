@@ -1,6 +1,5 @@
 import p5 from "p5";
 import { Asset } from "./asset";
-import { countFrame, measure } from "./performance";
 
 interface Blob {
     x: number,
@@ -25,6 +24,7 @@ interface Emission {
 export class Renderer {
     p: p5;
     needUpdate: boolean;
+    lastRenderTimestamp: number;
 
     blobShader05: p5.Shader;
     blobShader10: p5.Shader;
@@ -289,6 +289,7 @@ export class Renderer {
 
     constructor(p: p5) {
         this.needUpdate = true;
+        this.lastRenderTimestamp = performance.now();
 
         this.p = p;
         p.rectMode(p.CENTER);
@@ -353,19 +354,28 @@ export class Renderer {
 
     /// fadeRate: 0～1の薄めぐあい
     render() {
+
+        const lastFrameTime = performance.now() - this.lastRenderTimestamp;
+        this.lastRenderTimestamp = performance.now();
+        
         if (!this.needUpdate)
             return;
 
         this.p.background(255);
-        measure("Floor ", () => this.renderFloor());
-        measure("Blobs ", () => this.renderBlob());
-        measure("Dots  ", () => this.renderDot());
-        measure("FXAA  ", () => this.renderFxaa());
-        measure("Emiss ", () => this.renderEmission());
-        measure("Filter", () => this.renderFilter());
-        measure("Show  ", () => this.p.image(this.filterScr, this.p.width / 2, this.p.height / 2));
 
-        countFrame();
+        this.renderFloor()
+        this.renderBlob();
+        this.renderDot();
+
+        if (lastFrameTime < 60) this.renderFxaa();
+        else this.renderNoFxaa();
+
+        this.renderEmission();
+        this.renderFilter();
+
+        if (lastFrameTime < 30) this.renderBlur();
+
+        this.p.image(this.filterScr, this.p.width / 2, this.p.height / 2);
 
         this.needUpdate = false;
     }
@@ -399,7 +409,7 @@ export class Renderer {
         }
         const blob_params: number[] = [];
         this.blobs.forEach(a => blob_params.push(a.x, a.y, 0, a.r))
-        while (blob_params.length < 80)
+        while (blob_params.length % 20 != 0)
             blob_params.push(0);
 
         const blobShader =
@@ -462,12 +472,17 @@ export class Renderer {
 
         this.mainScr.clear(0, 0, 0, 0)
         this.mainScr.image(this.filterScr, 0, 0, 0, 0);
+    }
 
+    renderBlur() {
         this.filterScr.clear(0, 0, 0, 0);
         this.filterScr.noStroke();
         this.filterScr.shader(this.BlurShader);
         this.BlurShader.setUniform('tex', this.mainScr);
         this.filterScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+
+        this.mainScr.clear(0, 0, 0, 0)
+        this.mainScr.image(this.filterScr, 0, 0, 0, 0);
     }
 
     setBlobArea(width: number, height: number, smooth_scale: number) {
@@ -475,8 +490,6 @@ export class Renderer {
 
         if (this.blobScr.width == width && this.blobScr.height == height)
             return;
-
-        console.log("setBlobArea", width, height);
 
         //does not work
         //this.blobScr.size(width, height);
@@ -505,12 +518,8 @@ export class Renderer {
         this.blobShader20.setUniform('res', [width, height]);
         this.blobShader20.setUniform('smooth_param', smooth_scale);
 
-
         this.fxaaScr.shader(this.fxaaShader);
         this.fxaaShader.setUniform('res', [width, height]);
-
-        console.log(this.blobScr);
-        console.log(this.blobShader05);
         //*/
     }
 
