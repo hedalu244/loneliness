@@ -157,6 +157,7 @@ const sketch = (p: p5) => {
 
     p.setup = () => {
         const canvas = p.createCanvas(100 * unit, 100 * unit);
+        p.frameRate(30);
         canvas.parent("wrapper");
         renderer = new Renderer(p);
         initInputEvent(canvas.elt as HTMLCanvasElement,

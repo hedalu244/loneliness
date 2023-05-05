@@ -367,13 +367,13 @@ export class Renderer {
         this.renderBlob();
         this.renderDot();
 
-        if (lastFrameTime < 60) this.renderFxaa();
+        if (lastFrameTime < 120) this.renderFxaa();
         else this.renderNoFxaa();
 
         this.renderEmission();
         this.renderFilter();
 
-        if (lastFrameTime < 30) this.renderBlur();
+        if (lastFrameTime < 60) this.renderBlur();
 
         this.p.image(this.filterScr, this.p.width / 2, this.p.height / 2);
 
