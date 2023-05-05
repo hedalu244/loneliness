@@ -24,6 +24,7 @@ export class Asset {
 
     static move_sound: HTMLAudioElement[];
 
+    static level_select_sound: HTMLAudioElement;
     static clear_sound: HTMLAudioElement;
     static button_sound: HTMLAudioElement;
 
@@ -58,6 +59,7 @@ export class Asset {
 
         Asset.clear_sound = new Audio("./clear.mp3");
         Asset.button_sound = new Audio("./cork.mp3");
+        Asset.level_select_sound = new Audio("./levelselect.mp3");
     }
 
     static playMoveSound() {
@@ -77,6 +79,12 @@ export class Asset {
         if (Asset.mute) return;
         Asset.button_sound.currentTime = 0;
         Asset.button_sound.play();
+    }
+
+    static playLevelSelectSound() {
+        if (Asset.mute) return;
+        Asset.level_select_sound.currentTime = 0;
+        Asset.level_select_sound.play();
     }
 
     static toggleMute() {

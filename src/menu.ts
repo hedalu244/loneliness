@@ -92,6 +92,7 @@ export class Menu {
                 const selecting = this.y * this.width + this.x;
                 if (selecting < unlocked)
                 manager.startTransiton(new Level(selecting, leveldata[selecting]), TransitionType.Fade);
+                Asset.playLevelSelectSound();
             } break;
             case "KeyM": {
                 Asset.toggleMute();
@@ -122,8 +123,10 @@ export class Menu {
 
         const unlocked = solved.filter(x => x).length + 3;
         const selecting = this.y * this.width + this.x;
-        if (unlocked < selecting)
+        if (unlocked < selecting) {
             manager.startTransiton(new Level(selecting, leveldata[selecting]), TransitionType.Fade);
+            Asset.playLevelSelectSound();
+        }
     }
 
     draw(renderer: Renderer) {

@@ -119,7 +119,7 @@ export class Level {
             return;
         }
         if (this.quitButton.hit(x, y)) {
-            Asset.playButtonSound();
+            Asset.playLevelSelectSound();
             manager.startTransiton(new Menu(0), TransitionType.Fade);
             return;
         }
@@ -127,12 +127,12 @@ export class Level {
         const unlocked = solved.filter(x => x).length + 3;
 
         if (this.nextLevelButton.hit(x, y) && leveldata[this.index + 1] && this.index + 1 < unlocked) {
-            Asset.playButtonSound();
+            Asset.playLevelSelectSound();
             manager.startTransiton(new Level(this.index + 1, leveldata[this.index + 1]), TransitionType.Right);
             return;
         }
         if (this.prevLevelButton.hit(x, y) && leveldata[this.index - 1] && this.index - 1 < unlocked) {
-            Asset.playButtonSound();
+            Asset.playLevelSelectSound();
             manager.startTransiton(new Level(this.index - 1, leveldata[this.index - 1]), TransitionType.Left);
             return;
         }
