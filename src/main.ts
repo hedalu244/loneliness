@@ -183,7 +183,7 @@ const sketch = (p: p5) => {
             }
 
             const value = levelEditor.value;
-            let initial_board = value.trim().split("\n").map(x => x.trim().split(" ").map(x => cell(+x)));
+            let initial_board = value.trim().split("\n").map(x => x.trim().split("").map(x => cell(+x)));
             const height = Math.max(...initial_board.map(x => x.length));
             initial_board.forEach(x => {
                 while (x.length < height) x.push(0);
