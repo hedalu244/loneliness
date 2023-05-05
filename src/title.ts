@@ -76,7 +76,6 @@ export class Title {
         
         renderer.bgScr.background(255);
 
-
         renderer.bgScr.fill(Asset.black);
         renderer.bgScr.textSize(60);
         renderer.bgScr.textFont(Asset.fontEB);
