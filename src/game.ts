@@ -72,6 +72,8 @@ export class Game {
     }
 
     move(direction: Direction) {
+        navigator.vibrate(120);
+
         console.log("move", direction)
 
         // 左の場合だけ書けばよい
@@ -145,7 +147,7 @@ export class Game {
                         direction == Direction.Left ? 1 : 0),
             type: direction,
         });
-        
+
         this.show()
     }
 

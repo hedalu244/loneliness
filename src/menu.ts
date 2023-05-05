@@ -47,6 +47,8 @@ export class Menu {
     }
 
     move(direction: Direction) {
+        navigator.vibrate(120);
+
         const unlocked = solved.filter(x => x).length + 3;
 
         console.log(unlocked);
@@ -121,7 +123,7 @@ export class Menu {
             return;
         }
 
-        const unlocked = solved.filter(x => x).length + 3;
+        const unlocked = solved.filter(x => x).length + 3;0
         const selecting = this.y * this.width + this.x;
         if (selecting < unlocked) {
             manager.startTransiton(new Level(selecting, leveldata[selecting]), TransitionType.Fade);
