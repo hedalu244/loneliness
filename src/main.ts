@@ -12,7 +12,6 @@ import { EmptyState, StartScreen } from "./StartScreen";
 import { leveldata } from "./leveldata";
 import { measure, measureReset } from "./performance";
 
-
 export let solved: boolean[];
 export function save() {
     localStorage.setItem("loneliness", JSON.stringify(solved));
