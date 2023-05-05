@@ -5,6 +5,7 @@ export class Asset {
     static shadow80: p5.Image;
     static emmision80: p5.Image;
     static dot: p5.Image;
+    static lock: p5.Image;
 
     static fontR: p5.Font;
     static fontEB: p5.Font;
@@ -32,6 +33,8 @@ export class Asset {
         Asset.shadow80 = p.loadImage("./shadow80.png");
         Asset.emmision80 = p.loadImage("./emmision.png");
         Asset.dot = p.loadImage("./dot.png");
+        Asset.lock = p.loadImage("./lock.png");
+        
         Asset.fontR = p.loadFont("./DIN_2014_R.ttf");
         Asset.fontEB = p.loadFont("./DIN_2014_EB.ttf");
 

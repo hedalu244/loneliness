@@ -1,7 +1,7 @@
 import { Renderer } from "./renderer";
 import { Game, Board } from "./game";
 import { Title } from "./title";
-import { TransitionManager, TransitionType, solved, unit } from "./main";
+import { TransitionManager, TransitionType, save, solved, unit } from "./main";
 import { Direction } from "./algorithm";
 import { LevelParam, leveldata } from "./leveldata";
 import { Menu } from "./menu";
@@ -42,6 +42,7 @@ export class Level {
 
     complete(manager: TransitionManager) {
         solved[this.index] = true;
+        save();
         Asset.playClearSound();
         if (this.index + 1 < solved.length && !solved[this.index + 1])
             manager.startTransiton(new Level(this.index + 1, leveldata[this.index + 1]), TransitionType.ClearRight);
@@ -123,12 +124,14 @@ export class Level {
             return;
         }
         
-        if (this.nextLevelButton.hit(x, y) && leveldata[this.index + 1]) {
+        const unlocked = solved.filter(x => x).length + 3;
+
+        if (this.nextLevelButton.hit(x, y) && leveldata[this.index + 1] && this.index + 1 < unlocked) {
             Asset.playButtonSound();
             manager.startTransiton(new Level(this.index + 1, leveldata[this.index + 1]), TransitionType.Right);
             return;
         }
-        if (this.prevLevelButton.hit(x, y) && leveldata[this.index - 1]) {
+        if (this.prevLevelButton.hit(x, y) && leveldata[this.index - 1] && this.index - 1 < unlocked) {
             Asset.playButtonSound();
             manager.startTransiton(new Level(this.index - 1, leveldata[this.index - 1]), TransitionType.Left);
             return;
@@ -163,10 +166,11 @@ export class Level {
         this.initButton.draw(renderer);
         this.quitButton.draw(renderer);
 
-        if (leveldata[this.index + 1]) {
+        const unlocked = solved.filter(x => x).length + 3;
+        if (leveldata[this.index + 1] && this.index + 1 < unlocked) {
             this.nextLevelButton.draw(renderer);
         }
-        if (leveldata[this.index - 1]) {
+        if (leveldata[this.index - 1] && this.index - 1 < unlocked) {
             this.prevLevelButton.draw(renderer);
         }
 

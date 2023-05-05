@@ -58,9 +58,7 @@ export class Menu {
             direction == Direction.Up ? this.y - 1 :
                 direction == Direction.Down ? this.y + 1 : this.y;
 
-        let selecting = new_y * this.width + new_x;
-
-        if (new_x < 0 || this.width <= new_x || new_y < 0 || this.height <= new_y || unlocked <= selecting)
+        if (new_x < 0 || this.width <= new_x || new_y < 0 || this.height <= new_y)
             return;
 
         this.x = new_x;
@@ -90,7 +88,9 @@ export class Menu {
                 this.move(Direction.Down);
             } break;
             case "Enter": {
+                const unlocked = solved.filter(x => x).length + 3;
                 const selecting = this.y * this.width + this.x;
+                if (selecting < unlocked)
                 manager.startTransiton(new Level(selecting, leveldata[selecting]), TransitionType.Fade);
             } break;
             case "KeyM": {
@@ -120,8 +120,10 @@ export class Menu {
             return;
         }
 
+        const unlocked = solved.filter(x => x).length + 3;
         const selecting = this.y * this.width + this.x;
-        manager.startTransiton(new Level(selecting, leveldata[selecting]), TransitionType.Fade);
+        if (unlocked < selecting)
+            manager.startTransiton(new Level(selecting, leveldata[selecting]), TransitionType.Fade);
     }
 
     draw(renderer: Renderer) {
@@ -175,9 +177,8 @@ export class Menu {
                     renderer.bgScr.textSize(5 * unit);
                     renderer.bgScr.textFont(Asset.fontEB);
                     renderer.bgScr.text((index + 1 + "").padStart(2, "0"), posX + 50 * unit, posY + 52 * unit);
-                }
-                if (unlocked <= index) {
-                    renderer.addDot(posX, posY, 0, this.cell_size * 0.12, "white");
+                } else {
+                    renderer.bgScr.image(Asset.lock, posX + 50 * unit, posY + 50 * unit, Asset.lock.width / 8 * unit, Asset.lock.height / 8 * unit);
                 }
             }
         }

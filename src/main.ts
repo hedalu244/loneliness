@@ -17,10 +17,12 @@ export function save() {
 }
 export function load() {
     const savedata = localStorage.getItem("loneliness");
+
     if (savedata == null)
         solved = n_array(leveldata.length, () => false);
     else
         solved = JSON.parse(savedata);
+    console.log(solved);
 }
 
 type State = EmptyState | Title | Menu | Level;
