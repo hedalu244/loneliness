@@ -123,7 +123,7 @@ export class Menu {
 
         const unlocked = solved.filter(x => x).length + 3;
         const selecting = this.y * this.width + this.x;
-        if (unlocked < selecting) {
+        if (selecting < unlocked) {
             manager.startTransiton(new Level(selecting, leveldata[selecting]), TransitionType.Fade);
             Asset.playLevelSelectSound();
         }
