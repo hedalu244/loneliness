@@ -25,7 +25,10 @@ export class Renderer {
     p: p5;
     needUpdate: boolean;
 
-    blobShader: p5.Shader;
+    blobShader05: p5.Shader;
+    blobShader10: p5.Shader;
+    blobShader15: p5.Shader;
+    blobShader20: p5.Shader;
     dotShader: p5.Shader;
     blobScr: p5.Graphics;
 
@@ -126,10 +129,9 @@ export class Renderer {
     uniform vec2 res;
     uniform float smooth_param;
 
-    const int 	NUM_BLOBS			= 20;
-    const int 	TRACE_STEPS 		= 100;
-    const float TRACE_EPSILON 		= 0.001;
-    const float TRACE_DISTANCE		= 200.0;
+    const int 	TRACE_STEPS 		= 10;
+    const float TRACE_EPSILON 		= 1.;
+    const float TRACE_DISTANCE		= 50.0;
     const float NORMAL_EPSILON		= 0.01;
 
     uniform vec4 blobs[NUM_BLOBS];
@@ -171,7 +173,7 @@ export class Renderer {
     }
 
     void main() {
-        vec3 eye = vec3((uv - 0.5) * res, -100);
+        vec3 eye = vec3((uv - 0.5) * res, -TRACE_DISTANCE);
         vec3 dir = vec3(0, 0, 1);
         
         vec4 pos = raymarch(eye, dir);
@@ -310,7 +312,10 @@ export class Renderer {
 
         this.blobScr = this.p.createGraphics(p.width, p.height, this.p.WEBGL);
         this.blobScr.setAttributes('alpha', true);
-        this.blobShader = this.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS);
+        this.blobShader05 = this.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS.split("NUM_BLOBS").join("5"));
+        this.blobShader10 = this.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS.split("NUM_BLOBS").join("10"));
+        this.blobShader15 = this.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS.split("NUM_BLOBS").join("15"));
+        this.blobShader20 = this.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS.split("NUM_BLOBS").join("20"));
         this.dotShader = this.blobScr.createShader(Renderer.dotVS, Renderer.lightingFS + Renderer.dotFS);
 
         this.fxaaScr = this.p.createGraphics(p.width, p.height, this.p.WEBGL);
@@ -355,7 +360,7 @@ export class Renderer {
     /// fadeRate: 0～1の薄めぐあい
     render() {
         if (!this.needUpdate)
-            return;
+           return;
         
         this.p.background(255);
         measure("Floor ", () => this.renderFloor());
@@ -403,12 +408,17 @@ export class Renderer {
         while (blob_params.length < 80)
             blob_params.push(0);
 
+        const blobShader = 
+            this.blobs.length <= 5 ? this.blobShader05 :
+            this.blobs.length <= 10 ? this.blobShader10 :
+            this.blobs.length <= 15 ? this.blobShader15 : this.blobShader20;
+
         this.blobScr.clear(0, 0, 0, 0);
         this.blobScr.noStroke();
-        this.blobScr.shader(this.blobShader);
-        this.blobShader.setUniform('blobs', blob_params);
-        this.blobShader.setUniform('res', [this.blobScr.width, this.blobScr.height]);
-        this.blobShader.setUniform('smooth_param', this.smooth_scale);
+        this.blobScr.shader(blobShader);
+        blobShader.setUniform('blobs', blob_params);
+        blobShader.setUniform('res', [this.blobScr.width, this.blobScr.height]);
+        blobShader.setUniform('smooth_param', this.smooth_scale);
         this.blobScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
     }
 
@@ -420,7 +430,7 @@ export class Renderer {
             this.blobScr.fill(a.color == "black" ? Asset.black : 255);
             this.blobScr.push();
             this.blobScr.translate(a.x, a.y, a.z);
-            this.blobScr.sphere(a.r);
+            this.blobScr.sphere(a.r, 8, 8);
             this.blobScr.pop();
         });
     }
@@ -445,6 +455,11 @@ export class Renderer {
         
         this.mainScr.resetShader();
         this.mainScr.image(this.fxaaScr, 0, 0);
+    }
+
+    renderNoFxaa() {
+        this.mainScr.resetShader();
+        this.mainScr.image(this.blobScr, 0, 0);    
     }
 
     renderFilter() {
