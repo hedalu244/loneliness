@@ -1,7 +1,7 @@
 import { Direction, n_array } from "./algorithm";
 import { Renderer } from "./renderer";
 import { Level } from "./level";
-import { TransitionManager, TransitionType } from "./main";
+import { TransitionManager, TransitionType, unit } from "./main";
 import { Cell, Game } from "./game";
 import { Menu } from "./menu";
 import { Asset } from "./asset";
@@ -13,7 +13,8 @@ export class Title {
     muteButton: Button;
     
     constructor() {
-        this.muteButton = new Button(700, 80, 50, 50, Asset.muteButton);
+        this.muteButton = new Button(87.5 * unit, 10 * unit, 6.25* unit, 6.25 * unit, Asset.muteButton);
+
         this.game = new Game([[Cell.Player], [Cell.Empty], [Cell.Empty], [Cell.Empty], [Cell.Free]]);
     }
 
@@ -77,10 +78,10 @@ export class Title {
         renderer.bgScr.background(255);
 
         renderer.bgScr.fill(Asset.black);
-        renderer.bgScr.textSize(60);
+        renderer.bgScr.textSize(7.5 * unit);
         renderer.bgScr.textFont(Asset.fontEB);
         renderer.bgScr.textAlign(renderer.p.CENTER);
-        renderer.bgScr.text("LONELINESS", 400, 300);
+        renderer.bgScr.text("LONELINESS", 50 * unit, 37.5 * unit);
 
         this.muteButton.draw(renderer);
         this.game.draw(renderer);

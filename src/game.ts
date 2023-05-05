@@ -1,5 +1,6 @@
 import { n_array, UnionFind, Direction, elastic, rotate_matrix } from "./algorithm";
 import { Asset } from "./asset";
+import { unit } from "./main";
 import { Renderer } from "./renderer";
 
 export const Cell = {
@@ -40,7 +41,7 @@ export class Game {
         this.height = initial_board[0].length;
         this.initial_board = initial_board;
 
-        this.cell_size = Math.min(520 / this.width, 400 / this.height, 80);
+        this.cell_size = Math.min(65 / this.width * unit, 50 / this.height * unit, 10 * unit);
 
         this.history = [];
         this.anim_queue = [];
@@ -267,15 +268,15 @@ export class Game {
                         //renderer.addDot(fixedX, fixedY, 0, this.cell_size * 0.12, "white");
                     } break;
                     case Cell.Free: {
-                        renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
+                        renderer.addBlob(animX, animY, this.cell_size * 0.6, this.cell_size * 0.42);
                     } break;
                     case Cell.Fixed: {
-                        renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
+                        renderer.addBlob(animX, animY, this.cell_size * 0.6, this.cell_size * 0.42);
                         renderer.addDot(fixedX, fixedY, 0, this.cell_size * 0.12, "black");
                     } break;
                     case Cell.Player: {
-                        renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
-                        renderer.addEmission(animX, animY);
+                        renderer.addBlob(animX, animY, this.cell_size * 0.6, this.cell_size * 0.42);
+                        renderer.addEmission(animX, animY, this.cell_size * 0.42);
                     } break;
                 }
             }

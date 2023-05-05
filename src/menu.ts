@@ -1,7 +1,7 @@
 import { Direction, elastic, n_array } from "./algorithm";
 import { Renderer } from "./renderer";
 import { Level } from "./level";
-import { TransitionManager, TransitionType, solved } from "./main";
+import { TransitionManager, TransitionType, solved, unit } from "./main";
 import { Cell, Game } from "./game";
 import { leveldata } from "./leveldata";
 import { Asset } from "./asset";
@@ -32,9 +32,9 @@ export class Menu {
         this.x = selecting % this.width;
         this.y = Math.floor(selecting / this.width);
 
-        this.muteButton = new Button(700, 80, 50, 50, Asset.muteButton);
+        this.muteButton = new Button(87.5 * unit, 10 * unit, 6.25* unit, 6.25 * unit, Asset.muteButton);
 
-        this.cell_size = 80;
+        this.cell_size = 10 * unit;
 
         this.anim_queue = [];
         this.anim_starttime = performance.now();
@@ -134,9 +134,9 @@ export class Menu {
 
         renderer.bgScr.fill(Asset.black);
         renderer.bgScr.textAlign(renderer.p.CENTER);
-        renderer.bgScr.textSize(44);
+        renderer.bgScr.textSize(5.5 * unit);
         renderer.bgScr.textFont(Asset.fontEB);
-        renderer.bgScr.text((selecting + 1 + ". ").padStart(4, "0") + leveldata[selecting]?.title, 400, 600);
+        renderer.bgScr.text((selecting + 1 + ". ").padStart(4, "0") + leveldata[selecting]?.title, 50 * unit, 75 * unit);
 
         this.muteButton.draw(renderer);
 
@@ -166,21 +166,18 @@ export class Menu {
         for (let x = 0; x < this.width; x++) {
             for (let y = 0; y < this.height; y++) {
                 let index = y * this.width + x;
+                let posX = (x - this.width / 2 + 0.5) * this.cell_size;
+                let posY = (y - this.height / 2 + 0.5) * this.cell_size;
+
                 if (index < unlocked) {
                     renderer.bgScr.fill(solved[index] ? 180 : 255);
                     renderer.bgScr.textAlign(renderer.p.CENTER);
-                    renderer.bgScr.textSize(40);
+                    renderer.bgScr.textSize(5 * unit);
                     renderer.bgScr.textFont(Asset.fontEB);
-                    renderer.bgScr.text(
-                        (index + 1 + "").padStart(2, "0"),
-                        (x - this.width / 2 + 0.5) * this.cell_size + renderer.p.width / 2,
-                        (y - this.height / 2 + 0.5) * this.cell_size + renderer.p.height / 2 + 15);
+                    renderer.bgScr.text((index + 1 + "").padStart(2, "0"), posX + 50 * unit, posY + 52 * unit);
                 }
                 if (unlocked <= index) {
-                    renderer.addDot(
-                        (x - this.width / 2 + 0.5) * this.cell_size,
-                        (y - this.height / 2 + 0.5) * this.cell_size,
-                        0, this.cell_size * 0.12, "white");
+                    renderer.addDot(posX, posY, 0, this.cell_size * 0.12, "white");
                 }
             }
         }
@@ -200,8 +197,8 @@ export class Menu {
         const animX = elastic(prevX, fixedX, anim_elapsetime);
         const animY = elastic(prevY, fixedY, anim_elapsetime);
 
-        renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
-        renderer.addEmission(animX, animY);
+        renderer.addBlob(animX, animY, this.cell_size * 0.6, this.cell_size * 0.42);
+        renderer.addEmission(animX, animY, this.cell_size * 0.42);
         
         if (1 < this.anim_queue.length || performance.now() < this.anim_starttime + 500)
             renderer.needUpdate = true;

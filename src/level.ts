@@ -1,7 +1,7 @@
 import { Renderer } from "./renderer";
 import { Game, Board } from "./game";
 import { Title } from "./title";
-import { TransitionManager, TransitionType, solved } from "./main";
+import { TransitionManager, TransitionType, solved, unit } from "./main";
 import { Direction } from "./algorithm";
 import { LevelParam, leveldata } from "./leveldata";
 import { Menu } from "./menu";
@@ -32,12 +32,12 @@ export class Level {
     
         this.game = new Game(levelParam.initial_board);
         
-        this.undoButton = new Button(700, 80, 50, 50, Asset.undoButton);
-        this.initButton = new Button(620, 80, 50, 50, Asset.initButton);
-        this.quitButton = new Button(480, 80, 50, 50, Asset.quitButton);
+        this.undoButton = new Button(87.5 * unit, 10 * unit, 6.25 * unit, 6.25 * unit, Asset.undoButton);
+        this.initButton = new Button(77.5 * unit, 10 * unit, 6.25 * unit, 6.25 * unit, Asset.initButton);
+        this.quitButton = new Button(60 * unit, 10 * unit, 6.25 * unit, 6.25 * unit, Asset.quitButton);
 
-        this.prevLevelButton = new Button(60, 400, 40, 40, Asset.leftButton);
-        this.nextLevelButton = new Button(740, 400, 40, 40, Asset.rightButton);
+        this.prevLevelButton = new Button(7.5 * unit, 50 * unit, 10 * unit, 10 * unit, Asset.leftButton);
+        this.nextLevelButton = new Button(92.5 * unit, 50 * unit, 10 * unit, 10 * unit, Asset.rightButton);
     }
 
     complete(manager: TransitionManager) {
@@ -146,18 +146,18 @@ export class Level {
 
         renderer.bgScr.fill(Asset.black);
         renderer.bgScr.textAlign(renderer.p.LEFT);
-        renderer.bgScr.textSize(44);
+        renderer.bgScr.textSize(5.5 * unit);
         renderer.bgScr.textFont(Asset.fontEB);
-        renderer.bgScr.text((this.index + 1 + ". ").padStart(4, "0"), 60, 80);
-        renderer.bgScr.text(this.title, 60, 130);
+        renderer.bgScr.text((this.index + 1 + ". ").padStart(4, "0"), 7.5 * unit, 10 * unit);
+        renderer.bgScr.text(this.title, 7.5 * unit, 16.25 * unit);
         
-        renderer.bgScr.textSize(26);
+        renderer.bgScr.textSize(3.25 * unit);
         renderer.bgScr.textFont("sans-serif");
-        renderer.bgScr.text(this.description_ja, 60, 700);
+        renderer.bgScr.text(this.description_ja, 7.5 * unit, 87.5 * unit);
         
-        renderer.bgScr.textSize(26);
+        renderer.bgScr.textSize(3.25 * unit);
         renderer.bgScr.textFont(Asset.fontR);
-        renderer.bgScr.text(this.description_en, 60, 740);
+        renderer.bgScr.text(this.description_en, 7.5 * unit, 92.5 * unit);
         
         this.undoButton.draw(renderer);
         this.initButton.draw(renderer);

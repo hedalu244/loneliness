@@ -19,6 +19,7 @@ interface Dot {
 interface Emission {
     x: number,
     y: number,
+    r: number,
 }
 
 export class Renderer {
@@ -34,7 +35,7 @@ export class Renderer {
 
     fxaaShader: p5.Shader;
     fxaaScr: p5.Graphics;
-    
+
     floorShader: p5.Shader; // mainScr
 
     bgScr: p5.Graphics;
@@ -319,7 +320,7 @@ export class Renderer {
         this.filterScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
         this.filterScr.rectMode(p.CENTER);
         this.filterScr.imageMode(p.CENTER);
-        
+
         this.lensShader = this.filterScr.createShader(Renderer.ScreenVS, Renderer.lensFS);
         this.lensShader.setUniform('res', [this.mainScr.width, this.mainScr.height]);
 
@@ -346,15 +347,15 @@ export class Renderer {
         this.dots.push({ x, y, z, r, color });
     }
 
-    addEmission(x: number, y: number) {
-        this.emissions.push({ x, y });
+    addEmission(x: number, y: number, r: number) {
+        this.emissions.push({ x, y, r });
     }
-    
+
     /// fadeRate: 0～1の薄めぐあい
     render() {
         if (!this.needUpdate)
-           return;
-        
+            return;
+
         this.p.background(255);
         measure("Floor ", () => this.renderFloor());
         measure("Blobs ", () => this.renderBlob());
@@ -374,13 +375,13 @@ export class Renderer {
         // (light_dir.z * directional * shadow + ambient) * color;
         // light　0.8828 225
         // shadow 0.6    153
-        
+
         this.mainScr.clear(0, 0, 0, 0);
         this.mainScr.background(225);
 
         this.blobs.forEach(a => this.mainScr.image(
             Asset.shadow80,
-            a.x - 50, a.y + 50,
+            a.x - a.z, a.y + a.z,
             Asset.shadow80.width / 40 * a.r,
             Asset.shadow80.height / 40 * a.r)
         );
@@ -392,19 +393,19 @@ export class Renderer {
 
     // blob => blobScr
     renderBlob() {
-        if (this.blobs.length == 0) { 
+        if (this.blobs.length == 0) {
             this.blobScr.clear(0, 0, 0, 0);
             return;
         }
         const blob_params: number[] = [];
-        this.blobs.forEach(a => blob_params.push(a.x, a.y, a.z, a.r))
+        this.blobs.forEach(a => blob_params.push(a.x, a.y, 0, a.r))
         while (blob_params.length < 80)
             blob_params.push(0);
 
-        const blobShader = 
+        const blobShader =
             this.blobs.length <= 5 ? this.blobShader05 :
-            this.blobs.length <= 10 ? this.blobShader10 :
-            this.blobs.length <= 15 ? this.blobShader15 : this.blobShader20;
+                this.blobs.length <= 10 ? this.blobShader10 :
+                    this.blobs.length <= 15 ? this.blobShader15 : this.blobShader20;
 
         this.blobScr.clear(0, 0, 0, 0);
         this.blobScr.noStroke();
@@ -430,7 +431,7 @@ export class Renderer {
         this.mainScr.resetShader();
         this.mainScr.blendMode(this.p.ADD);
         this.emissions.forEach(a => {
-            this.mainScr.image(Asset.emmision80, a.x, a.y, 200, 200);
+            this.mainScr.image(Asset.emmision80, a.x, a.y, Asset.emmision80.width / 40 * a.r, Asset.emmision80.width / 40 * a.r);
         });
         this.mainScr.blendMode(this.p.BLEND);
     }
@@ -442,14 +443,14 @@ export class Renderer {
         this.fxaaScr.shader(this.fxaaShader);
         this.fxaaShader.setUniform('tex', this.blobScr);
         this.fxaaScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
-        
+
         this.mainScr.resetShader();
         this.mainScr.image(this.fxaaScr, 0, 0);
     }
 
     renderNoFxaa() {
         this.mainScr.resetShader();
-        this.mainScr.image(this.blobScr, 0, 0);    
+        this.mainScr.image(this.blobScr, 0, 0);
     }
 
     renderFilter() {
@@ -476,11 +477,11 @@ export class Renderer {
             return;
 
         console.log("setBlobArea", width, height);
-        
+
         //does not work
         //this.blobScr.size(width, height);
         //this.fxaaScr.size(width, height);
-        
+
         //*
         this.blobScr.width = width;
         this.blobScr.height = height;
@@ -491,26 +492,37 @@ export class Renderer {
         this.blobScr.shader(this.blobShader05);
         this.blobShader05.setUniform('res', [width, height]);
         this.blobShader05.setUniform('smooth_param', smooth_scale);
-        
+
         this.blobScr.shader(this.blobShader10);
         this.blobShader10.setUniform('res', [width, height]);
         this.blobShader10.setUniform('smooth_param', smooth_scale);
-        
+
         this.blobScr.shader(this.blobShader15);
         this.blobShader15.setUniform('res', [width, height]);
         this.blobShader15.setUniform('smooth_param', smooth_scale);
-        
+
         this.blobScr.shader(this.blobShader20);
         this.blobShader20.setUniform('res', [width, height]);
         this.blobShader20.setUniform('smooth_param', smooth_scale);
 
-        
+
         this.fxaaScr.shader(this.fxaaShader);
         this.fxaaShader.setUniform('res', [width, height]);
 
         console.log(this.blobScr);
         console.log(this.blobShader05);
         //*/
+    }
+
+    resize(width: number, height: number) {
+        this.bgScr.width = width
+        this.bgScr.height = height
+
+        this.mainScr.width = width
+        this.mainScr.height = height
+
+        this.filterScr.width = width
+        this.filterScr.height = height
     }
 
     setFade(fade: number) {

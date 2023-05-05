@@ -26,6 +26,8 @@ export function load() {
 
 type State = EmptyState | Title | Menu | Level;
 
+export let unit = 4;
+
 export const TransitionType = {
     Fade: "fade",
     Left: "left",
@@ -158,7 +160,7 @@ const sketch = (p: p5) => {
     }
 
     p.setup = () => {
-        const canvas = p.createCanvas(800, 800);
+        const canvas = p.createCanvas(100 * unit, 100 * unit);
         canvas.parent("wrapper");
         renderer = new Renderer(p);
         initInputEvent(canvas.elt as HTMLCanvasElement,
@@ -167,7 +169,7 @@ const sketch = (p: p5) => {
             (dir) => transition_manager.flick(dir));
 
         load();
-        
+
         // 以下製作用コード
         const levelEditor = document.getElementById("level_editor") as HTMLTextAreaElement;
         levelEditor.addEventListener("input", () => {

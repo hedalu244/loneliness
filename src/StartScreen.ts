@@ -1,6 +1,6 @@
 import { Direction } from "./algorithm";
 import { Asset } from "./asset";
-import { TransitionManager, TransitionType } from "./main";
+import { TransitionManager, TransitionType, unit } from "./main";
 import { Renderer } from "./renderer";
 import { Title } from "./title";
 
@@ -24,17 +24,17 @@ export class StartScreen {
         renderer.bgScr.background(255);
         renderer.bgScr.fill(Asset.black);
         renderer.bgScr.textAlign(renderer.p.CENTER);
-        renderer.bgScr.textSize(26);
+        renderer.bgScr.textSize(3.25 * unit);
+
         renderer.bgScr.textFont("sans-serif");
-        renderer.bgScr.text("このゲームは孤独を味わうゲームです。\n是非ひとりでプレイしてください。", 400, 300);
+        renderer.bgScr.text("このゲームは孤独を味わうゲームです。\n是非ひとりでプレイしてください。", 50 * unit, 35 * unit);
 
-        renderer.bgScr.textSize(26);
         renderer.bgScr.textFont(Asset.fontR);
-        renderer.bgScr.text("This game is about finding pleasure in solitude.\nPlease play by yourself.", 400, 400);
+        renderer.bgScr.text("This game is about finding pleasure in solitude.\nPlease play by yourself.", 50 * unit, 50 * unit);
 
-        renderer.bgScr.textSize(40);
+        renderer.bgScr.textSize(5 * unit);
         renderer.bgScr.textFont(Asset.fontEB);
-        renderer.bgScr.text("Click / Tap to Start", 400, 600);
+        renderer.bgScr.text("Click / Tap to Start", 50 * unit, 75 * unit);
     }
     key(code: string, manager: TransitionManager) {
         if (code == "Enter") {
