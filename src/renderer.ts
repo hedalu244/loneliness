@@ -30,7 +30,6 @@ export class Renderer {
     blobShader10: p5.Shader;
     blobShader15: p5.Shader;
     blobShader20: p5.Shader;
-    dotShader: p5.Shader;
     blobScr: p5.Graphics;
 
     fxaaShader: p5.Shader;
@@ -66,37 +65,6 @@ export class Renderer {
         vec3 fresnel = f * f2 * f2 * ambient * 0.3;
 
         return (lambert + ambient) * color + fresnel;
-    }`;
-
-    static readonly dotVS = `
-    attribute vec3 aPosition;
-    attribute vec3 aNormal;
-    attribute vec2 aTexCoord;
-    attribute vec4 aVertexColor;
-    
-    uniform mat4 uModelViewMatrix;
-    uniform mat4 uProjectionMatrix;
-    uniform mat3 uNormalMatrix;
-    
-    uniform vec4 uMaterialColor;
-    uniform bool uUseVertexColor;
-    
-    varying vec3 vVertexNormal;
-    varying vec4 vColor;
-    
-    void main(void) {
-        vec4 positionVec4 = vec4(aPosition, 1.0);
-        gl_Position = uProjectionMatrix * uModelViewMatrix * positionVec4;
-        vVertexNormal = normalize(vec3( uNormalMatrix * aNormal ));
-        vColor = (uUseVertexColor ? aVertexColor : uMaterialColor);
-    }`;
-    static readonly dotFS = `
-    varying vec3 vVertexNormal;
-    varying vec4 vColor;
-
-    void main(void) {
-        vec3 n = vVertexNormal * vec3(1, 1, -1);
-        gl_FragColor = vec4(lighting(vColor.rgb, n, 1.0), 1.0);
     }`;
 
     static readonly ScreenVS = `
@@ -305,7 +273,6 @@ export class Renderer {
         this.blobShader10 = this.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS.split("NUM_BLOBS").join("10"));
         this.blobShader15 = this.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS.split("NUM_BLOBS").join("15"));
         this.blobShader20 = this.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS.split("NUM_BLOBS").join("20"));
-        this.dotShader = this.blobScr.createShader(Renderer.dotVS, Renderer.lightingFS + Renderer.dotFS);
 
         this.fxaaScr = this.p.createGraphics(p.width, p.height, this.p.WEBGL);
         this.fxaaScr.setAttributes("depth", false);
@@ -313,10 +280,10 @@ export class Renderer {
         this.fxaaShader = this.fxaaScr.createShader(Renderer.ScreenVS, Renderer.fxaaFS);
 
         this.mainScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
-        this.mainScr.noStroke();
-        this.mainScr.setAttributes("depth", false);
         this.mainScr.rectMode(p.CENTER);
         this.mainScr.imageMode(p.CENTER);
+        this.mainScr.noStroke();
+        this.mainScr.setAttributes("depth", false);
 
         this.filterScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
         this.filterScr.rectMode(p.CENTER);
@@ -354,7 +321,6 @@ export class Renderer {
 
     /// fadeRate: 0～1の薄めぐあい
     render() {
-
         const lastFrameTime = performance.now() - this.lastRenderTimestamp;
         this.lastRenderTimestamp = performance.now();
         
@@ -363,13 +329,13 @@ export class Renderer {
 
         this.p.background(255);
 
-        this.renderFloor()
+        this.renderFloor();
         this.renderBlob();
-        this.renderDot();
 
         if (lastFrameTime < 120) this.renderFxaa();
         else this.renderNoFxaa();
 
+        this.renderDot();
         this.renderEmission();
         this.renderFilter();
 
@@ -426,15 +392,7 @@ export class Renderer {
 
     // dot => blobScr
     renderDot() {
-        this.blobScr.shader(this.dotShader);
-        this.blobScr.noStroke();
-        this.dots.forEach(a => {
-            this.blobScr.fill(a.color == "black" ? Asset.black : 255);
-            this.blobScr.push();
-            this.blobScr.translate(a.x, a.y, a.z);
-            this.blobScr.sphere(a.r, 8, 8);
-            this.blobScr.pop();
-        });
+        this.dots.forEach(a => this.mainScr.image(Asset.dot, a.x, a.y, a.r * 2, a.r * 2));
     }
 
     renderEmission() {

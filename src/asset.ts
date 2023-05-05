@@ -4,6 +4,8 @@ import { n_array } from "./algorithm";
 export class Asset {
     static shadow80: p5.Image;
     static emmision80: p5.Image;
+    static dot: p5.Image;
+
     static fontR: p5.Font;
     static fontEB: p5.Font;
     static black = 90;
@@ -29,6 +31,7 @@ export class Asset {
     static preload(p: p5) {
         Asset.shadow80 = p.loadImage("./shadow80.png");
         Asset.emmision80 = p.loadImage("./emmision.png");
+        Asset.dot = p.loadImage("./dot.png");
         Asset.fontR = p.loadFont("./DIN_2014_R.ttf");
         Asset.fontEB = p.loadFont("./DIN_2014_EB.ttf");
 
@@ -38,7 +41,6 @@ export class Asset {
         Asset.leftButton = p.loadImage("./button_left.png");
         Asset.rightButton = p.loadImage("./button_right.png");
         Asset.muteButton = p.loadImage("./button_mute.png");
-        
         
         Asset.loop_head = new Audio("./loop_head.mp3");
         Asset.loop_tail = new Audio("./loop_tail.mp3");
