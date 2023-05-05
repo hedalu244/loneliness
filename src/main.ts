@@ -25,7 +25,7 @@ export function load() {
 
 type State = EmptyState | Title | Menu | Level;
 
-export let unit = 8;
+export let unit = 4;
 
 export const TransitionType = {
     Fade: "fade",
