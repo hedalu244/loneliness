@@ -1,5 +1,6 @@
 import p5 from "p5";
 import { Asset } from "./asset";
+import { countFrame, measure } from "./performance";
 
 interface Blob {
     x: number,
@@ -359,18 +360,19 @@ export class Renderer {
     
     /// fadeRate: 0～1の薄めぐあい
     render() {
-        if (!this.needUpdate)
-            return;
+        //if (!this.needUpdate)
+        //    return;
         
         this.p.background(255);
-        this.renderFloor();
-        this.renderBlob();
-        this.renderDot();
-        this.renderFxaa();
-        this.renderEmission();
-        this.renderFilter();
+        measure("Floor ", () => this.renderFloor());
+        measure("Blobs ", () => this.renderBlob());
+        measure("Dots  ", () => this.renderDot());
+        measure("FXAA  ", () => this.renderFxaa());
+        measure("Emiss ", () => this.renderEmission());
+        measure("Filter", () => this.renderFilter());
+        measure("Show  ", () => this.p.image(this.filterScr, this.p.width / 2, this.p.height / 2));
 
-        this.p.image(this.filterScr, this.p.width / 2, this.p.height / 2);
+        countFrame();
 
         this.needUpdate = false;
     }

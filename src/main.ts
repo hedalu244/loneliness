@@ -10,6 +10,7 @@ import { Asset } from "./asset";
 import { Cell } from "./game";
 import { EmptyState, StartScreen } from "./StartScreen";
 import { leveldata } from "./leveldata";
+import { measure, measureReset } from "./performance";
 
 export let solved: boolean[];
 export function save() {
@@ -51,7 +52,8 @@ export class TransitionManager {
     draw(renderer: Renderer) {
         const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 1000 : 0;
         const elapsed_time = performance.now() - this.start_time - shift;
-
+        
+        measure("draw  ", () => {
         switch (this.type) {
             case TransitionType.Fade:
             case TransitionType.ClearFade: {
@@ -95,7 +97,7 @@ export class TransitionManager {
                     this.state.draw(renderer);
                 }
             } break;
-        }
+        }});
 
         renderer.render();
         
@@ -104,6 +106,8 @@ export class TransitionManager {
     }
 
     key(code: string) {
+        if (code == "KeyT") measureReset();
+
         const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 1000 : 0;
         const elapsed_time = performance.now() - this.start_time - shift;
         if (elapsed_time < 800)
@@ -201,6 +205,8 @@ const sketch = (p: p5) => {
         //level.draw(renderer);
         //p.noLoop();
     }
+
+    document.getElementById("measure")?.addEventListener("click", measureReset)
 };
 
 new p5(sketch);

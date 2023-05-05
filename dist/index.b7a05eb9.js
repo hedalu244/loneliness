@@ -574,6 +574,7 @@ var _asset = require("./asset");
 var _game = require("./game");
 var _startScreen = require("./StartScreen");
 var _leveldata = require("./leveldata");
+var _performance = require("./performance");
 let solved;
 function save() {
     localStorage.setItem("loneliness", JSON.stringify(solved));
@@ -600,50 +601,53 @@ class TransitionManager {
     draw(renderer) {
         const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 1000 : 0;
         const elapsed_time = performance.now() - this.start_time - shift;
-        switch(this.type){
-            case TransitionType.Fade:
-            case TransitionType.ClearFade:
-                {
-                    const t = elapsed_time / 500 - 1;
-                    const fadeRate = Math.max(0, 1 - t * t);
-                    renderer.setFade(fadeRate);
-                    renderer.setOffset(0, 0);
-                    if (elapsed_time < 500) this.oldState.draw(renderer);
-                    else this.state.draw(renderer);
-                }
-                break;
-            case TransitionType.Right:
-            case TransitionType.ClearRight:
-                {
-                    const offset = (0, _algorithm.elastic)(0, 2, elapsed_time, 500, 0.001);
-                    renderer.setFade(0);
-                    if (offset < 1) {
-                        renderer.setOffset(offset, 0);
-                        this.oldState.draw(renderer);
-                    } else {
-                        renderer.setOffset(offset - 2, 0);
-                        this.state.draw(renderer);
+        (0, _performance.measure)("draw  ", ()=>{
+            switch(this.type){
+                case TransitionType.Fade:
+                case TransitionType.ClearFade:
+                    {
+                        const t = elapsed_time / 500 - 1;
+                        const fadeRate = Math.max(0, 1 - t * t);
+                        renderer.setFade(fadeRate);
+                        renderer.setOffset(0, 0);
+                        if (elapsed_time < 500) this.oldState.draw(renderer);
+                        else this.state.draw(renderer);
                     }
-                }
-                break;
-            case TransitionType.Left:
-                {
-                    const offset = (0, _algorithm.elastic)(0, -2, elapsed_time, 500, 0.001);
-                    renderer.setFade(0);
-                    if (-1 < offset) {
-                        renderer.setOffset(offset, 0);
-                        this.oldState.draw(renderer);
-                    } else {
-                        renderer.setOffset(offset + 2, 0);
-                        this.state.draw(renderer);
+                    break;
+                case TransitionType.Right:
+                case TransitionType.ClearRight:
+                    {
+                        const offset = (0, _algorithm.elastic)(0, 2, elapsed_time, 500, 0.001);
+                        renderer.setFade(0);
+                        if (offset < 1) {
+                            renderer.setOffset(offset, 0);
+                            this.oldState.draw(renderer);
+                        } else {
+                            renderer.setOffset(offset - 2, 0);
+                            this.state.draw(renderer);
+                        }
                     }
-                }
-                break;
-        }
+                    break;
+                case TransitionType.Left:
+                    {
+                        const offset = (0, _algorithm.elastic)(0, -2, elapsed_time, 500, 0.001);
+                        renderer.setFade(0);
+                        if (-1 < offset) {
+                            renderer.setOffset(offset, 0);
+                            this.oldState.draw(renderer);
+                        } else {
+                            renderer.setOffset(offset + 2, 0);
+                            this.state.draw(renderer);
+                        }
+                    }
+                    break;
+            }
+        });
         renderer.render();
         if (elapsed_time < 1000) renderer.needUpdate = true;
     }
     key(code) {
+        if (code == "KeyT") (0, _performance.measureReset)();
         const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 1000 : 0;
         const elapsed_time = performance.now() - this.start_time - shift;
         if (elapsed_time < 800) return;
@@ -722,10 +726,11 @@ const sketch = (p)=>{
     //level.draw(renderer);
     //p.noLoop();
     };
+    document.getElementById("measure")?.addEventListener("click", (0, _performance.measureReset));
 };
 new (0, _p5Default.default)(sketch);
 
-},{"p5":"7Uk5U","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./algorithm":"laafY","./renderer":"g6IVn","./level":"7j7hd","./input":"a2w3B","./asset":"cIMAM","./game":"edeGs","./StartScreen":"l9TZk","./leveldata":"2gicQ"}],"7Uk5U":[function(require,module,exports) {
+},{"p5":"7Uk5U","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./algorithm":"laafY","./renderer":"g6IVn","./level":"7j7hd","./input":"a2w3B","./asset":"cIMAM","./game":"edeGs","./StartScreen":"l9TZk","./leveldata":"2gicQ","./performance":"dJbcy"}],"7Uk5U":[function(require,module,exports) {
 /*! p5.js v1.6.0 February 22, 2023 */ var global = arguments[3];
 !function(e1) {
     module.exports = e1();
@@ -28409,6 +28414,7 @@ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Renderer", ()=>Renderer);
 var _asset = require("./asset");
+var _performance = require("./performance");
 class Renderer {
     static lightingFS = `
     precision highp float;
@@ -28712,15 +28718,17 @@ class Renderer {
     }
     /// fadeRate: 0～1の薄めぐあい
     render() {
-        if (!this.needUpdate) return;
+        //if (!this.needUpdate)
+        //    return;
         this.p.background(255);
-        this.renderFloor();
-        this.renderBlob();
-        this.renderDot();
-        this.renderFxaa();
-        this.renderEmission();
-        this.renderFilter();
-        this.p.image(this.filterScr, this.p.width / 2, this.p.height / 2);
+        (0, _performance.measure)("Floor ", ()=>this.renderFloor());
+        (0, _performance.measure)("Blobs ", ()=>this.renderBlob());
+        (0, _performance.measure)("Dots  ", ()=>this.renderDot());
+        (0, _performance.measure)("FXAA  ", ()=>this.renderFxaa());
+        (0, _performance.measure)("Emiss ", ()=>this.renderEmission());
+        (0, _performance.measure)("Filter", ()=>this.renderFilter());
+        (0, _performance.measure)("Show  ", ()=>this.p.image(this.filterScr, this.p.width / 2, this.p.height / 2));
+        (0, _performance.countFrame)();
         this.needUpdate = false;
     }
     // (shadowScr, bgScr) => mainScr
@@ -28844,7 +28852,7 @@ class Renderer {
     }
 }
 
-},{"./asset":"cIMAM","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"cIMAM":[function(require,module,exports) {
+},{"./asset":"cIMAM","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./performance":"dJbcy"}],"cIMAM":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Asset", ()=>Asset);
@@ -28902,7 +28910,45 @@ class Asset {
     }
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./algorithm":"laafY"}],"7j7hd":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./algorithm":"laafY"}],"dJbcy":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "measure", ()=>measure);
+parcelHelpers.export(exports, "countFrame", ()=>countFrame);
+parcelHelpers.export(exports, "measureReset", ()=>measureReset);
+let performanceData = new Map();
+let frame = 0;
+let totalStart = performance.now();
+function measure(name, func) {
+    const start = performance.now();
+    func();
+    const end = performance.now();
+    const elapsed = end - start;
+    const logged = performanceData.get(name) || 0;
+    performanceData.set(name, logged + elapsed);
+}
+function countFrame() {
+    frame += 1;
+}
+function measureReset() {
+    let total = performance.now() - totalStart;
+    let sum = 0;
+    const result = [];
+    for (const name of performanceData.keys()){
+        const time = performanceData.get(name) || 0;
+        result.push(`${name}:\t${time.toPrecision(3)}ms\t${(time / frame).toPrecision(3)}ms/frame\t${(100 * time / total).toPrecision(3)}%`);
+        sum += time;
+    }
+    const time = total - sum;
+    result.push(`others:\t${time.toPrecision(3)}ms\t${(time / frame).toPrecision(3)}ms/frame\t${(100 * time / total).toPrecision(3)}%`);
+    console.log(result.join("\n"));
+    document.getElementById("measure_result").innerText = result.join("\n");
+    performanceData = new Map();
+    frame = 0;
+    totalStart = performance.now();
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"7j7hd":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Level", ()=>Level);
