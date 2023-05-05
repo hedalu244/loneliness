@@ -29246,7 +29246,7 @@ parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "leveldata", ()=>leveldata);
 const leveldata = [
     {
-        title: "AAA",
+        title: "Tutrial",
         description_ja: "すべてのカタマリを繋いでください。",
         description_en: "Connect all the blobs.",
         initial_board: [
@@ -29278,7 +29278,7 @@ const leveldata = [
         ]
     },
     {
-        title: "BBB",
+        title: "Tutrial_2",
         description_ja: "固定されたカタマリは動かせません。",
         description_en: "A fixed blob cannot be moved.",
         initial_board: [
@@ -29310,7 +29310,155 @@ const leveldata = [
         ]
     },
     {
-        title: "CCC",
+        title: "Castle",
+        description_ja: "これはテストです。",
+        description_en: "this is test text.",
+        initial_board: [
+            [
+                1,
+                1,
+                4,
+                3
+            ],
+            [
+                1,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                0,
+                4,
+                2
+            ],
+            [
+                1,
+                0,
+                0,
+                0
+            ],
+            [
+                1,
+                1,
+                4,
+                3
+            ]
+        ]
+    },
+    {
+        title: "Twin",
+        description_ja: "これはテストです。",
+        description_en: "this is test text.",
+        initial_board: [
+            [
+                0,
+                1,
+                0
+            ],
+            [
+                2,
+                1,
+                0
+            ],
+            [
+                0,
+                4,
+                0
+            ],
+            [
+                3,
+                1,
+                2
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ]
+    },
+    {
+        title: "Lumber",
+        description_ja: "これはテストです。",
+        description_en: "this is test text.",
+        initial_board: [
+            [
+                2,
+                3,
+                3,
+                4
+            ],
+            [
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0,
+                4
+            ]
+        ]
+    },
+    {
+        title: "Raoundabout",
+        description_ja: "これはテストです。",
+        description_en: "this is test text.",
+        initial_board: [
+            [
+                1,
+                1,
+                0,
+                0,
+                0
+            ],
+            [
+                1,
+                0,
+                3,
+                2,
+                1
+            ],
+            [
+                3,
+                0,
+                4,
+                3,
+                0
+            ],
+            [
+                1,
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                3,
+                0,
+                1,
+                0,
+                1
+            ]
+        ]
+    },
+    {
+        title: "Contact",
         description_ja: "これはテストです。",
         description_en: "this is test text.",
         initial_board: [
@@ -29343,43 +29491,6 @@ const leveldata = [
                 0,
                 0,
                 3
-            ]
-        ]
-    },
-    {
-        title: "DDD",
-        description_ja: "これはテストです。",
-        description_en: "this is test text.",
-        initial_board: [
-            [
-                2,
-                3,
-                3,
-                4
-            ],
-            [
-                0,
-                0,
-                0,
-                0
-            ],
-            [
-                0,
-                1,
-                0,
-                0
-            ],
-            [
-                0,
-                0,
-                0,
-                0
-            ],
-            [
-                0,
-                1,
-                0,
-                4
             ]
         ]
     }
@@ -29631,12 +29742,12 @@ function initInputEvent(element, key, click, flick) {
             strokes.splice(strokeIndex, 1); // remove it; we're done
         });
     }, false);
-    document.addEventListener("click", (event)=>{
-        event.preventDefault();
+    element.addEventListener("click", (event)=>{
+        //event.preventDefault();
         click(event.x, event.y);
     }, false);
     document.addEventListener("keydown", (event)=>{
-        event.preventDefault();
+        //event.preventDefault();
         if (event.repeat) return;
         key(event.code);
     }, false);

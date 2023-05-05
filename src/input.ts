@@ -85,13 +85,13 @@ export function initInputEvent(element: HTMLElement,
         });
     }, false);
 
-    document.addEventListener("click", (event: MouseEvent) => {
-        event.preventDefault();
+    element.addEventListener("click", (event: MouseEvent) => {
+        //event.preventDefault();
         click(event.x, event.y)
     }, false);
 
     document.addEventListener("keydown", (event: KeyboardEvent) => {
-        event.preventDefault();
+        //event.preventDefault();
         if (event.repeat) return;
         key(event.code)
     }, false);

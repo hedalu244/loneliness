@@ -9,7 +9,7 @@ export interface LevelParam {
 
 export const leveldata: LevelParam[] = [
     {
-        title: "AAA",
+        title: "Tutrial",
         description_ja: "すべてのカタマリを繋いでください。",
         description_en: "Connect all the blobs.",
         initial_board: [
@@ -21,7 +21,7 @@ export const leveldata: LevelParam[] = [
         ]
     },
     {
-        title: "BBB",
+        title: "Tutrial_2",
         description_ja: "固定されたカタマリは動かせません。",
         description_en: "A fixed blob cannot be moved.",
         initial_board: [
@@ -33,19 +33,31 @@ export const leveldata: LevelParam[] = [
         ]
     },
     {
-        title: "CCC",
+        title: "Castle",
         description_ja: "これはテストです。",
         description_en: "this is test text.",
         initial_board: [
-            [3, 0, 1, 4],
-            [0, 0, 0, 0],
-            [0, 1, 2, 1],
-            [0, 1, 0, 0],
-            [0, 0, 0, 3],
+            [1, 1, 4, 3],
+            [1, 0, 0, 0],
+            [0, 0, 4, 2],
+            [1, 0, 0, 0],
+            [1, 1, 4, 3],
         ]
     },
     {
-        title: "DDD",
+        title: "Twin",
+        description_ja: "これはテストです。",
+        description_en: "this is test text.",
+        initial_board: [
+            [0, 1, 0],
+            [2, 1, 0],
+            [0, 4, 0],
+            [3, 1, 2],
+            [0, 1, 0],
+        ]
+    },
+    {
+        title: "Lumber",
         description_ja: "これはテストです。",
         description_en: "this is test text.",
         initial_board: [
@@ -54,6 +66,30 @@ export const leveldata: LevelParam[] = [
             [0, 1, 0, 0],
             [0, 0, 0, 0],
             [0, 1, 0, 4],
+        ]
+    },
+    {
+        title: "Raoundabout",
+        description_ja: "これはテストです。",
+        description_en: "this is test text.",
+        initial_board: [
+            [1, 1, 0, 0, 0],
+            [1, 0, 3, 2, 1],
+            [3, 0, 4, 3, 0],
+            [1, 0, 0, 0, 0],
+            [3, 0, 1, 0, 1],
+        ]
+    },
+    {
+        title: "Contact",
+        description_ja: "これはテストです。",
+        description_en: "this is test text.",
+        initial_board: [
+            [3, 0, 1, 4],
+            [0, 0, 0, 0],
+            [0, 1, 2, 1],
+            [0, 1, 0, 0],
+            [0, 0, 0, 3],
         ]
     },
 ];
