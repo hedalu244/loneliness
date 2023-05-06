@@ -24,6 +24,7 @@ interface Emission {
 export class Renderer {
     p: p5;
     needUpdate: boolean;
+    lastSimplified: boolean;
     lastRenderTimestamp: number;
 
     blobShader05: p5.Shader;
@@ -247,7 +248,7 @@ export class Renderer {
         vec4 c = texture2D(tex, uv + cuv);
         vec4 d = texture2D(tex, uv - cuv);
 
-        gl_FragColor = vec4((a + a + b + c + d).rgb * .2, 1);
+        gl_FragColor = vec4((x + x + a + b + c + d).rgb * .1667, 1);
     }`;
 
     blobs: Blob[];
@@ -258,6 +259,7 @@ export class Renderer {
     constructor(p: p5) {
         this.needUpdate = true;
         this.lastRenderTimestamp = performance.now();
+        this.lastSimplified = true;
 
         this.p = p;
         p.rectMode(p.CENTER);
@@ -323,26 +325,28 @@ export class Renderer {
     render() {
         const lastFrameTime = performance.now() - this.lastRenderTimestamp;
         this.lastRenderTimestamp = performance.now();
-        
-        if (!this.needUpdate)
+
+        if (!this.lastSimplified && !this.needUpdate)
             return;
+
+        console.log("updated", "fxaa", lastFrameTime < 60 || !this.needUpdate, "blur", lastFrameTime < 120 || !this.needUpdate);
 
         this.p.background(255);
 
         this.renderFloor();
         this.renderBlob();
 
-        if (lastFrameTime < 120) this.renderFxaa();
+        if (lastFrameTime < 60 || !this.needUpdate) this.renderFxaa();
         else this.renderNoFxaa();
-
         this.renderDot();
         this.renderEmission();
         this.renderFilter();
 
-        if (lastFrameTime < 60) this.renderBlur();
+        if (lastFrameTime < 120 || !this.needUpdate) this.renderBlur();
 
         this.p.image(this.filterScr, this.p.width / 2, this.p.height / 2);
 
+        this.lastSimplified = !(lastFrameTime < 60 || !this.needUpdate);
         this.needUpdate = false;
     }
 

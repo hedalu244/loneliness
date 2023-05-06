@@ -53,9 +53,11 @@ export class TransitionManager {
     }
 
     draw(renderer: Renderer) {
+        renderer.needUpdate = false;
+
         const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 1000 : 0;
         const elapsed_time = performance.now() - this.start_time - shift;
-        
+
         switch (this.type) {
             case TransitionType.Fade:
             case TransitionType.ClearFade: {
@@ -100,11 +102,11 @@ export class TransitionManager {
                 }
             } break;
         }
-
-        renderer.render();
         
         if (elapsed_time < 1000)
             renderer.needUpdate = true;
+
+        renderer.render();
     }
 
     key(code: string) {
