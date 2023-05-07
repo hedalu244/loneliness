@@ -562,6 +562,7 @@ parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "solved", ()=>solved);
 parcelHelpers.export(exports, "save", ()=>save);
 parcelHelpers.export(exports, "load", ()=>load);
+parcelHelpers.export(exports, "unit", ()=>unit);
 parcelHelpers.export(exports, "TransitionType", ()=>TransitionType);
 parcelHelpers.export(exports, "TransitionManager", ()=>TransitionManager);
 var _p5 = require("p5");
@@ -574,7 +575,6 @@ var _asset = require("./asset");
 var _game = require("./game");
 var _startScreen = require("./StartScreen");
 var _leveldata = require("./leveldata");
-var _performance = require("./performance");
 let solved;
 function save() {
     localStorage.setItem("loneliness", JSON.stringify(solved));
@@ -583,7 +583,9 @@ function load() {
     const savedata = localStorage.getItem("loneliness");
     if (savedata == null) solved = (0, _algorithm.n_array)((0, _leveldata.leveldata).length, ()=>false);
     else solved = JSON.parse(savedata);
+    console.log(solved);
 }
+let unit = 4;
 const TransitionType = {
     Fade: "fade",
     Left: "left",
@@ -599,55 +601,53 @@ class TransitionManager {
         this.type = TransitionType.Fade;
     }
     draw(renderer) {
+        renderer.needUpdate = false;
         const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 1000 : 0;
         const elapsed_time = performance.now() - this.start_time - shift;
-        (0, _performance.measure)("draw  ", ()=>{
-            switch(this.type){
-                case TransitionType.Fade:
-                case TransitionType.ClearFade:
-                    {
-                        const t = elapsed_time / 500 - 1;
-                        const fadeRate = Math.max(0, 1 - t * t);
-                        renderer.setFade(fadeRate);
-                        renderer.setOffset(0, 0);
-                        if (elapsed_time < 500) this.oldState.draw(renderer);
-                        else this.state.draw(renderer);
+        switch(this.type){
+            case TransitionType.Fade:
+            case TransitionType.ClearFade:
+                {
+                    const t = elapsed_time / 500 - 1;
+                    const fadeRate = Math.max(0, 1 - t * t);
+                    renderer.setFade(fadeRate);
+                    renderer.setOffset(0, 0);
+                    if (elapsed_time < 500) this.oldState.draw(renderer);
+                    else this.state.draw(renderer);
+                }
+                break;
+            case TransitionType.Right:
+            case TransitionType.ClearRight:
+                {
+                    const offset = (0, _algorithm.elastic)(0, 2, elapsed_time, 500, 0.001);
+                    renderer.setFade(0);
+                    if (offset < 1) {
+                        renderer.setOffset(offset, 0);
+                        this.oldState.draw(renderer);
+                    } else {
+                        renderer.setOffset(offset - 2, 0);
+                        this.state.draw(renderer);
                     }
-                    break;
-                case TransitionType.Right:
-                case TransitionType.ClearRight:
-                    {
-                        const offset = (0, _algorithm.elastic)(0, 2, elapsed_time, 500, 0.001);
-                        renderer.setFade(0);
-                        if (offset < 1) {
-                            renderer.setOffset(offset, 0);
-                            this.oldState.draw(renderer);
-                        } else {
-                            renderer.setOffset(offset - 2, 0);
-                            this.state.draw(renderer);
-                        }
+                }
+                break;
+            case TransitionType.Left:
+                {
+                    const offset = (0, _algorithm.elastic)(0, -2, elapsed_time, 500, 0.001);
+                    renderer.setFade(0);
+                    if (-1 < offset) {
+                        renderer.setOffset(offset, 0);
+                        this.oldState.draw(renderer);
+                    } else {
+                        renderer.setOffset(offset + 2, 0);
+                        this.state.draw(renderer);
                     }
-                    break;
-                case TransitionType.Left:
-                    {
-                        const offset = (0, _algorithm.elastic)(0, -2, elapsed_time, 500, 0.001);
-                        renderer.setFade(0);
-                        if (-1 < offset) {
-                            renderer.setOffset(offset, 0);
-                            this.oldState.draw(renderer);
-                        } else {
-                            renderer.setOffset(offset + 2, 0);
-                            this.state.draw(renderer);
-                        }
-                    }
-                    break;
-            }
-        });
-        renderer.render();
+                }
+                break;
+        }
         if (elapsed_time < 1000) renderer.needUpdate = true;
+        renderer.render();
     }
     key(code) {
-        if (code == "KeyT") (0, _performance.measureReset)();
         const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 1000 : 0;
         const elapsed_time = performance.now() - this.start_time - shift;
         if (elapsed_time < 800) return;
@@ -690,7 +690,8 @@ const sketch = (p)=>{
         (0, _asset.Asset).preload(p);
     };
     p.setup = ()=>{
-        const canvas = p.createCanvas(800, 800);
+        const canvas = p.createCanvas(100 * unit, 100 * unit);
+        p.frameRate(30);
         canvas.parent("wrapper");
         renderer = new (0, _renderer.Renderer)(p);
         (0, _input.initInputEvent)(canvas.elt, (code)=>transition_manager.key(code), (x, y)=>transition_manager.click(x, y, p), (dir)=>transition_manager.flick(dir));
@@ -706,7 +707,7 @@ const sketch = (p)=>{
                 return (0, _game.Cell).Empty;
             }
             const value = levelEditor.value;
-            let initial_board = value.trim().split("\n").map((x)=>x.trim().split(" ").map((x)=>cell(+x)));
+            let initial_board = value.trim().split("\n").map((x)=>x.trim().split("").map((x)=>cell(+x)));
             const height = Math.max(...initial_board.map((x)=>x.length));
             initial_board.forEach((x)=>{
                 while(x.length < height)x.push(0);
@@ -726,11 +727,10 @@ const sketch = (p)=>{
     //level.draw(renderer);
     //p.noLoop();
     };
-    document.getElementById("measure")?.addEventListener("click", (0, _performance.measureReset));
 };
 new (0, _p5Default.default)(sketch);
 
-},{"p5":"7Uk5U","./algorithm":"laafY","./renderer":"g6IVn","./level":"7j7hd","./input":"a2w3B","./asset":"cIMAM","./game":"edeGs","./StartScreen":"l9TZk","./leveldata":"2gicQ","./performance":"dJbcy","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"7Uk5U":[function(require,module,exports) {
+},{"p5":"7Uk5U","./algorithm":"laafY","./renderer":"g6IVn","./level":"7j7hd","./input":"a2w3B","./asset":"cIMAM","./game":"edeGs","./StartScreen":"l9TZk","./leveldata":"2gicQ","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"7Uk5U":[function(require,module,exports) {
 /*! p5.js v1.6.0 February 22, 2023 */ var global = arguments[3];
 !function(e1) {
     module.exports = e1();
@@ -28414,7 +28414,6 @@ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Renderer", ()=>Renderer);
 var _asset = require("./asset");
-var _performance = require("./performance");
 class Renderer {
     static lightingFS = `
     precision highp float;
@@ -28431,36 +28430,6 @@ class Renderer {
         vec3 fresnel = f * f2 * f2 * ambient * 0.3;
 
         return (lambert + ambient) * color + fresnel;
-    }`;
-    static dotVS = `
-    attribute vec3 aPosition;
-    attribute vec3 aNormal;
-    attribute vec2 aTexCoord;
-    attribute vec4 aVertexColor;
-    
-    uniform mat4 uModelViewMatrix;
-    uniform mat4 uProjectionMatrix;
-    uniform mat3 uNormalMatrix;
-    
-    uniform vec4 uMaterialColor;
-    uniform bool uUseVertexColor;
-    
-    varying vec3 vVertexNormal;
-    varying vec4 vColor;
-    
-    void main(void) {
-        vec4 positionVec4 = vec4(aPosition, 1.0);
-        gl_Position = uProjectionMatrix * uModelViewMatrix * positionVec4;
-        vVertexNormal = normalize(vec3( uNormalMatrix * aNormal ));
-        vColor = (uUseVertexColor ? aVertexColor : uMaterialColor);
-    }`;
-    static dotFS = `
-    varying vec3 vVertexNormal;
-    varying vec4 vColor;
-
-    void main(void) {
-        vec3 n = vVertexNormal * vec3(1, 1, -1);
-        gl_FragColor = vec4(lighting(vColor.rgb, n, 1.0), 1.0);
     }`;
     static ScreenVS = `
     precision highp float;
@@ -28640,10 +28609,12 @@ class Renderer {
         vec4 c = texture2D(tex, uv + cuv);
         vec4 d = texture2D(tex, uv - cuv);
 
-        gl_FragColor = vec4((a + a + b + c + d).rgb * .2, 1);
+        gl_FragColor = vec4((x + x + a + b + c + d).rgb * .1667, 1);
     }`;
     constructor(p){
         this.needUpdate = true;
+        this.lastRenderTimestamp = performance.now();
+        this.lastSimplified = true;
         this.p = p;
         p.rectMode(p.CENTER);
         p.imageMode(p.CENTER);
@@ -28656,16 +28627,15 @@ class Renderer {
         this.blobShader10 = this.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS.split("NUM_BLOBS").join("10"));
         this.blobShader15 = this.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS.split("NUM_BLOBS").join("15"));
         this.blobShader20 = this.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS.split("NUM_BLOBS").join("20"));
-        this.dotShader = this.blobScr.createShader(Renderer.dotVS, Renderer.lightingFS + Renderer.dotFS);
         this.fxaaScr = this.p.createGraphics(p.width, p.height, this.p.WEBGL);
         this.fxaaScr.setAttributes("depth", false);
         this.fxaaScr.setAttributes("alpha", true);
         this.fxaaShader = this.fxaaScr.createShader(Renderer.ScreenVS, Renderer.fxaaFS);
         this.mainScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
-        this.mainScr.noStroke();
-        this.mainScr.setAttributes("depth", false);
         this.mainScr.rectMode(p.CENTER);
         this.mainScr.imageMode(p.CENTER);
+        this.mainScr.noStroke();
+        this.mainScr.setAttributes("depth", false);
         this.filterScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
         this.filterScr.rectMode(p.CENTER);
         this.filterScr.imageMode(p.CENTER);
@@ -28706,24 +28676,30 @@ class Renderer {
             color
         });
     }
-    addEmission(x, y) {
+    addEmission(x, y, r) {
         this.emissions.push({
             x,
-            y
+            y,
+            r
         });
     }
     /// fadeRate: 0～1の薄めぐあい
     render() {
-        if (!this.needUpdate) return;
+        const lastFrameTime = performance.now() - this.lastRenderTimestamp;
+        this.lastRenderTimestamp = performance.now();
+        if (!this.lastSimplified && !this.needUpdate) return;
+        console.log("updated", "fxaa", lastFrameTime < 60 || !this.needUpdate, "blur", lastFrameTime < 120 || !this.needUpdate);
         this.p.background(255);
-        (0, _performance.measure)("Floor ", ()=>this.renderFloor());
-        (0, _performance.measure)("Blobs ", ()=>this.renderBlob());
-        (0, _performance.measure)("Dots  ", ()=>this.renderDot());
-        (0, _performance.measure)("FXAA  ", ()=>this.renderFxaa());
-        (0, _performance.measure)("Emiss ", ()=>this.renderEmission());
-        (0, _performance.measure)("Filter", ()=>this.renderFilter());
-        (0, _performance.measure)("Show  ", ()=>this.p.image(this.filterScr, this.p.width / 2, this.p.height / 2));
-        (0, _performance.countFrame)();
+        this.renderFloor();
+        this.renderBlob();
+        if (lastFrameTime < 60 || !this.needUpdate) this.renderFxaa();
+        else this.renderNoFxaa();
+        this.renderDot();
+        this.renderEmission();
+        this.renderFilter();
+        if (lastFrameTime < 120 || !this.needUpdate) this.renderBlur();
+        this.p.image(this.filterScr, this.p.width / 2, this.p.height / 2);
+        this.lastSimplified = !(lastFrameTime < 60 || !this.needUpdate);
         this.needUpdate = false;
     }
     // bgScr => mainScr
@@ -28733,7 +28709,7 @@ class Renderer {
         // shadow 0.6    153
         this.mainScr.clear(0, 0, 0, 0);
         this.mainScr.background(225);
-        this.blobs.forEach((a)=>this.mainScr.image((0, _asset.Asset).shadow80, a.x - 50, a.y + 50, (0, _asset.Asset).shadow80.width / 40 * a.r, (0, _asset.Asset).shadow80.height / 40 * a.r));
+        this.blobs.forEach((a)=>this.mainScr.image((0, _asset.Asset).shadow80, a.x - a.z, a.y + a.z, (0, _asset.Asset).shadow80.width / 40 * a.r, (0, _asset.Asset).shadow80.height / 40 * a.r));
         this.mainScr.blendMode(this.p.MULTIPLY);
         this.mainScr.image(this.bgScr, 0, 0);
         this.mainScr.blendMode(this.p.BLEND);
@@ -28745,8 +28721,8 @@ class Renderer {
             return;
         }
         const blob_params = [];
-        this.blobs.forEach((a)=>blob_params.push(a.x, a.y, a.z, a.r));
-        while(blob_params.length < 80)blob_params.push(0);
+        this.blobs.forEach((a)=>blob_params.push(a.x, a.y, 0, a.r));
+        while(blob_params.length % 20 != 0)blob_params.push(0);
         const blobShader = this.blobs.length <= 5 ? this.blobShader05 : this.blobs.length <= 10 ? this.blobShader10 : this.blobs.length <= 15 ? this.blobShader15 : this.blobShader20;
         this.blobScr.clear(0, 0, 0, 0);
         this.blobScr.noStroke();
@@ -28756,21 +28732,13 @@ class Renderer {
     }
     // dot => blobScr
     renderDot() {
-        this.blobScr.shader(this.dotShader);
-        this.blobScr.noStroke();
-        this.dots.forEach((a)=>{
-            this.blobScr.fill(a.color == "black" ? (0, _asset.Asset).black : 255);
-            this.blobScr.push();
-            this.blobScr.translate(a.x, a.y, a.z);
-            this.blobScr.sphere(a.r, 8, 8);
-            this.blobScr.pop();
-        });
+        this.dots.forEach((a)=>this.mainScr.image((0, _asset.Asset).dot, a.x, a.y, a.r * 2, a.r * 2));
     }
     renderEmission() {
         this.mainScr.resetShader();
         this.mainScr.blendMode(this.p.ADD);
         this.emissions.forEach((a)=>{
-            this.mainScr.image((0, _asset.Asset).emmision80, a.x, a.y, 200, 200);
+            this.mainScr.image((0, _asset.Asset).emmision80, a.x, a.y, (0, _asset.Asset).emmision80.width / 40 * a.r, (0, _asset.Asset).emmision80.width / 40 * a.r);
         });
         this.mainScr.blendMode(this.p.BLEND);
     }
@@ -28796,16 +28764,19 @@ class Renderer {
         this.filterScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
         this.mainScr.clear(0, 0, 0, 0);
         this.mainScr.image(this.filterScr, 0, 0, 0, 0);
+    }
+    renderBlur() {
         this.filterScr.clear(0, 0, 0, 0);
         this.filterScr.noStroke();
         this.filterScr.shader(this.BlurShader);
         this.BlurShader.setUniform("tex", this.mainScr);
         this.filterScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+        this.mainScr.clear(0, 0, 0, 0);
+        this.mainScr.image(this.filterScr, 0, 0, 0, 0);
     }
     setBlobArea(width, height, smooth_scale) {
         this.smooth_scale = smooth_scale;
         if (this.blobScr.width == width && this.blobScr.height == height) return;
-        console.log("setBlobArea", width, height);
         //does not work
         //this.blobScr.size(width, height);
         //this.fxaaScr.size(width, height);
@@ -28844,9 +28815,15 @@ class Renderer {
             width,
             height
         ]);
-        console.log(this.blobScr);
-        console.log(this.blobShader05);
     //*/
+    }
+    resize(width, height) {
+        this.bgScr.width = width;
+        this.bgScr.height = height;
+        this.mainScr.width = width;
+        this.mainScr.height = height;
+        this.filterScr.width = width;
+        this.filterScr.height = height;
     }
     setFade(fade) {
         this.fade = fade;
@@ -28862,7 +28839,7 @@ class Renderer {
     }
 }
 
-},{"./asset":"cIMAM","./performance":"dJbcy","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"cIMAM":[function(require,module,exports) {
+},{"./asset":"cIMAM","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"cIMAM":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Asset", ()=>Asset);
@@ -28872,6 +28849,8 @@ class Asset {
     static preload(p) {
         Asset.shadow80 = p.loadImage("./shadow80.png");
         Asset.emmision80 = p.loadImage("./emmision.png");
+        Asset.dot = p.loadImage("./dot.png");
+        Asset.lock = p.loadImage("./lock.png");
         Asset.fontR = p.loadFont("./DIN_2014_R.ttf");
         Asset.fontEB = p.loadFont("./DIN_2014_EB.ttf");
         Asset.undoButton = p.loadImage("./button_undo.png");
@@ -28890,6 +28869,7 @@ class Asset {
         Asset.move_sound = (0, _algorithm.n_array)(8, (i)=>new Audio(`./pop_${i}.wav`));
         Asset.clear_sound = new Audio("./clear.mp3");
         Asset.button_sound = new Audio("./cork.mp3");
+        Asset.level_select_sound = new Audio("./levelselect.mp3");
     }
     static playMoveSound() {
         if (Asset.mute) return;
@@ -28907,6 +28887,11 @@ class Asset {
         Asset.button_sound.currentTime = 0;
         Asset.button_sound.play();
     }
+    static playLevelSelectSound() {
+        if (Asset.mute) return;
+        Asset.level_select_sound.currentTime = 0;
+        Asset.level_select_sound.play();
+    }
     static toggleMute() {
         if (Asset.mute) {
             Asset.loop_head.volume = 1;
@@ -28920,45 +28905,7 @@ class Asset {
     }
 }
 
-},{"./algorithm":"laafY","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"dJbcy":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "measure", ()=>measure);
-parcelHelpers.export(exports, "countFrame", ()=>countFrame);
-parcelHelpers.export(exports, "measureReset", ()=>measureReset);
-let performanceData = new Map();
-let frame = 0;
-let totalStart = performance.now();
-function measure(name, func) {
-    const start = performance.now();
-    func();
-    const end = performance.now();
-    const elapsed = end - start;
-    const logged = performanceData.get(name) || 0;
-    performanceData.set(name, logged + elapsed);
-}
-function countFrame() {
-    frame += 1;
-}
-function measureReset() {
-    let total = performance.now() - totalStart;
-    let sum = 0;
-    const result = [];
-    for (const name of performanceData.keys()){
-        const time = performanceData.get(name) || 0;
-        result.push(`${name}:\t${time.toPrecision(3)}ms\t${(time / frame).toPrecision(3)}ms/frame\t${(100 * time / total).toPrecision(3)}%`);
-        sum += time;
-    }
-    const time = total - sum;
-    result.push(`others:\t${time.toPrecision(3)}ms\t${(time / frame).toPrecision(3)}ms/frame\t${(100 * time / total).toPrecision(3)}%`);
-    console.log(result.join("\n"));
-    document.getElementById("measure_result").innerText = result.join("\n");
-    performanceData = new Map();
-    frame = 0;
-    totalStart = performance.now();
-}
-
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"7j7hd":[function(require,module,exports) {
+},{"./algorithm":"laafY","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"7j7hd":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Level", ()=>Level);
@@ -28976,14 +28923,15 @@ class Level {
         this.description_ja = levelParam.description_ja;
         this.description_en = levelParam.description_en;
         this.game = new (0, _game.Game)(levelParam.initial_board);
-        this.undoButton = new (0, _button.Button)(700, 80, 50, 50, (0, _asset.Asset).undoButton);
-        this.initButton = new (0, _button.Button)(620, 80, 50, 50, (0, _asset.Asset).initButton);
-        this.quitButton = new (0, _button.Button)(480, 80, 50, 50, (0, _asset.Asset).quitButton);
-        this.prevLevelButton = new (0, _button.Button)(60, 400, 40, 40, (0, _asset.Asset).leftButton);
-        this.nextLevelButton = new (0, _button.Button)(740, 400, 40, 40, (0, _asset.Asset).rightButton);
+        this.undoButton = new (0, _button.Button)(87.5 * (0, _main.unit), 10 * (0, _main.unit), 6.25 * (0, _main.unit), 6.25 * (0, _main.unit), (0, _asset.Asset).undoButton);
+        this.initButton = new (0, _button.Button)(77.5 * (0, _main.unit), 10 * (0, _main.unit), 6.25 * (0, _main.unit), 6.25 * (0, _main.unit), (0, _asset.Asset).initButton);
+        this.quitButton = new (0, _button.Button)(60 * (0, _main.unit), 10 * (0, _main.unit), 6.25 * (0, _main.unit), 6.25 * (0, _main.unit), (0, _asset.Asset).quitButton);
+        this.prevLevelButton = new (0, _button.Button)(7.5 * (0, _main.unit), 50 * (0, _main.unit), 10 * (0, _main.unit), 10 * (0, _main.unit), (0, _asset.Asset).leftButton);
+        this.nextLevelButton = new (0, _button.Button)(92.5 * (0, _main.unit), 50 * (0, _main.unit), 10 * (0, _main.unit), 10 * (0, _main.unit), (0, _asset.Asset).rightButton);
     }
     complete(manager) {
         (0, _main.solved)[this.index] = true;
+        (0, _main.save)();
         (0, _asset.Asset).playClearSound();
         if (this.index + 1 < (0, _main.solved).length && !(0, _main.solved)[this.index + 1]) manager.startTransiton(new Level(this.index + 1, (0, _leveldata.leveldata)[this.index + 1]), (0, _main.TransitionType).ClearRight);
         else manager.startTransiton(new (0, _menu.Menu)(0), (0, _main.TransitionType).ClearFade);
@@ -29049,17 +28997,18 @@ class Level {
             return;
         }
         if (this.quitButton.hit(x, y)) {
-            (0, _asset.Asset).playButtonSound();
+            (0, _asset.Asset).playLevelSelectSound();
             manager.startTransiton(new (0, _menu.Menu)(0), (0, _main.TransitionType).Fade);
             return;
         }
-        if (this.nextLevelButton.hit(x, y) && (0, _leveldata.leveldata)[this.index + 1]) {
-            (0, _asset.Asset).playButtonSound();
+        const unlocked = (0, _main.solved).filter((x)=>x).length + 3;
+        if (this.nextLevelButton.hit(x, y) && (0, _leveldata.leveldata)[this.index + 1] && this.index + 1 < unlocked) {
+            (0, _asset.Asset).playLevelSelectSound();
             manager.startTransiton(new Level(this.index + 1, (0, _leveldata.leveldata)[this.index + 1]), (0, _main.TransitionType).Right);
             return;
         }
-        if (this.prevLevelButton.hit(x, y) && (0, _leveldata.leveldata)[this.index - 1]) {
-            (0, _asset.Asset).playButtonSound();
+        if (this.prevLevelButton.hit(x, y) && (0, _leveldata.leveldata)[this.index - 1] && this.index - 1 < unlocked) {
+            (0, _asset.Asset).playLevelSelectSound();
             manager.startTransiton(new Level(this.index - 1, (0, _leveldata.leveldata)[this.index - 1]), (0, _main.TransitionType).Left);
             return;
         }
@@ -29070,21 +29019,22 @@ class Level {
         renderer.bgScr.background(255);
         renderer.bgScr.fill((0, _asset.Asset).black);
         renderer.bgScr.textAlign(renderer.p.LEFT);
-        renderer.bgScr.textSize(44);
+        renderer.bgScr.textSize(5.5 * (0, _main.unit));
         renderer.bgScr.textFont((0, _asset.Asset).fontEB);
-        renderer.bgScr.text((this.index + 1 + ". ").padStart(4, "0"), 60, 80);
-        renderer.bgScr.text(this.title, 60, 130);
-        renderer.bgScr.textSize(26);
+        renderer.bgScr.text((this.index + 1 + ". ").padStart(4, "0"), 7.5 * (0, _main.unit), 10 * (0, _main.unit));
+        renderer.bgScr.text(this.title, 7.5 * (0, _main.unit), 16.25 * (0, _main.unit));
+        renderer.bgScr.textSize(3.25 * (0, _main.unit));
         renderer.bgScr.textFont("sans-serif");
-        renderer.bgScr.text(this.description_ja, 60, 700);
-        renderer.bgScr.textSize(26);
+        renderer.bgScr.text(this.description_ja, 7.5 * (0, _main.unit), 87.5 * (0, _main.unit));
+        renderer.bgScr.textSize(3.25 * (0, _main.unit));
         renderer.bgScr.textFont((0, _asset.Asset).fontR);
-        renderer.bgScr.text(this.description_en, 60, 740);
+        renderer.bgScr.text(this.description_en, 7.5 * (0, _main.unit), 92.5 * (0, _main.unit));
         this.undoButton.draw(renderer);
         this.initButton.draw(renderer);
         this.quitButton.draw(renderer);
-        if ((0, _leveldata.leveldata)[this.index + 1]) this.nextLevelButton.draw(renderer);
-        if ((0, _leveldata.leveldata)[this.index - 1]) this.prevLevelButton.draw(renderer);
+        const unlocked = (0, _main.solved).filter((x)=>x).length + 3;
+        if ((0, _leveldata.leveldata)[this.index + 1] && this.index + 1 < unlocked) this.nextLevelButton.draw(renderer);
+        if ((0, _leveldata.leveldata)[this.index - 1] && this.index - 1 < unlocked) this.prevLevelButton.draw(renderer);
         this.game.draw(renderer);
         if (1 < this.game.anim_queue.length || performance.now() < this.game.anim_starttime + 500) renderer.needUpdate = true;
     }
@@ -29097,6 +29047,7 @@ parcelHelpers.export(exports, "Cell", ()=>Cell);
 parcelHelpers.export(exports, "Game", ()=>Game);
 var _algorithm = require("./algorithm");
 var _asset = require("./asset");
+var _main = require("./main");
 const Cell = {
     Empty: 0,
     Wall: 1,
@@ -29112,7 +29063,7 @@ class Game {
         this.width = initial_board.length;
         this.height = initial_board[0].length;
         this.initial_board = initial_board;
-        this.cell_size = Math.min(520 / this.width, 400 / this.height, 80);
+        this.cell_size = Math.min(65 / this.width * (0, _main.unit), 50 / this.height * (0, _main.unit), 10 * (0, _main.unit));
         this.history = [];
         this.anim_queue = [];
         this.anim_starttime = performance.now();
@@ -29133,6 +29084,7 @@ class Game {
         this.show();
     }
     move(direction) {
+        navigator.vibrate(120);
         console.log("move", direction);
         // 左の場合だけ書けばよい
         const [_width, _height] = direction == (0, _algorithm.Direction).Up || direction == (0, _algorithm.Direction).Down ? [
@@ -29281,22 +29233,22 @@ class Game {
                 case Cell.Wall:
                     break;
                 case Cell.Free:
-                    renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
+                    renderer.addBlob(animX, animY, this.cell_size * 0.6, this.cell_size * 0.42);
                     break;
                 case Cell.Fixed:
-                    renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
+                    renderer.addBlob(animX, animY, this.cell_size * 0.6, this.cell_size * 0.42);
                     renderer.addDot(fixedX, fixedY, 0, this.cell_size * 0.12, "black");
                     break;
                 case Cell.Player:
-                    renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
-                    renderer.addEmission(animX, animY);
+                    renderer.addBlob(animX, animY, this.cell_size * 0.6, this.cell_size * 0.42);
+                    renderer.addEmission(animX, animY, this.cell_size * 0.42);
                     break;
             }
         }
     }
 }
 
-},{"./algorithm":"laafY","./asset":"cIMAM","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"2gicQ":[function(require,module,exports) {
+},{"./algorithm":"laafY","./asset":"cIMAM","./main":"jeorp","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"2gicQ":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "leveldata", ()=>leveldata);
@@ -29568,8 +29520,8 @@ class Menu {
         this.height = 3;
         this.x = selecting % this.width;
         this.y = Math.floor(selecting / this.width);
-        this.muteButton = new (0, _button.Button)(700, 80, 50, 50, (0, _asset.Asset).muteButton);
-        this.cell_size = 80;
+        this.muteButton = new (0, _button.Button)(87.5 * (0, _main.unit), 10 * (0, _main.unit), 6.25 * (0, _main.unit), 6.25 * (0, _main.unit), (0, _asset.Asset).muteButton);
+        this.cell_size = 10 * (0, _main.unit);
         this.anim_queue = [];
         this.anim_starttime = performance.now();
         this.anim_queue.push({
@@ -29579,12 +29531,12 @@ class Menu {
         });
     }
     move(direction) {
+        navigator.vibrate(120);
         const unlocked = (0, _main.solved).filter((x)=>x).length + 3;
         console.log(unlocked);
         let new_x = direction == (0, _algorithm.Direction).Left ? this.x - 1 : direction == (0, _algorithm.Direction).Right ? this.x + 1 : this.x;
         let new_y = direction == (0, _algorithm.Direction).Up ? this.y - 1 : direction == (0, _algorithm.Direction).Down ? this.y + 1 : this.y;
-        let selecting = new_y * this.width + new_x;
-        if (new_x < 0 || this.width <= new_x || new_y < 0 || this.height <= new_y || unlocked <= selecting) return;
+        if (new_x < 0 || this.width <= new_x || new_y < 0 || this.height <= new_y) return;
         this.x = new_x;
         this.y = new_y;
         this.anim_queue.push({
@@ -29610,8 +29562,10 @@ class Menu {
                 break;
             case "Enter":
                 {
+                    const unlocked = (0, _main.solved).filter((x)=>x).length + 3;
                     const selecting = this.y * this.width + this.x;
-                    manager.startTransiton(new (0, _level.Level)(selecting, (0, _leveldata.leveldata)[selecting]), (0, _main.TransitionType).Fade);
+                    if (selecting < unlocked) manager.startTransiton(new (0, _level.Level)(selecting, (0, _leveldata.leveldata)[selecting]), (0, _main.TransitionType).Fade);
+                    (0, _asset.Asset).playLevelSelectSound();
                 }
                 break;
             case "KeyM":
@@ -29640,8 +29594,12 @@ class Menu {
             (0, _asset.Asset).toggleMute();
             return;
         }
+        const unlocked = (0, _main.solved).filter((x)=>x).length + 3;
         const selecting = this.y * this.width + this.x;
-        manager.startTransiton(new (0, _level.Level)(selecting, (0, _leveldata.leveldata)[selecting]), (0, _main.TransitionType).Fade);
+        if (selecting < unlocked) {
+            manager.startTransiton(new (0, _level.Level)(selecting, (0, _leveldata.leveldata)[selecting]), (0, _main.TransitionType).Fade);
+            (0, _asset.Asset).playLevelSelectSound();
+        }
     }
     draw(renderer) {
         const unlocked = (0, _main.solved).filter((x)=>x).length + 3;
@@ -29650,9 +29608,9 @@ class Menu {
         renderer.bgScr.background(255);
         renderer.bgScr.fill((0, _asset.Asset).black);
         renderer.bgScr.textAlign(renderer.p.CENTER);
-        renderer.bgScr.textSize(44);
+        renderer.bgScr.textSize(5.5 * (0, _main.unit));
         renderer.bgScr.textFont((0, _asset.Asset).fontEB);
-        renderer.bgScr.text((selecting + 1 + ". ").padStart(4, "0") + (0, _leveldata.leveldata)[selecting]?.title, 400, 600);
+        renderer.bgScr.text((selecting + 1 + ". ").padStart(4, "0") + (0, _leveldata.leveldata)[selecting]?.title, 50 * (0, _main.unit), 75 * (0, _main.unit));
         this.muteButton.draw(renderer);
         // 以下3D描画
         if (1 < this.anim_queue.length && this.anim_starttime + 200 < performance.now()) {
@@ -29668,14 +29626,15 @@ class Menu {
         renderer.bgScr.rect(renderer.p.width / 2, renderer.p.height / 2, (this.width + 0.40) * this.cell_size, (this.height + 0.40) * this.cell_size);
         for(let x = 0; x < this.width; x++)for(let y = 0; y < this.height; y++){
             let index = y * this.width + x;
+            let posX = (x - this.width / 2 + 0.5) * this.cell_size;
+            let posY = (y - this.height / 2 + 0.5) * this.cell_size;
             if (index < unlocked) {
                 renderer.bgScr.fill((0, _main.solved)[index] ? 180 : 255);
                 renderer.bgScr.textAlign(renderer.p.CENTER);
-                renderer.bgScr.textSize(40);
+                renderer.bgScr.textSize(5 * (0, _main.unit));
                 renderer.bgScr.textFont((0, _asset.Asset).fontEB);
-                renderer.bgScr.text((index + 1 + "").padStart(2, "0"), (x - this.width / 2 + 0.5) * this.cell_size + renderer.p.width / 2, (y - this.height / 2 + 0.5) * this.cell_size + renderer.p.height / 2 + 15);
-            }
-            if (unlocked <= index) renderer.addDot((x - this.width / 2 + 0.5) * this.cell_size, (y - this.height / 2 + 0.5) * this.cell_size, 0, this.cell_size * 0.12, "white");
+                renderer.bgScr.text((index + 1 + "").padStart(2, "0"), posX + 50 * (0, _main.unit), posY + 52 * (0, _main.unit));
+            } else renderer.bgScr.image((0, _asset.Asset).lock, posX + 50 * (0, _main.unit), posY + 50 * (0, _main.unit), (0, _asset.Asset).lock.width / 8 * (0, _main.unit), (0, _asset.Asset).lock.height / 8 * (0, _main.unit));
         }
         // 以下選択中のblobのアニメーション
         const fixedX = (this.anim_queue[0].x - this.width / 2 + 0.5) * this.cell_size;
@@ -29698,8 +29657,8 @@ class Menu {
         ];
         const animX = (0, _algorithm.elastic)(prevX, fixedX, anim_elapsetime);
         const animY = (0, _algorithm.elastic)(prevY, fixedY, anim_elapsetime);
-        renderer.addBlob(animX, animY, 0, this.cell_size * 0.42);
-        renderer.addEmission(animX, animY);
+        renderer.addBlob(animX, animY, this.cell_size * 0.6, this.cell_size * 0.42);
+        renderer.addEmission(animX, animY, this.cell_size * 0.42);
         if (1 < this.anim_queue.length || performance.now() < this.anim_starttime + 500) renderer.needUpdate = true;
     }
 }
@@ -29708,6 +29667,7 @@ class Menu {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Button", ()=>Button);
+var _main = require("./main");
 class Button {
     constructor(x, y, w, h, texture){
         this.x = x;
@@ -29717,7 +29677,7 @@ class Button {
         this.texture = texture;
     }
     draw(renderer) {
-        renderer.bgScr.image(this.texture, this.x, this.y);
+        renderer.bgScr.image(this.texture, this.x, this.y, this.texture.width / 8 * (0, _main.unit), this.texture.height / 8 * (0, _main.unit));
     //renderer.bgScr.fill(Asset.black);
     //renderer.bgScr.rect(this.x, this.y, this.w, this.h);
     }
@@ -29726,7 +29686,7 @@ class Button {
     }
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"a2w3B":[function(require,module,exports) {
+},{"./main":"jeorp","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"a2w3B":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "initInputEvent", ()=>initInputEvent);
@@ -29832,15 +29792,14 @@ class StartScreen {
         renderer.bgScr.background(255);
         renderer.bgScr.fill((0, _asset.Asset).black);
         renderer.bgScr.textAlign(renderer.p.CENTER);
-        renderer.bgScr.textSize(26);
+        renderer.bgScr.textSize(3.25 * (0, _main.unit));
         renderer.bgScr.textFont("sans-serif");
-        renderer.bgScr.text("このゲームは孤独を味わうゲームです。\n是非ひとりでプレイしてください。", 400, 300);
-        renderer.bgScr.textSize(26);
+        renderer.bgScr.text("このゲームは孤独を味わうゲームです。\n是非ひとりでプレイしてください。", 50 * (0, _main.unit), 35 * (0, _main.unit));
         renderer.bgScr.textFont((0, _asset.Asset).fontR);
-        renderer.bgScr.text("This game is about finding pleasure in solitude.\nPlease play by yourself.", 400, 400);
-        renderer.bgScr.textSize(40);
+        renderer.bgScr.text("This game is about finding pleasure in solitude.\nPlease play by yourself.", 50 * (0, _main.unit), 50 * (0, _main.unit));
+        renderer.bgScr.textSize(5 * (0, _main.unit));
         renderer.bgScr.textFont((0, _asset.Asset).fontEB);
-        renderer.bgScr.text("Click / Tap to Start", 400, 600);
+        renderer.bgScr.text("Click / Tap to Start", 50 * (0, _main.unit), 75 * (0, _main.unit));
     }
     key(code, manager) {
         if (code == "Enter") {
@@ -29867,7 +29826,7 @@ var _asset = require("./asset");
 var _button = require("./button");
 class Title {
     constructor(){
-        this.muteButton = new (0, _button.Button)(700, 80, 50, 50, (0, _asset.Asset).muteButton);
+        this.muteButton = new (0, _button.Button)(87.5 * (0, _main.unit), 10 * (0, _main.unit), 6.25 * (0, _main.unit), 6.25 * (0, _main.unit), (0, _asset.Asset).muteButton);
         this.game = new (0, _game.Game)([
             [
                 (0, _game.Cell).Player
@@ -29939,10 +29898,10 @@ class Title {
         renderer.clear();
         renderer.bgScr.background(255);
         renderer.bgScr.fill((0, _asset.Asset).black);
-        renderer.bgScr.textSize(60);
+        renderer.bgScr.textSize(7.5 * (0, _main.unit));
         renderer.bgScr.textFont((0, _asset.Asset).fontEB);
         renderer.bgScr.textAlign(renderer.p.CENTER);
-        renderer.bgScr.text("LONELINESS", 400, 300);
+        renderer.bgScr.text("LONELINESS", 50 * (0, _main.unit), 37.5 * (0, _main.unit));
         this.muteButton.draw(renderer);
         this.game.draw(renderer);
         if (1 < this.game.anim_queue.length || performance.now() < this.game.anim_starttime + 500) renderer.needUpdate = true;
