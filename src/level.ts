@@ -47,7 +47,7 @@ export class Level {
         if (this.index + 1 < solved.length && !solved[this.index + 1])
             manager.startTransiton(new Level(this.index + 1, leveldata[this.index + 1]), TransitionType.ClearRight);
         else
-            manager.startTransiton(new Menu(0), TransitionType.ClearFade);
+            manager.startTransiton(new Menu(this.index), TransitionType.ClearFade);
     }
 
     key(code: string, manager: TransitionManager) {
