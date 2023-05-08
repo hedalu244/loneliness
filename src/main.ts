@@ -9,7 +9,7 @@ import { Menu } from "./menu";
 import { Asset } from "./asset";
 import { Cell } from "./game";
 import { EmptyState, StartScreen } from "./StartScreen";
-import { leveldata } from "./leveldata";
+import { leveldata, parseBoard } from "./leveldata";
 
 export let solved: boolean[];
 export function save() {
@@ -174,24 +174,7 @@ const sketch = (p: p5) => {
         // 以下製作用コード
         const levelEditor = document.getElementById("level_editor") as HTMLTextAreaElement;
         levelEditor.addEventListener("input", () => {
-            function transpose<T>(a: T[][]): T[][] {
-                return a[0].map((_, c) => a.map(r => r[c]));
-            }
-
-            function cell(x: number): Cell {
-                for (let key in Cell)
-                    if (x == Cell[key]) return Cell[key];
-                return Cell.Empty;
-            }
-
-            const value = levelEditor.value;
-            let initial_board = value.trim().split("\n").map(x => x.trim().split("").map(x => cell(+x)));
-            const height = Math.max(...initial_board.map(x => x.length));
-            initial_board.forEach(x => {
-                while (x.length < height) x.push(0);
-            });
-            initial_board = transpose(initial_board)
-
+            let initial_board = parseBoard(levelEditor.value);
             transition_manager.startTransiton(new Level(0, {
                 title: "TEST LEVEL",
                 description_ja: "これはテストステージです。",
