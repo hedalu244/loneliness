@@ -344,7 +344,7 @@ export class Renderer {
 
         if (lastFrameTime < 120 || !this.needUpdate) this.renderBlur();
 
-        this.p.image(this.filterScr, this.p.width / 2, this.p.height / 2);
+        this.p.image(this.mainScr, this.p.width / 2, this.p.height / 2);
 
         this.lastSimplified = !(lastFrameTime < 60 || !this.needUpdate);
         this.needUpdate = false;
