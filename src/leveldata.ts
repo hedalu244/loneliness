@@ -54,7 +54,7 @@ export const leveldata: LevelParam[] = [
         description_en: "Obstinate blobs cannot be moved.",
         initial_board: parseBoard(`
             30011
-            20004
+            00024
             30011`
         )
     },{ // 4
