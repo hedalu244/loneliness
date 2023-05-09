@@ -258,10 +258,10 @@ export class Game {
                 //*
                 if (this.anim_queue[0].board[i][j] != Cell.Wall) {
                     Renderer.bgScr.rect(
-                        fixedX + Renderer.p.width / 2,
-                        fixedY + Renderer.p.height / 2,
-                        1.20 * this.cell_size,
-                        1.20 * this.cell_size);
+                        Math.floor(fixedX + Renderer.p.width / 2),
+                        Math.floor(fixedY + Renderer.p.height / 2),
+                        Math.floor(1.20 * this.cell_size),
+                        Math.floor(1.20 * this.cell_size));
                 }
                 //*/
 

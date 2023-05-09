@@ -164,10 +164,10 @@ export class Menu {
         Renderer.bgScr.noStroke()
         Renderer.bgScr.fill(Asset.black);
         Renderer.bgScr.rect(
-            Renderer.p.width / 2,
-            Renderer.p.height / 2,
-            (this.width + 0.40) * this.cell_size,
-            (this.height + 0.40) * this.cell_size);
+            Math.floor(Renderer.p.width / 2),
+            Math.floor(Renderer.p.height / 2),
+            Math.floor((this.width + 0.40) * this.cell_size),
+            Math.floor((this.height + 0.40) * this.cell_size));
 
         for (let x = 0; x < this.width; x++) {
             for (let y = 0; y < this.height; y++) {
