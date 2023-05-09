@@ -46,7 +46,7 @@ export const leveldata: LevelParam[] = [
             30011`
         )
     },{ // 8
-        title: "Castle", // かんたん、動きが面白い 
+        title: "Breath", // かんたん、動きが面白い 
         description_ja: "焦りを感じたときは、深呼吸すると心が整います。",
         description_en: "If you feel impatient, take a deep breath.",
         initial_board: parseBoard(`
@@ -68,7 +68,7 @@ export const leveldata: LevelParam[] = [
             001033
         `)
     },{ // 5
-        title: "Animal Therapy", // シンプル、ちょいかんたん
+        title: "Animals", // シンプル、ちょいかんたん
         description_ja: "ペットは癒しを与えてくれます。植物を育てるのも良いでしょう。",
         description_en: "Pets bring healing and security. So does growing plants.",
         initial_board: parseBoard(`
@@ -110,9 +110,9 @@ export const leveldata: LevelParam[] = [
             33333
         `)
     },{ // 7
-        title: "L", // シンプル、ちょいむず L
-        description_ja: "目標を決めて努力してみよう。自己肯定につながります。",
-        description_en: "Setting goals and making an effort for it is self-affirming.",
+        title: "Life", // シンプル、ちょいむず L
+        description_ja: "適切な食事、簡単な運動、良い睡眠は、心を健康に保つ秘訣です。",
+        description_en: "The right diet, exercise and sleep can keep your mind healthy.",
         initial_board: parseBoard(`
             20111
             30111
@@ -130,9 +130,9 @@ export const leveldata: LevelParam[] = [
             30103
         `)
     },{ // 11
-        title: "Line up", // 激むず。
-        description_ja: "適切な食事、簡単な運動、良い睡眠は、心を健康に保つ秘訣です。",
-        description_en: "The right diet, exercise and sleep can keep your mind healthy.",
+        title: "Queue", // 激むず。
+        description_ja: "目標を決めて努力してみよう。自己肯定につながります。",
+        description_en: "Setting goals and making an effort for it is self-affirming.",
         initial_board: parseBoard(`
             11001111
             11000311
