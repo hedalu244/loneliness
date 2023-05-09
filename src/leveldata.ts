@@ -36,6 +36,15 @@ export const leveldata: LevelParam[] = [
             00000
             21300`
         )
+    },{ // 3
+        title: "Obstinate",
+        description_ja: "動かないカタマリもいます。",
+        description_en: "Obstinate blobs cannot be moved.",
+        initial_board: parseBoard(`
+            30011
+            00024
+            30011`
+        )
     },{ // 2
         title: "Isolated", // かんたん。プレボ
         description_ja: "孤独を感じるのは自然なことです。あなただけではありません。",
@@ -47,26 +56,6 @@ export const leveldata: LevelParam[] = [
             100200
             300010
             001033
-        `)
-    },{ // 3
-        title: "Obstinate",
-        description_ja: "動かないカタマリもあります。",
-        description_en: "Obstinate blobs cannot be moved.",
-        initial_board: parseBoard(`
-            30011
-            00024
-            30011`
-        )
-    },{ // 4
-        title: "Crowded", // たくさん。
-        description_ja: "友人が多いと別の問題が起きることもあります。",
-        description_en: "Too many friends may cause other problems.",
-        initial_board: parseBoard(`
-            00413
-            11000
-            00000
-            10024
-            33333
         `)
     },{ // 5
         title: "Animal Therapy", // シンプル、ちょいかんたん
@@ -87,6 +76,17 @@ export const leveldata: LevelParam[] = [
             03031
             40204
             10303
+        `)
+    },{ // 4
+        title: "Crowded", // たくさん。
+        description_ja: "友人が多いと別の問題が起きることもあります。",
+        description_en: "Too many friends may cause other problems.",
+        initial_board: parseBoard(`
+            00413
+            11000
+            00000
+            10024
+            33333
         `)
     },{ // 7
         title: "L", // シンプル、ちょいむず L
