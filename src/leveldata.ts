@@ -45,8 +45,18 @@ export const leveldata: LevelParam[] = [
             00024
             30011`
         )
+    },{ // 8
+        title: "Castle", // かんたん、動きが面白い 
+        description_ja: "焦りを感じたときは、深呼吸すると心が整います。",
+        description_en: "If you feel impatient, take a deep breath.",
+        initial_board: parseBoard(`
+            11011
+            10001
+            40404
+            30203
+        `)
     },{ // 2
-        title: "Isolated", // かんたん。プレボ
+        title: "Isolated", // かんたん、面倒。プレボ
         description_ja: "孤独を感じるのは自然なことです。あなただけではありません。",
         description_en: "It is natural to feel lonely. It is not just your problem.",
         initial_board: parseBoard(`
@@ -77,6 +87,17 @@ export const leveldata: LevelParam[] = [
             40204
             10303
         `)
+    },{ // 10
+        title: "Roundabout", // まあまあむず
+        description_ja: "自分の感情を表現する方法を見つけよう。日記、絵、音楽...",
+        description_en: "Find ways to express your feelings. Diary, drawing, music...",
+        initial_board: parseBoard(`
+            11313
+            10000
+            03401
+            02300
+            01001
+        `)
     },{ // 4
         title: "Crowded", // たくさん。
         description_ja: "友人が多いと別の問題が起きることもあります。",
@@ -98,16 +119,6 @@ export const leveldata: LevelParam[] = [
             30000
             40004
         `)
-    },{ // 8
-        title: "Castle", // かんたん、動きが面白い 
-        description_ja: "自分の感情を表現する方法を見つけよう。日記、絵、音楽...",
-        description_en: "Find ways to express your feelings. Diary, drawing, music...",
-        initial_board: parseBoard(`
-            11011
-            10001
-            40404
-            30203
-        `)
     },{ // 9
         title: "Contact", // かなりむず
         description_ja: "学びを追求しよう。学びはたくさんの刺激を与えてくれます。",
@@ -117,17 +128,6 @@ export const leveldata: LevelParam[] = [
             00110
             10200
             30103
-        `)
-    },{ // 10
-        title: "Roundabout", // まあまあむず
-        description_ja: "焦りを感じたときは、深呼吸すると心が整います。",
-        description_en: "If you feel impatient, take a deep breath.",
-        initial_board: parseBoard(`
-            11313
-            10000
-            03401
-            02300
-            01001
         `)
     },{ // 11
         title: "Line up", // 激むず。
