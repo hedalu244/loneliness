@@ -154,19 +154,20 @@ export class Renderer {
     uniform sampler2D tex;
 
     float lum(vec4 color) {
-        return dot(color, vec4(0.299, 0.587, 0.114, 1.));
+        return color.a;//dot(color, vec4(0.299, 0.587, 0.114, 1.));
     }
     
     void main() {
         //FXAA
         vec4 center = texture2D(tex, uv);
-    
-        vec2 px = 1.0 / res.xy;    
+        vec2 px = 1.0 / res.xy;
+        vec2 _uv = uv + 0.5 * px;
+
         float lumC = lum(center);
-        float lumL = lum(texture2D(tex, uv + vec2(-0.5, 0) * px));
-        float lumR = lum(texture2D(tex, uv + vec2( 0.5, 0) * px));
-        float lumT = lum(texture2D(tex, uv + vec2( 0, -0.5) * px));
-        float lumB = lum(texture2D(tex, uv + vec2( 0,  0.5) * px));
+        float lumL = lum(texture2D(tex, _uv + vec2(-0.5, 0) * px));
+        float lumR = lum(texture2D(tex, _uv + vec2( 0.5, 0) * px));
+        float lumT = lum(texture2D(tex, _uv + vec2( 0, -0.5) * px));
+        float lumB = lum(texture2D(tex, _uv + vec2( 0,  0.5) * px));
         
         float maxlum = max(max(max(lumL, lumR), max(lumT, lumB)), lumC);
         float minlum = min(min(min(lumL, lumR), min(lumT, lumB)), lumC);
@@ -180,10 +181,10 @@ export class Renderer {
         vec2 offset1 = clamp(alignedDir, -0.5, 0.5) * px;
         vec2 offset2 = clamp(alignedDir, -1.5, 1.5) * px;
         
-        vec4 rgbN1 = texture2D(tex, uv - offset1);
-        vec4 rgbP1 = texture2D(tex, uv + offset1);
-        vec4 rgbN2 = texture2D(tex, uv - offset2);
-        vec4 rgbP2 = texture2D(tex, uv + offset2);
+        vec4 rgbN1 = texture2D(tex, _uv - offset1);
+        vec4 rgbP1 = texture2D(tex, _uv + offset1);
+        vec4 rgbN2 = texture2D(tex, _uv - offset2);
+        vec4 rgbP2 = texture2D(tex, _uv + offset2);
         
         vec4 AA1 = (rgbN1 + rgbP1) * 0.5;
         vec4 AA2 = (rgbN1 + rgbP1 + rgbN2 + rgbP2) * 0.25;
