@@ -77,7 +77,7 @@ export class Level {
                 Asset.toggleMute();
             } break;
             case "Escape": {
-                manager.startTransiton(new Menu(0), TransitionType.Fade);
+                manager.startTransiton(new Menu(this.index), TransitionType.Fade);
             } break;
         }
 
@@ -120,7 +120,7 @@ export class Level {
         }
         if (this.quitButton.hit(x, y)) {
             Asset.playLevelSelectSound();
-            manager.startTransiton(new Menu(0), TransitionType.Fade);
+            manager.startTransiton(new Menu(this.index), TransitionType.Fade);
             return;
         }
         
@@ -154,11 +154,11 @@ export class Level {
         renderer.bgScr.text((this.index + 1 + ". ").padStart(4, "0"), 7.5 * unit, 10 * unit);
         renderer.bgScr.text(this.title, 7.5 * unit, 16.25 * unit);
         
-        renderer.bgScr.textSize(3.25 * unit);
+        renderer.bgScr.textSize(3 * unit);
         renderer.bgScr.textFont("sans-serif");
         renderer.bgScr.text(this.description_ja, 7.5 * unit, 87.5 * unit);
         
-        renderer.bgScr.textSize(3.25 * unit);
+        renderer.bgScr.textSize(3 * unit);
         renderer.bgScr.textFont(Asset.fontR);
         renderer.bgScr.text(this.description_en, 7.5 * unit, 92.5 * unit);
         

@@ -34,7 +34,7 @@ export class StartScreen {
 
         renderer.bgScr.textSize(5 * unit);
         renderer.bgScr.textFont(Asset.fontEB);
-        renderer.bgScr.text("Click / Tap to Start", 50 * unit, 75 * unit);
+        renderer.bgScr.text("Enter / Tap to Start", 50 * unit, 75 * unit);
     }
     key(code: string, manager: TransitionManager) {
         if (code == "Enter") {

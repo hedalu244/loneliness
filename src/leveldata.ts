@@ -69,8 +69,8 @@ export const leveldata: LevelParam[] = [
             33333
         `)
     },{ // 5
-        title: "Wing", // シンプル、ちょいかんたん
-        description_ja: "ペットは癒しや安心感を与えてくれます。植物を育てるのも良いでしょう。",
+        title: "Animal Therapy", // シンプル、ちょいかんたん
+        description_ja: "ペットは癒しを与えてくれます。植物を育てるのも良いでしょう。",
         description_en: "Pets bring healing and security. So does growing plants.",
         initial_board: parseBoard(`
             03000
@@ -80,7 +80,7 @@ export const leveldata: LevelParam[] = [
             03000
         `)
     },{ // 6
-        title: "Hobbies", // まあまあ簡単
+        title: "Hobbies", // まあまあ簡単 dotted
         description_ja: "興味を持てる趣味を見つけて、自分の時間を有意義にしよう。",
         description_en: "Find hobbies and make the most of your alone time.",
         initial_board: parseBoard(`
@@ -89,7 +89,7 @@ export const leveldata: LevelParam[] = [
             10303
         `)
     },{ // 7
-        title: "L", // シンプル、ちょいむず
+        title: "L", // シンプル、ちょいむず L
         description_ja: "目標を決めて努力してみよう。自己肯定につながります。",
         description_en: "Setting goals and making an effort for it is self-affirming.",
         initial_board: parseBoard(`
@@ -109,9 +109,19 @@ export const leveldata: LevelParam[] = [
             30203
         `)
     },{ // 9
+        title: "Contact", // かなりむず
+        description_ja: "学びを追求しよう。学びはたくさんの刺激を与えてくれます。",
+        description_en: "Let's pursue learning. Learning provides a lot of stimulation.",
+        initial_board: parseBoard(`
+            30000
+            00110
+            10200
+            30103
+        `)
+    },{ // 10
         title: "Raoundabout", // まあまあむず
-        description_ja: "",
-        description_en: "",
+        description_ja: "焦りを感じたときは、深呼吸すると心が整います。",
+        description_en: "If you feel impatient, take a deep breath.",
         initial_board: parseBoard(`
             11313
             10000
@@ -119,20 +129,10 @@ export const leveldata: LevelParam[] = [
             02300
             01001
         `)
-    },{ // 10
-        title: "Contact", // かなりむず
-        description_ja: "",
-        description_en: "",
-        initial_board: parseBoard(`
-            30000
-            00110
-            10200
-            30103
-        `)
     },{ // 11
         title: "Line up", // 激むず。
-        description_ja: "",
-        description_en: "",
+        description_ja: "適切な食事、簡単な運動、良い睡眠は、心を健康に保つ秘訣です。",
+        description_en: "The right diet, exercise and sleep can keep your mind healthy.",
         initial_board: parseBoard(`
             11001111
             11000311
@@ -142,9 +142,9 @@ export const leveldata: LevelParam[] = [
             11031111
         `)
     },{ // 12
-        title: "Trapped", // まあまあむず 
-        description_ja: "",
-        description_en: "",
+        title: "Trapped", // まあまあむず Trapped
+        description_ja: "自分自身が何を求めているのか向き合ってみましょう。",
+        description_en: "Face up to what you want from yourself.",
         initial_board: parseBoard(`
             100200
             001000
@@ -153,9 +153,9 @@ export const leveldata: LevelParam[] = [
             110031
         `)
     },{ // 13
-        title: "Loop", // シンプル、ちょいむず　大回り
-        description_ja: "",
-        description_en: "",
+        title: "Loop", // シンプル、ちょいむず　大回り　Loop
+        description_ja: "孤独を受け入れることが最初の一歩です。",
+        description_en: "Accepting loneliness is the first step.",
         initial_board: parseBoard(`
             40004
             13230
