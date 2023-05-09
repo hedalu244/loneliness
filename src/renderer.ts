@@ -24,6 +24,7 @@ interface Emission {
 export class Renderer {
     p: p5;
     needUpdate: boolean;
+    lastNeedUpdate: boolean;
     lastSimplified: boolean;
     lastRenderTimestamp: number;
 
@@ -260,6 +261,7 @@ export class Renderer {
         this.needUpdate = true;
         this.lastRenderTimestamp = performance.now();
         this.lastSimplified = true;
+        this.lastNeedUpdate = true;
 
         this.p = p;
         p.rectMode(p.CENTER);
@@ -326,27 +328,32 @@ export class Renderer {
         const lastFrameTime = performance.now() - this.lastRenderTimestamp;
         this.lastRenderTimestamp = performance.now();
 
-        if (!this.lastSimplified && !this.needUpdate)
+        if (!this.lastSimplified && !this.lastNeedUpdate) {
+            this.lastNeedUpdate = this.needUpdate;
+            this.needUpdate = false;
             return;
-
-        console.log("updated", "fxaa", lastFrameTime < 60 || !this.needUpdate, "blur", lastFrameTime < 120 || !this.needUpdate);
+        }
+        
+        console.log("updated", "fxaa", lastFrameTime < 60 || !this.lastNeedUpdate, "blur", lastFrameTime < 120 || !this.lastNeedUpdate);
 
         this.p.background(255);
 
         this.renderFloor();
         this.renderBlob();
 
-        if (lastFrameTime < 60 || !this.needUpdate) this.renderFxaa();
+        if (lastFrameTime < 60 || !this.lastNeedUpdate) this.renderFxaa();
         else this.renderNoFxaa();
         this.renderDot();
         this.renderEmission();
         this.renderFilter();
 
-        if (lastFrameTime < 120 || !this.needUpdate) this.renderBlur();
+        if (lastFrameTime < 120 || !this.lastNeedUpdate) this.renderBlur();
 
         this.p.image(this.mainScr, this.p.width / 2, this.p.height / 2);
 
-        this.lastSimplified = !(lastFrameTime < 60 || !this.needUpdate);
+        this.lastSimplified = !(lastFrameTime < 60 || !this.lastNeedUpdate);
+
+        this.lastNeedUpdate = this.needUpdate;
         this.needUpdate = false;
     }
 

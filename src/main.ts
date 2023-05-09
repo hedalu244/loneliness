@@ -102,7 +102,7 @@ export class TransitionManager {
                 }
             } break;
         }
-        
+
         if (elapsed_time < 1000)
             renderer.needUpdate = true;
 
