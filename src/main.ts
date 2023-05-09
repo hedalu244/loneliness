@@ -22,6 +22,9 @@ export function load() {
         solved = n_array(leveldata.length, () => false);
     else
         solved = JSON.parse(savedata);
+
+    while(solved.length < leveldata.length) solved.push(false);
+    
     console.log(solved);
 }
 

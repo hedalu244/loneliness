@@ -143,7 +143,10 @@ export class Menu {
         renderer.bgScr.textAlign(renderer.p.CENTER);
         renderer.bgScr.textSize(5.5 * unit);
         renderer.bgScr.textFont(Asset.fontEB);
-        renderer.bgScr.text((selecting + 1 + ". ").padStart(4, "0") + leveldata[selecting]?.title, 50 * unit, 75 * unit);
+        if (selecting < unlocked)
+            renderer.bgScr.text((selecting + 1 + ". ").padStart(4, "0") + leveldata[selecting]?.title, 50 * unit, 75 * unit);
+        else
+            renderer.bgScr.text((selecting + 1 + ". ").padStart(4, "0") + "???", 50 * unit, 75 * unit);
 
         this.muteButton.draw(renderer);
 

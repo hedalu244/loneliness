@@ -37,7 +37,7 @@ export const leveldata: LevelParam[] = [
             21300`
         )
     },{ // 2
-        title: "isolated", // かんたん。プレボ
+        title: "Isolated", // かんたん。プレボ
         description_ja: "孤独を感じるのは自然なことです。あなただけではありません。",
         description_en: "It is natural to feel lonely. It is not just your problem.",
         initial_board: parseBoard(`
