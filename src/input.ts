@@ -91,7 +91,7 @@ export function initInputEvent(element: HTMLElement,
     }, false);
 
     document.addEventListener("keydown", (event: KeyboardEvent) => {
-        //event.preventDefault();
+        event.preventDefault();
         if (event.repeat) return;
         key(event.code)
     }, false);
