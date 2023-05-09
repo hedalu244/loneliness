@@ -119,7 +119,7 @@ export const leveldata: LevelParam[] = [
             30103
         `)
     },{ // 10
-        title: "Raoundabout", // まあまあむず
+        title: "Roundabout", // まあまあむず
         description_ja: "焦りを感じたときは、深呼吸すると心が整います。",
         description_en: "If you feel impatient, take a deep breath.",
         initial_board: parseBoard(`
