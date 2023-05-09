@@ -24,7 +24,7 @@ export function load() {
         solved = JSON.parse(savedata);
 
     while(solved.length < leveldata.length) solved.push(false);
-    
+
     console.log(solved);
 }
 
