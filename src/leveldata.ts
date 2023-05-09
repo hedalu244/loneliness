@@ -27,104 +27,19 @@ export function parseBoard(s : string): Board {
 }
 
 export const leveldata: LevelParam[] = [
-    {
-        title: "Tutrial",
-        description_ja: "すべてのカタマリを繋いでください。",
-        description_en: "Connect all the blobs.",
+    { // 1
+        title: "First Step",
+        description_ja: "カタマリは孤独を感じています。つなげてあげよう。",
+        description_en: "Blobs feel lonely. Let's connect them.",
         initial_board:parseBoard(`
             03103
             00000
             21300`
         )
-    },{
-        title: "Tutrial_2",
-        description_ja: "固定されたカタマリは動かせません。",
-        description_en: "A fixed blob cannot be moved.",
-        initial_board: parseBoard(`
-            30011
-            20004
-            30011`
-        )
-    },{
-        title: "Castle", // かんたん、動きが面白い 
-        description_ja: "これはテストです。",
-        description_en: "this is test text.",
-        initial_board: parseBoard(`
-            11011
-            10001
-            40404
-            30203
-        `)
-    },{
-        title: "Raoundabout", // まあまあむず
-        description_ja: "これはテストです。",
-        description_en: "this is test text.",
-        initial_board: parseBoard(`
-            11313
-            10000
-            03401
-            02300
-            01001
-        `)
-    },{
-        title: "Contact", // かなりむず
-        description_ja: "これはテストです。",
-        description_en: "this is test text.",
-        initial_board: parseBoard(`
-            30000
-            00110
-            10200
-            30103
-        `)
-    },{
-        title: "Line up", // 激むず。
-        description_ja: "これはテストです。",
-        description_en: "this is test text.",
-        initial_board: parseBoard(`
-            11001111
-            11000311
-            11100411
-            40020330
-            11001411
-            11031111
-        `)
-    },{
-        title: "Crowded", // たくさん。
-        description_ja: "これはテストです。",
-        description_en: "this is test text.",
-        initial_board: parseBoard(`
-            00413
-            11000
-            00000
-            10024
-            33333
-        `)
-    },{
-        title: "Trapped", // まあまあむず 
-        description_ja: "これはテストです。",
-        description_en: "this is test text.",
-        initial_board: parseBoard(`
-            100200
-            001000
-            310001
-            300431
-            110031
-        `)
-    },{
-        title: "Wing", // シンプル、ちょいかんたん
-        description_ja: "これはテストです。",
-        description_en: "this is test text.",
-        initial_board: parseBoard(`
-            03000
-            10401
-            40204
-            00401
-            03000
-        `)
-    },{
-        title: "Presentation", // かんたん。プレボ
-        description_ja: "これはテストです。",
-        description_en: "this is test text.",
+    },{ // 2
+        title: "isolated", // かんたん。プレボ
+        description_ja: "孤独を感じるのは自然なことです。あなただけではありません。",
+        description_en: "It is natural to feel lonely. It is not just your problem.",
         initial_board: parseBoard(`
             001003
             301000
@@ -133,20 +48,114 @@ export const leveldata: LevelParam[] = [
             300010
             001033
         `)
-    },{
+    },{ // 3
+        title: "Obstinate",
+        description_ja: "動かないカタマリもあります。",
+        description_en: "Obstinate blobs cannot be moved.",
+        initial_board: parseBoard(`
+            30011
+            20004
+            30011`
+        )
+    },{ // 4
+        title: "Crowded", // たくさん。
+        description_ja: "友人が多いと別の問題が起きることもあります。",
+        description_en: "Too many friends may cause other problems.",
+        initial_board: parseBoard(`
+            00413
+            11000
+            00000
+            10024
+            33333
+        `)
+    },{ // 5
+        title: "Wing", // シンプル、ちょいかんたん
+        description_ja: "ペットは癒しや安心感を与えてくれます。植物を育てるのも良いでしょう。",
+        description_en: "Pets bring healing and security. So does growing plants.",
+        initial_board: parseBoard(`
+            03000
+            10401
+            40204
+            00401
+            03000
+        `)
+    },{ // 6
+        title: "Hobbies", // まあまあ簡単
+        description_ja: "興味を持てる趣味を見つけて、自分の時間を有意義にしよう。",
+        description_en: "Find hobbies and make the most of your alone time.",
+        initial_board: parseBoard(`
+            03031
+            40204
+            10303
+        `)
+    },{ // 7
         title: "L", // シンプル、ちょいむず
-        description_ja: "これはテストです。",
-        description_en: "this is test text.",
+        description_ja: "目標を決めて努力してみよう。自己肯定につながります。",
+        description_en: "Setting goals and making an effort for it is self-affirming.",
         initial_board: parseBoard(`
             20111
             30111
             30000
             40004
         `)
-    },{
-        title: "Lumber", // シンプル、ちょいむず　大回り
-        description_ja: "これはテストです。",
-        description_en: "this is test text.",
+    },{ // 8
+        title: "Castle", // かんたん、動きが面白い 
+        description_ja: "自分の感情を表現する方法を見つけよう。日記、絵、音楽...",
+        description_en: "Find ways to express your feelings. Diary, drawing, music...",
+        initial_board: parseBoard(`
+            11011
+            10001
+            40404
+            30203
+        `)
+    },{ // 9
+        title: "Raoundabout", // まあまあむず
+        description_ja: "",
+        description_en: "",
+        initial_board: parseBoard(`
+            11313
+            10000
+            03401
+            02300
+            01001
+        `)
+    },{ // 10
+        title: "Contact", // かなりむず
+        description_ja: "",
+        description_en: "",
+        initial_board: parseBoard(`
+            30000
+            00110
+            10200
+            30103
+        `)
+    },{ // 11
+        title: "Line up", // 激むず。
+        description_ja: "",
+        description_en: "",
+        initial_board: parseBoard(`
+            11001111
+            11000311
+            11100411
+            40020330
+            11001411
+            11031111
+        `)
+    },{ // 12
+        title: "Trapped", // まあまあむず 
+        description_ja: "",
+        description_en: "",
+        initial_board: parseBoard(`
+            100200
+            001000
+            310001
+            300431
+            110031
+        `)
+    },{ // 13
+        title: "Loop", // シンプル、ちょいむず　大回り
+        description_ja: "",
+        description_en: "",
         initial_board: parseBoard(`
             40004
             13230
@@ -154,24 +163,15 @@ export const leveldata: LevelParam[] = [
             00000
         `)
     },{
-        title: "3 Dotted", // まあまあ簡単
-        description_ja: "これはテストです。",
-        description_en: "this is test text.",
-        initial_board: parseBoard(`
-            03031
-            40204
-            10303
-        `)
-    },{
         title: "",
-        description_ja: "これはテストです。",
-        description_en: "this is test text.",
+        description_ja: "",
+        description_en: "",
         initial_board: parseBoard(`
         `)
     },{
         title: "",
-        description_ja: "これはテストです。",
-        description_en: "this is test text.",
+        description_ja: "",
+        description_en: "",
         initial_board: parseBoard(`
         `)
     },
