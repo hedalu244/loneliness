@@ -56,7 +56,7 @@ export class Renderer {
     precision highp float;
 
     const vec3 light_dir = normalize(vec3(0.5, -0.5, -0.707));
-    const vec3 directional = vec3(0.4);
+    const vec3 directional = vec3(0.3);
     const vec3 ambient = vec3(0.6);
 
     vec3 lighting(vec3 color, vec3 normal, float shadow) {
@@ -360,11 +360,12 @@ export class Renderer {
     // bgScr => mainScr
     renderFloor() {
         // (light_dir.z * directional * shadow + ambient) * color;
-        // light　0.8828 225
+        // (0.707 * 0.3 + 0.6)
+        // light　0.8121 207
         // shadow 0.6    153
 
         this.mainScr.clear(0, 0, 0, 0);
-        this.mainScr.background(225);
+        this.mainScr.background(207);
 
         this.blobs.forEach(a => this.mainScr.image(
             Asset.shadow80,
