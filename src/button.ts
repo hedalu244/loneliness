@@ -18,8 +18,8 @@ export class Button{
         this.texture = texture;
     }
 
-    draw(renderer: Renderer){
-        renderer.bgScr.image(this.texture, this.x, this.y, this.texture.width / 8 * unit, this.texture.height / 8 * unit);
+    draw(){
+        Renderer.bgScr.image(this.texture, this.x, this.y, this.texture.width / 8 * unit, this.texture.height / 8 * unit);
         //renderer.bgScr.fill(Asset.black);
         //renderer.bgScr.rect(this.x, this.y, this.w, this.h);
     }

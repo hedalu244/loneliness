@@ -55,8 +55,8 @@ export class TransitionManager {
         this.type = TransitionType.Fade;
     }
 
-    draw(renderer: Renderer) {
-        renderer.needUpdate = false;
+    draw() {
+        Renderer.needUpdate = false;
 
         const shift = this.type == TransitionType.ClearFade || this.type == TransitionType.ClearRight ? 1000 : 0;
         const elapsed_time = performance.now() - this.start_time - shift;
@@ -67,49 +67,49 @@ export class TransitionManager {
                 const t = elapsed_time / 500 - 1;
                 const fadeRate = Math.max(0, 1 - t * t);
 
-                renderer.setFade(fadeRate);
-                renderer.setOffset(0, 0);
+                Renderer.setFade(fadeRate);
+                Renderer.setOffset(0, 0);
 
                 if (elapsed_time < 500)
-                    this.oldState.draw(renderer);
+                    this.oldState.draw(Renderer);
                 else
-                    this.state.draw(renderer);
+                    this.state.draw(Renderer);
             } break;
 
             case TransitionType.Right:
             case TransitionType.ClearRight: {
                 const offset = elastic(0, 2, elapsed_time, 500, 0.001);
-                renderer.setFade(0);
+                Renderer.setFade(0);
 
                 if (offset < 1) {
-                    renderer.setOffset(offset, 0);
-                    this.oldState.draw(renderer);
+                    Renderer.setOffset(offset, 0);
+                    this.oldState.draw(Renderer);
                 }
                 else {
-                    renderer.setOffset(offset - 2, 0);
-                    this.state.draw(renderer);
+                    Renderer.setOffset(offset - 2, 0);
+                    this.state.draw(Renderer);
                 }
             } break;
 
             case TransitionType.Left: {
                 const offset = elastic(0, -2, elapsed_time, 500, 0.001);
-                renderer.setFade(0);
+                Renderer.setFade(0);
 
                 if (-1 < offset) {
-                    renderer.setOffset(offset, 0);
-                    this.oldState.draw(renderer);
+                    Renderer.setOffset(offset, 0);
+                    this.oldState.draw(Renderer);
                 }
                 else {
-                    renderer.setOffset(offset + 2, 0);
-                    this.state.draw(renderer);
+                    Renderer.setOffset(offset + 2, 0);
+                    this.state.draw(Renderer);
                 }
             } break;
         }
 
         if (elapsed_time < 1000)
-            renderer.needUpdate = true;
+            Renderer.needUpdate = true;
 
-        renderer.render();
+        Renderer.render();
     }
 
     key(code: string) {
@@ -144,7 +144,6 @@ export class TransitionManager {
 }
 
 const sketch = (p: p5) => {
-    let renderer: Renderer;
     let transition_manager = new TransitionManager(new StartScreen());
     /*
     const level = new Level(
@@ -166,7 +165,7 @@ const sketch = (p: p5) => {
         const canvas = p.createCanvas(100 * unit, 100 * unit);
         p.frameRate(30);
         canvas.parent("wrapper");
-        renderer = new Renderer(p);
+        Renderer.init(p);
         initInputEvent(canvas.elt as HTMLCanvasElement,
             (code) => transition_manager.key(code),
             (x, y) => transition_manager.click(x, y, p),
@@ -189,9 +188,9 @@ const sketch = (p: p5) => {
 
     p.draw = () => {
         //transition_manager.update();
-        transition_manager.draw(renderer);
+        transition_manager.draw();
 
-        //level.draw(renderer);
+        //level.draw(Renderer);
         //p.noLoop();
     }
 };

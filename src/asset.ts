@@ -1,5 +1,8 @@
 import p5 from "p5";
+import { Renderer } from "./renderer"
 import { n_array } from "./algorithm";
+import { Button } from "./button";
+import { unit } from "./main";
 
 export class Asset {
     static shadow80: p5.Image;
@@ -11,13 +14,14 @@ export class Asset {
     static fontEB: p5.Font;
     static black = 90;
 
-    static undoButton: p5.Image;
-    static initButton: p5.Image;
-    static quitButton: p5.Image;
-    static muteButton: p5.Image;
+    static iconUndo: p5.Image;
+    static iconReset: p5.Image;
+    static iconQuit: p5.Image;
+    static iconMute: p5.Image;
+    static iconUnmute: p5.Image;
 
-    static leftButton: p5.Image;
-    static rightButton: p5.Image;
+    static iconLeft: p5.Image;
+    static iconRight: p5.Image;
 
     static loop_head: HTMLAudioElement;
     static loop_tail: HTMLAudioElement;
@@ -29,6 +33,7 @@ export class Asset {
     static button_sound: HTMLAudioElement;
 
     static mute: boolean;
+    static muteButton: Button;
 
     static preload(p: p5) {
         Asset.shadow80 = p.loadImage("./shadow80.png");
@@ -39,12 +44,13 @@ export class Asset {
         Asset.fontR = p.loadFont("./DIN_2014_R.ttf");
         Asset.fontEB = p.loadFont("./DIN_2014_EB.ttf");
 
-        Asset.undoButton = p.loadImage("./button_undo.png");
-        Asset.initButton = p.loadImage("./button_reset.png");
-        Asset.quitButton = p.loadImage("./button_quit.png");
-        Asset.leftButton = p.loadImage("./button_left.png");
-        Asset.rightButton = p.loadImage("./button_right.png");
-        Asset.muteButton = p.loadImage("./button_mute.png");
+        Asset.iconUndo = p.loadImage("./button_undo.png");
+        Asset.iconReset = p.loadImage("./button_reset.png");
+        Asset.iconQuit = p.loadImage("./button_quit.png");
+        Asset.iconLeft = p.loadImage("./button_left.png");
+        Asset.iconRight = p.loadImage("./button_right.png");
+        Asset.iconMute = p.loadImage("./button_mute.png");
+        Asset.iconUnmute = p.loadImage("./button_unmute.png");
         
         Asset.loop_head = new Audio("./loop_head.mp3");
         Asset.loop_tail = new Audio("./loop_tail.mp3");
@@ -60,6 +66,8 @@ export class Asset {
         Asset.clear_sound = new Audio("./clear.mp3");
         Asset.button_sound = new Audio("./cork.mp3");
         Asset.level_select_sound = new Audio("./levelselect.mp3");
+
+        Asset.muteButton = new Button(87.5 * unit, 10 * unit, 6.25* unit, 6.25 * unit, Asset.iconUnmute);
     }
 
     static playMoveSound() {
@@ -92,10 +100,16 @@ export class Asset {
             Asset.loop_head.volume = 1;
             Asset.loop_tail.volume = 1;
             Asset.mute = false;
+            Asset.muteButton.texture = Asset.iconUnmute;
+            Renderer.lastNeedUpdate = true;
+            console.log(this.muteButton.texture);
         } else {
             Asset.loop_head.volume = 0;
             Asset.loop_tail.volume = 0;
             Asset.mute = true;
+            Asset.muteButton.texture = Asset.iconMute;
+            Renderer.lastNeedUpdate = true;
+            console.log(this.muteButton.texture);
         }
     }
 }

@@ -22,33 +22,33 @@ interface Emission {
 }
 
 export class Renderer {
-    p: p5;
-    needUpdate: boolean;
-    lastNeedUpdate: boolean;
-    lastSimplified: boolean;
-    lastRenderTimestamp: number;
+    static p: p5;
+    static needUpdate: boolean;
+    static lastNeedUpdate: boolean;
+    static lastSimplified: boolean;
+    static lastRenderTimestamp: number;
 
-    blobShader05: p5.Shader;
-    blobShader10: p5.Shader;
-    blobShader15: p5.Shader;
-    blobShader20: p5.Shader;
-    blobScr: p5.Graphics;
+    static blobShader05: p5.Shader;
+    static blobShader10: p5.Shader;
+    static blobShader15: p5.Shader;
+    static blobShader20: p5.Shader;
+    static blobScr: p5.Graphics;
 
-    fxaaShader: p5.Shader;
-    fxaaScr: p5.Graphics;
+    static fxaaShader: p5.Shader;
+    static fxaaScr: p5.Graphics;
 
-    floorShader: p5.Shader; // mainScr
+    static floorShader: p5.Shader; // mainScr
 
-    bgScr: p5.Graphics;
-    mainScr: p5.Graphics;
+    static bgScr: p5.Graphics;
+    static mainScr: p5.Graphics;
 
-    filterScr: p5.Graphics;
-    BlurShader: p5.Shader;
-    lensShader: p5.Shader;
+    static filterScr: p5.Graphics;
+    static BlurShader: p5.Shader;
+    static lensShader: p5.Shader;
 
-    fade: number;
-    offsetX: number;
-    offsetY: number;
+    static fade: number;
+    static offsetX: number;
+    static offsetY: number;
 
     static shadow80: p5.Image;
 
@@ -252,265 +252,265 @@ export class Renderer {
         gl_FragColor = vec4((x + x + a + b + c + d).rgb * .1667, 1);
     }`;
 
-    blobs: Blob[];
-    dots: Dot[];
-    emissions: Emission[];
-    smooth_scale: number;
+    static blobs: Blob[];
+    static dots: Dot[];
+    static emissions: Emission[];
+    static smooth_scale: number;
 
-    constructor(p: p5) {
-        this.needUpdate = true;
-        this.lastRenderTimestamp = performance.now();
-        this.lastSimplified = true;
-        this.lastNeedUpdate = true;
+    static init(p: p5) {
+        Renderer.needUpdate = true;
+        Renderer.lastRenderTimestamp = performance.now();
+        Renderer.lastSimplified = true;
+        Renderer.lastNeedUpdate = true;
 
-        this.p = p;
+        Renderer.p = p;
         p.rectMode(p.CENTER);
         p.imageMode(p.CENTER);
 
-        this.bgScr = p.createGraphics(p.width, p.height);
-        this.bgScr.rectMode(p.CENTER);
-        this.bgScr.imageMode(p.CENTER);
+        Renderer.bgScr = p.createGraphics(p.width, p.height);
+        Renderer.bgScr.rectMode(p.CENTER);
+        Renderer.bgScr.imageMode(p.CENTER);
 
-        this.blobScr = this.p.createGraphics(p.width, p.height, this.p.WEBGL);
-        this.blobScr.setAttributes('alpha', true);
-        this.blobShader05 = this.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS.split("NUM_BLOBS").join("5"));
-        this.blobShader10 = this.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS.split("NUM_BLOBS").join("10"));
-        this.blobShader15 = this.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS.split("NUM_BLOBS").join("15"));
-        this.blobShader20 = this.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS.split("NUM_BLOBS").join("20"));
+        Renderer.blobScr = Renderer.p.createGraphics(p.width, p.height, Renderer.p.WEBGL);
+        Renderer.blobScr.setAttributes('alpha', true);
+        Renderer.blobShader05 = Renderer.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS.split("NUM_BLOBS").join("5"));
+        Renderer.blobShader10 = Renderer.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS.split("NUM_BLOBS").join("10"));
+        Renderer.blobShader15 = Renderer.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS.split("NUM_BLOBS").join("15"));
+        Renderer.blobShader20 = Renderer.blobScr.createShader(Renderer.ScreenVS, Renderer.lightingFS + Renderer.blobFS.split("NUM_BLOBS").join("20"));
 
-        this.fxaaScr = this.p.createGraphics(p.width, p.height, this.p.WEBGL);
-        this.fxaaScr.setAttributes("depth", false);
-        this.fxaaScr.setAttributes('alpha', true);
-        this.fxaaShader = this.fxaaScr.createShader(Renderer.ScreenVS, Renderer.fxaaFS);
+        Renderer.fxaaScr = Renderer.p.createGraphics(p.width, p.height, Renderer.p.WEBGL);
+        Renderer.fxaaScr.setAttributes("depth", false);
+        Renderer.fxaaScr.setAttributes('alpha', true);
+        Renderer.fxaaShader = Renderer.fxaaScr.createShader(Renderer.ScreenVS, Renderer.fxaaFS);
 
-        this.mainScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
-        this.mainScr.rectMode(p.CENTER);
-        this.mainScr.imageMode(p.CENTER);
-        this.mainScr.noStroke();
-        this.mainScr.setAttributes("depth", false);
+        Renderer.mainScr = p.createGraphics(p.width, p.height, Renderer.p.WEBGL);
+        Renderer.mainScr.rectMode(p.CENTER);
+        Renderer.mainScr.imageMode(p.CENTER);
+        Renderer.mainScr.noStroke();
+        Renderer.mainScr.setAttributes("depth", false);
 
-        this.filterScr = p.createGraphics(p.width, p.height, this.p.WEBGL);
-        this.filterScr.rectMode(p.CENTER);
-        this.filterScr.imageMode(p.CENTER);
+        Renderer.filterScr = p.createGraphics(p.width, p.height, Renderer.p.WEBGL);
+        Renderer.filterScr.rectMode(p.CENTER);
+        Renderer.filterScr.imageMode(p.CENTER);
 
-        this.lensShader = this.filterScr.createShader(Renderer.ScreenVS, Renderer.lensFS);
-        this.lensShader.setUniform('res', [this.mainScr.width, this.mainScr.height]);
+        Renderer.lensShader = Renderer.filterScr.createShader(Renderer.ScreenVS, Renderer.lensFS);
+        Renderer.lensShader.setUniform('res', [Renderer.mainScr.width, Renderer.mainScr.height]);
 
-        this.BlurShader = this.filterScr.createShader(Renderer.ScreenVS, Renderer.blurFS);
-        this.BlurShader.setUniform('res', [this.mainScr.width, this.mainScr.height]);
+        Renderer.BlurShader = Renderer.filterScr.createShader(Renderer.ScreenVS, Renderer.blurFS);
+        Renderer.BlurShader.setUniform('res', [Renderer.mainScr.width, Renderer.mainScr.height]);
 
-        this.setBlobArea(p.width, p.height, 0);
-        this.setFade(0);
-        this.setOffset(0, 0);
-        this.clear();
+        Renderer.setBlobArea(p.width, p.height, 0);
+        Renderer.setFade(0);
+        Renderer.setOffset(0, 0);
+        Renderer.clear();
     }
 
-    clear() {
-        this.blobs = [];
-        this.dots = [];
-        this.emissions = [];
+    static clear() {
+        Renderer.blobs = [];
+        Renderer.dots = [];
+        Renderer.emissions = [];
     }
 
-    addBlob(x: number, y: number, z: number, r: number) {
-        this.blobs.push({ x, y, z, r });
+    static addBlob(x: number, y: number, z: number, r: number) {
+        Renderer.blobs.push({ x, y, z, r });
     }
 
-    addDot(x: number, y: number, z: number, r: number, color: "black" | "white") {
-        this.dots.push({ x, y, z, r, color });
+    static addDot(x: number, y: number, z: number, r: number, color: "black" | "white") {
+        Renderer.dots.push({ x, y, z, r, color });
     }
 
-    addEmission(x: number, y: number, r: number) {
-        this.emissions.push({ x, y, r });
+    static addEmission(x: number, y: number, r: number) {
+        Renderer.emissions.push({ x, y, r });
     }
 
     /// fadeRate: 0～1の薄めぐあい
-    render() {
-        const lastFrameTime = performance.now() - this.lastRenderTimestamp;
-        this.lastRenderTimestamp = performance.now();
+    static render() {
+        const lastFrameTime = performance.now() - Renderer.lastRenderTimestamp;
+        Renderer.lastRenderTimestamp = performance.now();
 
-        if (!this.lastSimplified && !this.lastNeedUpdate) {
-            this.lastNeedUpdate = this.needUpdate;
-            this.needUpdate = false;
+        if (!Renderer.lastSimplified && !Renderer.lastNeedUpdate) {
+            Renderer.lastNeedUpdate = Renderer.needUpdate;
+            Renderer.needUpdate = false;
             return;
         }
         
-        console.log("updated", "fxaa", lastFrameTime < 60 || !this.lastNeedUpdate, "blur", lastFrameTime < 120 || !this.lastNeedUpdate);
+        console.log("updated", "fxaa", lastFrameTime < 60 || !Renderer.lastNeedUpdate, "blur", lastFrameTime < 120 || !Renderer.lastNeedUpdate);
 
-        this.p.background(255);
+        Renderer.p.background(255);
 
-        this.renderFloor();
-        this.renderBlob();
+        Renderer.renderFloor();
+        Renderer.renderBlob();
 
-        if (lastFrameTime < 60 || !this.lastNeedUpdate) this.renderFxaa();
-        else this.renderNoFxaa();
-        this.renderDot();
-        this.renderEmission();
-        this.renderFilter();
+        if (lastFrameTime < 60 || !Renderer.lastNeedUpdate) Renderer.renderFxaa();
+        else Renderer.renderNoFxaa();
+        Renderer.renderDot();
+        Renderer.renderEmission();
+        Renderer.renderFilter();
 
-        if (lastFrameTime < 120 || !this.lastNeedUpdate) this.renderBlur();
+        if (lastFrameTime < 120 || !Renderer.lastNeedUpdate) Renderer.renderBlur();
 
-        this.p.image(this.mainScr, this.p.width / 2, this.p.height / 2);
+        Renderer.p.image(Renderer.mainScr, Renderer.p.width / 2, Renderer.p.height / 2);
 
-        this.lastSimplified = !(lastFrameTime < 60 || !this.lastNeedUpdate);
+        Renderer.lastSimplified = !(lastFrameTime < 60 || !Renderer.lastNeedUpdate);
 
-        this.lastNeedUpdate = this.needUpdate;
-        this.needUpdate = false;
+        Renderer.lastNeedUpdate = Renderer.needUpdate;
+        Renderer.needUpdate = false;
     }
 
     // bgScr => mainScr
-    renderFloor() {
+    static renderFloor() {
         // (light_dir.z * directional * shadow + ambient) * color;
         // (0.707 * 0.3 + 0.6)
         // light　0.8121 207
         // shadow 0.6    153
 
-        this.mainScr.clear(0, 0, 0, 0);
-        this.mainScr.background(207);
+        Renderer.mainScr.clear(0, 0, 0, 0);
+        Renderer.mainScr.background(207);
 
-        this.blobs.forEach(a => this.mainScr.image(
+        Renderer.blobs.forEach(a => Renderer.mainScr.image(
             Asset.shadow80,
             a.x - a.z, a.y + a.z,
             Asset.shadow80.width / 40 * a.r,
             Asset.shadow80.height / 40 * a.r)
         );
 
-        this.mainScr.blendMode(this.p.MULTIPLY);
-        this.mainScr.image(this.bgScr, 0, 0);
-        this.mainScr.blendMode(this.p.BLEND);
+        Renderer.mainScr.blendMode(Renderer.p.MULTIPLY);
+        Renderer.mainScr.image(Renderer.bgScr, 0, 0);
+        Renderer.mainScr.blendMode(Renderer.p.BLEND);
     }
 
     // blob => blobScr
-    renderBlob() {
-        if (this.blobs.length == 0) {
-            this.blobScr.clear(0, 0, 0, 0);
+    static renderBlob() {
+        if (Renderer.blobs.length == 0) {
+            Renderer.blobScr.clear(0, 0, 0, 0);
             return;
         }
         const blob_params: number[] = [];
-        this.blobs.forEach(a => blob_params.push(a.x, a.y, 0, a.r))
+        Renderer.blobs.forEach(a => blob_params.push(a.x, a.y, 0, a.r))
         while (blob_params.length % 20 != 0)
             blob_params.push(0);
 
         const blobShader =
-            this.blobs.length <= 5 ? this.blobShader05 :
-                this.blobs.length <= 10 ? this.blobShader10 :
-                    this.blobs.length <= 15 ? this.blobShader15 : this.blobShader20;
+            Renderer.blobs.length <= 5 ? Renderer.blobShader05 :
+                Renderer.blobs.length <= 10 ? Renderer.blobShader10 :
+                    Renderer.blobs.length <= 15 ? Renderer.blobShader15 : Renderer.blobShader20;
 
-        this.blobScr.clear(0, 0, 0, 0);
-        this.blobScr.noStroke();
-        this.blobScr.shader(blobShader);
+        Renderer.blobScr.clear(0, 0, 0, 0);
+        Renderer.blobScr.noStroke();
+        Renderer.blobScr.shader(blobShader);
         blobShader.setUniform('blobs', blob_params);
-        this.blobScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+        Renderer.blobScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
     }
 
     // dot => blobScr
-    renderDot() {
-        this.dots.forEach(a => this.mainScr.image(Asset.dot, a.x, a.y, a.r * 2, a.r * 2));
+    static renderDot() {
+        Renderer.dots.forEach(a => Renderer.mainScr.image(Asset.dot, a.x, a.y, a.r * 2, a.r * 2));
     }
 
-    renderEmission() {
-        this.mainScr.resetShader();
-        this.mainScr.blendMode(this.p.ADD);
-        this.emissions.forEach(a => {
-            this.mainScr.image(Asset.emmision80, a.x, a.y, Asset.emmision80.width / 40 * a.r, Asset.emmision80.width / 40 * a.r);
+    static renderEmission() {
+        Renderer.mainScr.resetShader();
+        Renderer.mainScr.blendMode(Renderer.p.ADD);
+        Renderer.emissions.forEach(a => {
+            Renderer.mainScr.image(Asset.emmision80, a.x, a.y, Asset.emmision80.width / 40 * a.r, Asset.emmision80.width / 40 * a.r);
         });
-        this.mainScr.blendMode(this.p.BLEND);
+        Renderer.mainScr.blendMode(Renderer.p.BLEND);
     }
 
     // blobScr => fxaaScr => mainScr
-    renderFxaa() {
-        this.fxaaScr.clear(0, 0, 0, 0);
-        this.fxaaScr.noStroke();
-        this.fxaaScr.shader(this.fxaaShader);
-        this.fxaaShader.setUniform('tex', this.blobScr);
-        this.fxaaScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+    static renderFxaa() {
+        Renderer.fxaaScr.clear(0, 0, 0, 0);
+        Renderer.fxaaScr.noStroke();
+        Renderer.fxaaScr.shader(Renderer.fxaaShader);
+        Renderer.fxaaShader.setUniform('tex', Renderer.blobScr);
+        Renderer.fxaaScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
 
-        this.mainScr.resetShader();
-        this.mainScr.image(this.fxaaScr, 0, 0);
+        Renderer.mainScr.resetShader();
+        Renderer.mainScr.image(Renderer.fxaaScr, 0, 0);
     }
 
-    renderNoFxaa() {
-        this.mainScr.resetShader();
-        this.mainScr.image(this.blobScr, 0, 0);
+    static renderNoFxaa() {
+        Renderer.mainScr.resetShader();
+        Renderer.mainScr.image(Renderer.blobScr, 0, 0);
     }
 
-    renderFilter() {
-        this.filterScr.clear(0, 0, 0, 0);
-        this.filterScr.noStroke();
-        this.filterScr.shader(this.lensShader);
-        this.lensShader.setUniform('tex', this.mainScr);
-        this.filterScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+    static renderFilter() {
+        Renderer.filterScr.clear(0, 0, 0, 0);
+        Renderer.filterScr.noStroke();
+        Renderer.filterScr.shader(Renderer.lensShader);
+        Renderer.lensShader.setUniform('tex', Renderer.mainScr);
+        Renderer.filterScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
 
-        this.mainScr.clear(0, 0, 0, 0)
-        this.mainScr.image(this.filterScr, 0, 0, 0, 0);
+        Renderer.mainScr.clear(0, 0, 0, 0)
+        Renderer.mainScr.image(Renderer.filterScr, 0, 0, 0, 0);
     }
 
-    renderBlur() {
-        this.filterScr.clear(0, 0, 0, 0);
-        this.filterScr.noStroke();
-        this.filterScr.shader(this.BlurShader);
-        this.BlurShader.setUniform('tex', this.mainScr);
-        this.filterScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+    static renderBlur() {
+        Renderer.filterScr.clear(0, 0, 0, 0);
+        Renderer.filterScr.noStroke();
+        Renderer.filterScr.shader(Renderer.BlurShader);
+        Renderer.BlurShader.setUniform('tex', Renderer.mainScr);
+        Renderer.filterScr.quad(-1, 1, 1, 1, 1, -1, -1, -1);
 
-        this.mainScr.clear(0, 0, 0, 0)
-        this.mainScr.image(this.filterScr, 0, 0, 0, 0);
+        Renderer.mainScr.clear(0, 0, 0, 0)
+        Renderer.mainScr.image(Renderer.filterScr, 0, 0, 0, 0);
     }
 
-    setBlobArea(width: number, height: number, smooth_scale: number) {
-        this.smooth_scale = smooth_scale;
+    static setBlobArea(width: number, height: number, smooth_scale: number) {
+        Renderer.smooth_scale = smooth_scale;
 
-        if (this.blobScr.width == width && this.blobScr.height == height)
+        if (Renderer.blobScr.width == width && Renderer.blobScr.height == height)
             return;
 
         //does not work
-        //this.blobScr.size(width, height);
-        //this.fxaaScr.size(width, height);
+        //Renderer.blobScr.size(width, height);
+        //Renderer.fxaaScr.size(width, height);
 
         //*
-        this.blobScr.width = width;
-        this.blobScr.height = height;
-        this.blobScr.ortho(-width / 2, width / 2, -height / 2, height / 2);
-        this.fxaaScr.width = width;
-        this.fxaaScr.height = height;
+        Renderer.blobScr.width = width;
+        Renderer.blobScr.height = height;
+        Renderer.blobScr.ortho(-width / 2, width / 2, -height / 2, height / 2);
+        Renderer.fxaaScr.width = width;
+        Renderer.fxaaScr.height = height;
 
-        this.blobScr.shader(this.blobShader05);
-        this.blobShader05.setUniform('res', [width, height]);
-        this.blobShader05.setUniform('smooth_param', smooth_scale);
+        Renderer.blobScr.shader(Renderer.blobShader05);
+        Renderer.blobShader05.setUniform('res', [width, height]);
+        Renderer.blobShader05.setUniform('smooth_param', smooth_scale);
 
-        this.blobScr.shader(this.blobShader10);
-        this.blobShader10.setUniform('res', [width, height]);
-        this.blobShader10.setUniform('smooth_param', smooth_scale);
+        Renderer.blobScr.shader(Renderer.blobShader10);
+        Renderer.blobShader10.setUniform('res', [width, height]);
+        Renderer.blobShader10.setUniform('smooth_param', smooth_scale);
 
-        this.blobScr.shader(this.blobShader15);
-        this.blobShader15.setUniform('res', [width, height]);
-        this.blobShader15.setUniform('smooth_param', smooth_scale);
+        Renderer.blobScr.shader(Renderer.blobShader15);
+        Renderer.blobShader15.setUniform('res', [width, height]);
+        Renderer.blobShader15.setUniform('smooth_param', smooth_scale);
 
-        this.blobScr.shader(this.blobShader20);
-        this.blobShader20.setUniform('res', [width, height]);
-        this.blobShader20.setUniform('smooth_param', smooth_scale);
+        Renderer.blobScr.shader(Renderer.blobShader20);
+        Renderer.blobShader20.setUniform('res', [width, height]);
+        Renderer.blobShader20.setUniform('smooth_param', smooth_scale);
 
-        this.fxaaScr.shader(this.fxaaShader);
-        this.fxaaShader.setUniform('res', [width, height]);
+        Renderer.fxaaScr.shader(Renderer.fxaaShader);
+        Renderer.fxaaShader.setUniform('res', [width, height]);
         //*/
     }
 
-    resize(width: number, height: number) {
-        this.bgScr.width = width
-        this.bgScr.height = height
+    static resize(width: number, height: number) {
+        Renderer.bgScr.width = width
+        Renderer.bgScr.height = height
 
-        this.mainScr.width = width
-        this.mainScr.height = height
+        Renderer.mainScr.width = width
+        Renderer.mainScr.height = height
 
-        this.filterScr.width = width
-        this.filterScr.height = height
+        Renderer.filterScr.width = width
+        Renderer.filterScr.height = height
     }
 
-    setFade(fade: number) {
-        this.fade = fade;
-        this.lensShader.setUniform('fade', this.fade);
+    static setFade(fade: number) {
+        Renderer.fade = fade;
+        Renderer.lensShader.setUniform('fade', Renderer.fade);
     }
-    setOffset(x: number, y: number) {
-        this.offsetX = x;
-        this.offsetY = y;
-        this.lensShader.setUniform('offset', [this.offsetX, this.offsetY]);
+    static setOffset(x: number, y: number) {
+        Renderer.offsetX = x;
+        Renderer.offsetY = y;
+        Renderer.lensShader.setUniform('offset', [Renderer.offsetX, Renderer.offsetY]);
     }
 }

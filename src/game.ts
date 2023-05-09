@@ -208,7 +208,7 @@ export class Game {
         console.log(this.anim_queue.map(x => JSON.stringify(x)).join("\n"))
     }
 
-    draw(renderer: Renderer) {
+    draw() {
         const each_delay = 50;
         const total_delay = 250;
 
@@ -219,25 +219,25 @@ export class Game {
         }
         const anim_elapsetime = performance.now() - this.anim_starttime;
 
-        renderer.setBlobArea(
+        Renderer.setBlobArea(
             (this.width + 0.5) * this.cell_size,
             (this.height + 0.5) * this.cell_size,
             this.cell_size * 0.46
         );
 
-        renderer.bgScr.noStroke();
-        renderer.bgScr.fill(Asset.black);
+        Renderer.bgScr.noStroke();
+        Renderer.bgScr.fill(Asset.black);
         /*
-        renderer.bgScr.noStroke()
-        renderer.bgScr.fill(Asset.black);
-        renderer.bgScr.rect(
-            renderer.p.width / 2,
-            renderer.p.height / 2,
+        Renderer.bgScr.noStroke()
+        Renderer.bgScr.fill(Asset.black);
+        Renderer.bgScr.rect(
+            Renderer.p.width / 2,
+            Renderer.p.height / 2,
             (this.width + 0.40) * this.cell_size,
             (this.height + 0.40) * this.cell_size);
         //*/
 
-        renderer.clear()
+        Renderer.clear()
         for (let i = 1; i <= this.width; i++)
             for (let j = 1; j <= this.height; j++) {
                 const delay = this.anim_queue[0].delay[i][j] * 20;
@@ -257,9 +257,9 @@ export class Game {
                 
                 //*
                 if (this.anim_queue[0].board[i][j] != Cell.Wall) {
-                    renderer.bgScr.rect(
-                        fixedX + renderer.p.width / 2,
-                        fixedY + renderer.p.height / 2,
+                    Renderer.bgScr.rect(
+                        fixedX + Renderer.p.width / 2,
+                        fixedY + Renderer.p.height / 2,
                         1.20 * this.cell_size,
                         1.20 * this.cell_size);
                 }
@@ -267,18 +267,18 @@ export class Game {
 
                 switch (this.anim_queue[0].board[i][j]) {
                     case Cell.Wall: {
-                        //renderer.addDot(fixedX, fixedY, 0, this.cell_size * 0.12, "white");
+                        //Renderer.addDot(fixedX, fixedY, 0, this.cell_size * 0.12, "white");
                     } break;
                     case Cell.Free: {
-                        renderer.addBlob(animX, animY, this.cell_size * 0.6, this.cell_size * 0.42);
+                        Renderer.addBlob(animX, animY, this.cell_size * 0.6, this.cell_size * 0.42);
                     } break;
                     case Cell.Fixed: {
-                        renderer.addBlob(animX, animY, this.cell_size * 0.6, this.cell_size * 0.42);
-                        renderer.addDot(fixedX, fixedY, 0, this.cell_size * 0.12, "black");
+                        Renderer.addBlob(animX, animY, this.cell_size * 0.6, this.cell_size * 0.42);
+                        Renderer.addDot(fixedX, fixedY, 0, this.cell_size * 0.12, "black");
                     } break;
                     case Cell.Player: {
-                        renderer.addBlob(animX, animY, this.cell_size * 0.6, this.cell_size * 0.42);
-                        renderer.addEmission(animX, animY, this.cell_size * 0.42);
+                        Renderer.addBlob(animX, animY, this.cell_size * 0.6, this.cell_size * 0.42);
+                        Renderer.addEmission(animX, animY, this.cell_size * 0.42);
                     } break;
                 }
             }

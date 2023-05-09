@@ -23,16 +23,12 @@ export class Menu {
 
     anim_queue: MenuAnimation[];
     anim_starttime: number;
-    
-    muteButton: Button;
 
     constructor(selecting: number) {
         this.width = 5;
         this.height = 3;
         this.x = selecting % this.width;
         this.y = Math.floor(selecting / this.width);
-
-        this.muteButton = new Button(87.5 * unit, 10 * unit, 6.25* unit, 6.25 * unit, Asset.muteButton);
 
         this.cell_size = 10 * unit;
 
@@ -118,7 +114,7 @@ export class Menu {
         }
     }
     click(x: number, y: number, manager: TransitionManager) {
-        if (this.muteButton.hit(x, y)) {
+        if (Asset.muteButton.hit(x, y)) {
             Asset.toggleMute();
             return;
         }
@@ -131,24 +127,24 @@ export class Menu {
         }
     }
 
-    draw(renderer: Renderer) {
+    draw() {
         const unlocked = solved.filter(x => x).length + 3;
         const selecting = this.y * this.width + this.x;
 
-        renderer.clear();
+        Renderer.clear();
 
-        renderer.bgScr.background(255);
+        Renderer.bgScr.background(255);
 
-        renderer.bgScr.fill(Asset.black);
-        renderer.bgScr.textAlign(renderer.p.CENTER);
-        renderer.bgScr.textSize(5.5 * unit);
-        renderer.bgScr.textFont(Asset.fontEB);
+        Renderer.bgScr.fill(Asset.black);
+        Renderer.bgScr.textAlign(Renderer.p.CENTER);
+        Renderer.bgScr.textSize(5.5 * unit);
+        Renderer.bgScr.textFont(Asset.fontEB);
         if (selecting < unlocked)
-            renderer.bgScr.text((selecting + 1 + ". ").padStart(4, "0") + leveldata[selecting]?.title, 50 * unit, 75 * unit);
+            Renderer.bgScr.text((selecting + 1 + ". ").padStart(4, "0") + leveldata[selecting]?.title, 50 * unit, 75 * unit);
         else
-            renderer.bgScr.text((selecting + 1 + ". ").padStart(4, "0") + "???", 50 * unit, 75 * unit);
+            Renderer.bgScr.text((selecting + 1 + ". ").padStart(4, "0") + "???", 50 * unit, 75 * unit);
 
-        this.muteButton.draw(renderer);
+        Asset.muteButton.draw();
 
         // 以下3D描画
         if (1 < this.anim_queue.length && this.anim_starttime + 200 < performance.now()) {
@@ -158,18 +154,18 @@ export class Menu {
         }
         const anim_elapsetime = performance.now() - this.anim_starttime;
 
-        renderer.clear();
-        renderer.setBlobArea(
+        Renderer.clear();
+        Renderer.setBlobArea(
             (this.width + 0.5) * this.cell_size,
             (this.height + 0.5) * this.cell_size,
             this.cell_size * 0.46
         );
 
-        renderer.bgScr.noStroke()
-        renderer.bgScr.fill(Asset.black);
-        renderer.bgScr.rect(
-            renderer.p.width / 2,
-            renderer.p.height / 2,
+        Renderer.bgScr.noStroke()
+        Renderer.bgScr.fill(Asset.black);
+        Renderer.bgScr.rect(
+            Renderer.p.width / 2,
+            Renderer.p.height / 2,
             (this.width + 0.40) * this.cell_size,
             (this.height + 0.40) * this.cell_size);
 
@@ -180,13 +176,13 @@ export class Menu {
                 let posY = (y - this.height / 2 + 0.5) * this.cell_size;
 
                 if (index < unlocked) {
-                    renderer.bgScr.fill(solved[index] ? 180 : 255);
-                    renderer.bgScr.textAlign(renderer.p.CENTER);
-                    renderer.bgScr.textSize(5 * unit);
-                    renderer.bgScr.textFont(Asset.fontEB);
-                    renderer.bgScr.text((index + 1 + "").padStart(2, "0"), posX + 50 * unit, posY + 52 * unit);
+                    Renderer.bgScr.fill(solved[index] ? 180 : 255);
+                    Renderer.bgScr.textAlign(Renderer.p.CENTER);
+                    Renderer.bgScr.textSize(5 * unit);
+                    Renderer.bgScr.textFont(Asset.fontEB);
+                    Renderer.bgScr.text((index + 1 + "").padStart(2, "0"), posX + 50 * unit, posY + 52 * unit);
                 } else {
-                    renderer.bgScr.image(Asset.lock, posX + 50 * unit, posY + 50 * unit, Asset.lock.width / 8 * unit, Asset.lock.height / 8 * unit);
+                    Renderer.bgScr.image(Asset.lock, posX + 50 * unit, posY + 50 * unit, Asset.lock.width / 8 * unit, Asset.lock.height / 8 * unit);
                 }
             }
         }
@@ -206,10 +202,10 @@ export class Menu {
         const animX = elastic(prevX, fixedX, anim_elapsetime);
         const animY = elastic(prevY, fixedY, anim_elapsetime);
 
-        renderer.addBlob(animX, animY, this.cell_size * 0.6, this.cell_size * 0.42);
-        renderer.addEmission(animX, animY, this.cell_size * 0.42);
+        Renderer.addBlob(animX, animY, this.cell_size * 0.6, this.cell_size * 0.42);
+        Renderer.addEmission(animX, animY, this.cell_size * 0.42);
         
         if (1 < this.anim_queue.length || performance.now() < this.anim_starttime + 500)
-            renderer.needUpdate = true;
+            Renderer.needUpdate = true;
     }
 }

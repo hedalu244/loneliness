@@ -32,12 +32,12 @@ export class Level {
     
         this.game = new Game(levelParam.initial_board);
         
-        this.undoButton = new Button(87.5 * unit, 10 * unit, 6.25 * unit, 6.25 * unit, Asset.undoButton);
-        this.initButton = new Button(77.5 * unit, 10 * unit, 6.25 * unit, 6.25 * unit, Asset.initButton);
-        this.quitButton = new Button(60 * unit, 10 * unit, 6.25 * unit, 6.25 * unit, Asset.quitButton);
+        this.undoButton = new Button(87.5 * unit, 10 * unit, 6.25 * unit, 6.25 * unit, Asset.iconUndo);
+        this.initButton = new Button(77.5 * unit, 10 * unit, 6.25 * unit, 6.25 * unit, Asset.iconReset);
+        this.quitButton = new Button(60 * unit, 10 * unit, 6.25 * unit, 6.25 * unit, Asset.iconQuit);
 
-        this.prevLevelButton = new Button(7.5 * unit, 50 * unit, 10 * unit, 10 * unit, Asset.leftButton);
-        this.nextLevelButton = new Button(92.5 * unit, 50 * unit, 10 * unit, 10 * unit, Asset.rightButton);
+        this.prevLevelButton = new Button(7.5 * unit, 50 * unit, 10 * unit, 10 * unit, Asset.iconLeft);
+        this.nextLevelButton = new Button(92.5 * unit, 50 * unit, 10 * unit, 10 * unit, Asset.iconRight);
     }
 
     complete(manager: TransitionManager) {
@@ -142,41 +142,41 @@ export class Level {
         }
     }
 
-    draw(renderer: Renderer) {
-        renderer.clear();
+    draw() {
+        Renderer.clear();
         
-        renderer.bgScr.background(255);
+        Renderer.bgScr.background(255);
 
-        renderer.bgScr.fill(Asset.black);
-        renderer.bgScr.textAlign(renderer.p.LEFT);
-        renderer.bgScr.textSize(5.5 * unit);
-        renderer.bgScr.textFont(Asset.fontEB);
-        renderer.bgScr.text((this.index + 1 + ". ").padStart(4, "0"), 7.5 * unit, 10 * unit);
-        renderer.bgScr.text(this.title, 7.5 * unit, 16.25 * unit);
+        Renderer.bgScr.fill(Asset.black);
+        Renderer.bgScr.textAlign(Renderer.p.LEFT);
+        Renderer.bgScr.textSize(5.5 * unit);
+        Renderer.bgScr.textFont(Asset.fontEB);
+        Renderer.bgScr.text((this.index + 1 + ". ").padStart(4, "0"), 7.5 * unit, 10 * unit);
+        Renderer.bgScr.text(this.title, 7.5 * unit, 16.25 * unit);
         
-        renderer.bgScr.textSize(3 * unit);
-        renderer.bgScr.textFont("sans-serif");
-        renderer.bgScr.text(this.description_ja, 7.5 * unit, 87.5 * unit);
+        Renderer.bgScr.textSize(3 * unit);
+        Renderer.bgScr.textFont("sans-serif");
+        Renderer.bgScr.text(this.description_ja, 7.5 * unit, 87.5 * unit);
         
-        renderer.bgScr.textSize(3 * unit);
-        renderer.bgScr.textFont(Asset.fontR);
-        renderer.bgScr.text(this.description_en, 7.5 * unit, 92.5 * unit);
+        Renderer.bgScr.textSize(3 * unit);
+        Renderer.bgScr.textFont(Asset.fontR);
+        Renderer.bgScr.text(this.description_en, 7.5 * unit, 92.5 * unit);
         
-        this.undoButton.draw(renderer);
-        this.initButton.draw(renderer);
-        this.quitButton.draw(renderer);
+        this.undoButton.draw();
+        this.initButton.draw();
+        this.quitButton.draw();
 
         const unlocked = solved.filter(x => x).length + 3;
         if (leveldata[this.index + 1] && this.index + 1 < unlocked) {
-            this.nextLevelButton.draw(renderer);
+            this.nextLevelButton.draw();
         }
         if (leveldata[this.index - 1] && this.index - 1 < unlocked) {
-            this.prevLevelButton.draw(renderer);
+            this.prevLevelButton.draw();
         }
 
-        this.game.draw(renderer);
+        this.game.draw();
 
         if (1 < this.game.anim_queue.length || performance.now() < this.game.anim_starttime + 500)
-            renderer.needUpdate = true;
+            Renderer.needUpdate = true;
     }
 }

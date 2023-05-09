@@ -10,11 +10,7 @@ import { Button } from "./button";
 export class Title {
     game: Game;
     
-    muteButton: Button;
-    
     constructor() {
-        this.muteButton = new Button(87.5 * unit, 10 * unit, 6.25* unit, 6.25 * unit, Asset.muteButton);
-
         this.game = new Game([[Cell.Player], [Cell.Empty], [Cell.Empty], [Cell.Empty], [Cell.Free]]);
     }
 
@@ -66,27 +62,27 @@ export class Title {
         }
     }
     click(x: number, y:number, manager: TransitionManager) {
-        if (this.muteButton.hit(x, y)) {
+        if (Asset.muteButton.hit(x, y)) {
             Asset.toggleMute();
             return;
         }
     }
 
-    draw(renderer: Renderer) {
-        renderer.clear();
+    draw() {
+        Renderer.clear();
         
-        renderer.bgScr.background(255);
+        Renderer.bgScr.background(255);
 
-        renderer.bgScr.fill(Asset.black);
-        renderer.bgScr.textSize(7.5 * unit);
-        renderer.bgScr.textFont(Asset.fontEB);
-        renderer.bgScr.textAlign(renderer.p.CENTER);
-        renderer.bgScr.text("LONELINESS", 50 * unit, 37.5 * unit);
+        Renderer.bgScr.fill(Asset.black);
+        Renderer.bgScr.textSize(7.5 * unit);
+        Renderer.bgScr.textFont(Asset.fontEB);
+        Renderer.bgScr.textAlign(Renderer.p.CENTER);
+        Renderer.bgScr.text("LONELINESS", 50 * unit, 37.5 * unit);
 
-        this.muteButton.draw(renderer);
-        this.game.draw(renderer);
+        Asset.muteButton.draw();
+        this.game.draw();
         
         if (1 < this.game.anim_queue.length || performance.now() < this.game.anim_starttime + 500)
-            renderer.needUpdate = true;
+            Renderer.needUpdate = true;
     }
 }
