@@ -34,6 +34,13 @@ export function initInputEvent(element: HTMLElement,
     key: (code: string) => void,
     click: (x: number, y: number) => void,
     flick: (direction: Direction) => void) {
+    if (window.ontouchstart === undefined) {
+        element.addEventListener("click", (event: MouseEvent) => {
+            //event.preventDefault();
+            click(event.x, event.y)
+        }, false);
+    }
+    else {
     element.addEventListener("touchstart", (event: TouchEvent) => {
         event.preventDefault();
         Array.from(event.changedTouches).forEach(touch => {
@@ -84,11 +91,7 @@ export function initInputEvent(element: HTMLElement,
             strokes.splice(strokeIndex, 1);  // remove it; we're done
         });
     }, false);
-
-    element.addEventListener("click", (event: MouseEvent) => {
-        //event.preventDefault();
-        click(event.x, event.y)
-    }, false);
+    }
 
     document.addEventListener("keydown", (event: KeyboardEvent) => {
         event.preventDefault();
