@@ -37,63 +37,69 @@ export function initInputEvent(element: HTMLElement,
     if (window.ontouchstart === undefined) {
         element.addEventListener("click", (event: MouseEvent) => {
             //event.preventDefault();
+            console.log("click");
             click(event.x, event.y)
         }, false);
     }
     else {
-    element.addEventListener("touchstart", (event: TouchEvent) => {
-        event.preventDefault();
-        Array.from(event.changedTouches).forEach(touch => {
-            const rect = element.getBoundingClientRect();
-            const stroke = {
-                id: touch.identifier,
-                log: [{ x: touch.clientX - rect.left, y: touch.clientY - rect.top }],
-            };;
-            strokes.push(stroke);
-        });
-    }, false);
-    element.addEventListener("touchmove", (event: TouchEvent) => {
-        event.preventDefault();
-        Array.from(event.changedTouches).forEach(touch => {
-            const rect = element.getBoundingClientRect();
-            const stroke = strokes.find(x => x.id === touch.identifier);
-            if (stroke === undefined)
-                return;
-            stroke.log.push({ x: touch.clientX - rect.left, y: touch.clientY - rect.top });
-        });
-    }, false);
-    element.addEventListener("touchend", (event: TouchEvent) => {
-        event.preventDefault();
-        Array.from(event.changedTouches).forEach(touch => {
-            const strokeIndex = strokes.findIndex(x => x.id === touch.identifier);
-            if (strokeIndex === -1)
-                return;
-            const stroke = strokes[strokeIndex];
-            strokes.splice(strokeIndex, 1);  // remove it; we're done
-            
-            if (isTap(stroke)) {
-                click(stroke.log[stroke.log.length - 1].x, 
-                      stroke.log[stroke.log.length - 1].y);
-                return;
-            }
+        element.addEventListener("touchstart", (event: TouchEvent) => {
+            console.log("touchstart");
+            event.preventDefault();
+            Array.from(event.changedTouches).forEach(touch => {
+                const rect = element.getBoundingClientRect();
+                const stroke = {
+                    id: touch.identifier,
+                    log: [{ x: touch.clientX - rect.left, y: touch.clientY - rect.top }],
+                };;
+                strokes.push(stroke);
+            });
+        }, false);
+        element.addEventListener("touchmove", (event: TouchEvent) => {
+            console.log("touchmove");
+            event.preventDefault();
+            Array.from(event.changedTouches).forEach(touch => {
+                const rect = element.getBoundingClientRect();
+                const stroke = strokes.find(x => x.id === touch.identifier);
+                if (stroke === undefined)
+                    return;
+                stroke.log.push({ x: touch.clientX - rect.left, y: touch.clientY - rect.top });
+            });
+        }, false);
+        element.addEventListener("touchend", (event: TouchEvent) => {
+            console.log("touchend");
+            event.preventDefault();
+            Array.from(event.changedTouches).forEach(touch => {
+                const strokeIndex = strokes.findIndex(x => x.id === touch.identifier);
+                if (strokeIndex === -1)
+                    return;
+                const stroke = strokes[strokeIndex];
+                strokes.splice(strokeIndex, 1);  // remove it; we're done
+                
+                if (isTap(stroke)) {
+                    click(stroke.log[stroke.log.length - 1].x, 
+                        stroke.log[stroke.log.length - 1].y);
+                    return;
+                }
 
-            const result = isFrick(stroke);
-            if (result != Direction.None)
-                flick(result);
-        });
-    }, false);
-    element.addEventListener("touchcancel", (event: TouchEvent) => {
-        event.preventDefault();
-        Array.from(event.changedTouches).forEach(touch => {
-            const strokeIndex = strokes.findIndex(x => x.id === touch.identifier);
-            if (strokeIndex === -1)
-                return;
-            strokes.splice(strokeIndex, 1);  // remove it; we're done
-        });
-    }, false);
+                const result = isFrick(stroke);
+                if (result != Direction.None)
+                    flick(result);
+            });
+        }, false);
+        element.addEventListener("touchcancel", (event: TouchEvent) => {
+            console.log("touchcancel");
+            event.preventDefault();
+            Array.from(event.changedTouches).forEach(touch => {
+                const strokeIndex = strokes.findIndex(x => x.id === touch.identifier);
+                if (strokeIndex === -1)
+                    return;
+                strokes.splice(strokeIndex, 1);  // remove it; we're done
+            });
+        }, false);
     }
 
     document.addEventListener("keydown", (event: KeyboardEvent) => {
+        console.log("keydown");
         event.preventDefault();
         if (event.repeat) return;
         key(event.code)
