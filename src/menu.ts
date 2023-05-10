@@ -43,7 +43,7 @@ export class Menu {
     }
 
     move(direction: Direction) {
-        navigator.vibrate(120);
+        if(navigator.vibrate) navigator.vibrate(120);
 
         const unlocked = solved.filter(x => x).length + 3;
 

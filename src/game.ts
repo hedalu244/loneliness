@@ -72,7 +72,7 @@ export class Game {
     }
 
     move(direction: Direction) {
-        navigator.vibrate(120);
+        if(navigator.vibrate) navigator.vibrate(120);
 
         console.log("move", direction)
 
