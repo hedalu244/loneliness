@@ -147,7 +147,7 @@ export class Menu {
         Asset.muteButton.draw();
 
         // 以下3D描画
-        if (1 < this.anim_queue.length && this.anim_starttime + 200 < performance.now()) {
+        if (1 < this.anim_queue.length && this.anim_starttime + 150 < performance.now()) {
             this.anim_queue.shift();
             this.anim_starttime = performance.now();
             Asset.playMoveSound();
