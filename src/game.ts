@@ -210,7 +210,7 @@ export class Game {
 
     draw() {
         const each_delay = 50;
-        const total_delay = 250;
+        const total_delay = 150;
 
         if (1 < this.anim_queue.length && this.anim_starttime + total_delay < performance.now()) {
             this.anim_queue.shift();

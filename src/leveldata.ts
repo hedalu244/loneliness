@@ -154,8 +154,8 @@ export const leveldata: LevelParam[] = [
         `)
     },{ // 13
         title: "Loop", // シンプル、ちょいむず　大回り　Loop
-        description_ja: "孤独を受け入れることが最初の一歩です。",
-        description_en: "Accepting loneliness is the first step.",
+        description_ja: "つながりを維持するのは簡単ではありません。",
+        description_en: "It is not easy to get on well with others.",
         initial_board: parseBoard(`
             40004
             13230
@@ -163,16 +163,26 @@ export const leveldata: LevelParam[] = [
             00000
         `)
     },{
-        title: "",
-        description_ja: "",
-        description_en: "",
+        title: "Approval",
+        description_ja: "孤独を受け入れることが最初の一歩です。",
+        description_en: "Accepting loneliness is the first step.",
         initial_board: parseBoard(`
+            00002
+            01300
+            03130
+            00310
+            40000
         `)
     },{
-        title: "",
-        description_ja: "",
-        description_en: "",
+        title: "Loneliness",
+        description_ja: "孤独も案外悪いものではないかもしれません。",
+        description_en: "Being alone might not be such a bad thing.",
         initial_board: parseBoard(`
+            0003011
+            0004004
+            1213031
+            1004011
+            1003011
         `)
     },
 ];
